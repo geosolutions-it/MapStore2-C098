@@ -1,7 +1,7 @@
 {
     "proxyUrl": {
         "url": "proxy/?url=",
-        "useCORS": ["http://demo.geo-solutions.it/geoserver", "https://demo.geo-solutions.it:443/geoserver", "https://demo.geo-solutions.it/geoserver", "https://nominatim.openstreetmap.org"]
+        "useCORS": ["http://demo.geo-solutions.it/geoserver", "https://demo.geo-solutions.it:443/geoserver", "https://demo.geo-solutions.it/geoserver", "https://nominatim.openstreetmap.org", "http://192.168.12.112/geoserver"]
     },
     "geoStoreUrl": "rest/geostore/",
     "printUrl": "pdf/info.json",
@@ -23,7 +23,12 @@
     "authenticationRules": [{
         "urlPattern": ".*geostore.*",
         "method": "bearer"
-    }],
+    },{
+    "urlPattern": "\\/geoserver/.*",
+    "authkeyParamName": "authkey",
+    "method": "authkey"
+    }
+    ],
     "monitorState": [
       {"name": "routing", "path": "routing.location.pathname"},
       {"name": "browser", "path": "browser"},
@@ -34,6 +39,11 @@
         "maptype": {
             "mapType": "{context.mode === 'desktop' ? 'openlayers' : 'leaflet'}"
         },
+        "annotations": {
+            "config": {
+                "multiGeometry": true
+            }
+        },
         "catalog": {
           "default": {
             "newService": {
@@ -43,25 +53,19 @@
                 "isNew": true,
                 "autoload": false
             },
-            "selectedService": "Demo CSW Service",
+            "selectedService": "TIX WMS Service",
             "services": {
+              "TIX WMS Service": {
+                "url": "http://10.159.212.110/geoserver/wms",
+                "type": "wms",
+                "title": "TIX WMS Service",
+                "autoload": false
+              },
               "Demo CSW Service": {
                 "url": "https://demo.geo-solutions.it/geoserver/csw",
                 "type": "csw",
                 "title": "Demo CSW Service",
                 "autoload": true
-              },
-              "Demo WMS Service": {
-                "url": "https://demo.geo-solutions.it/geoserver/wms",
-                "type": "wms",
-                "title": "Demo WMS Service",
-                "autoload": false
-              },
-              "Demo WMTS Service": {
-                "url": "https://demo.geo-solutions.it/geoserver/gwc/service/wmts",
-                "type": "wmts",
-                "title": "Demo WMTS Service",
-                "autoload": false
               }
             }
           }
@@ -75,18 +79,6 @@
             "en": {
               "code": "en-US",
               "description": "English"
-            },
-            "fr": {
-              "code": "fr-FR",
-              "description": "Français"
-            },
-            "de": {
-              "code": "de-DE",
-              "description": "Deutsch"
-            },
-            "es": {
-              "code": "es-ES",
-              "description": "Español"
             }
           }
         }
@@ -223,7 +215,7 @@
                 }
               }
             }
-          }, "AutoMapUpdate", "HelpLink", "Share", "DrawerMenu", "Version", "Notifications", "BackgroundSelector", "Annotations",
+          }, "AutoMapUpdate", "HelpLink", "Share", "DrawerMenu", "Version", "Notifications", "BackgroundSelector", { "name": "Annotations", "multiGeometry":true},
             {
                 "name": "Identify",
                 "cfg": {
@@ -244,7 +236,13 @@
                         "alwaysVisible": true
                     }
                 }
-            }, "Home", "FeatureEditor",
+            }, "Home", 
+            {
+              "name": "FeatureEditor",
+              "cfg": {
+                "editingAllowedRoles": ["ADMIN","USER"]
+              }
+            },
             "WFSDownload",
             {
               "name": "QueryPanel",
@@ -499,9 +497,9 @@
           "name": "DashboardEditor",
           "cfg": {
              "catalog": {
-              "url": "https://demo.geo-solutions.it/geoserver/csw",
-              "type": "csw",
-              "title": "Demo CSW Service",
+              "url": "http://10.159.212.110/geoserver/wms",
+              "type": "wms",
+              "title": "Demo WMS Service",
               "autoload": true
             },
             "containerPosition": "columns"
