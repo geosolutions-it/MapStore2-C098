@@ -215,7 +215,7 @@
 						}
 					}
 				}
-			}, "AutoMapUpdate", "HelpLink", "Share", "DrawerMenu", "Version", "Notifications", "BackgroundSelector", {
+			}, "AutoMapUpdate", "HelpLink", {"name": "Share", "cfg": {"showAPI": false}}, "DrawerMenu", "Version", "Notifications", "BackgroundSelector", {
 				"name": "Annotations",
 				"multiGeometry": true
 			}, {

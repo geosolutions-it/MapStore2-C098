@@ -150,36 +150,6 @@
                     </configuration>
                 </execution>
                 <execution>
-                    <id>html, configuration files and images</id>
-                    <phase>process-classes</phase>
-                    <goals>
-                        <goal>copy-resources</goal>
-                    </goals>
-                    <configuration>
-                        <outputDirectory>${basedir}/target/MapStore2-C098</outputDirectory>
-                        <encoding>UTF-8</encoding>
-                        <resources>
-                            <resource>
-                                <directory>${basedir}/..</directory>
-                                <includes>
-                                    <include>**/*.html</include>
-                                    <include>**/*.json</include>
-                                    <include>**/img/*</include>
-                                    <include>**/*.less</include>
-                                </includes>
-                                <excludes>
-                                    <exclude>node_modules/*</exclude>
-                                    <exclude>node_modules/**/*</exclude>
-                                    <exclude>MapStore2/*</exclude>
-                                    <exclude>MapStore2/**/*</exclude>
-                                    <exclude>**/libs/Cesium/**/*</exclude>
-                                    <exclude>**/test-resources/*</exclude>
-                                </excludes>
-                            </resource>
-                        </resources>
-                    </configuration>
-                </execution>
-                <execution>
                 <id>only index.html</id>
                     <phase>process-classes</phase>
                     <goals>
@@ -249,6 +219,36 @@
                     </configuration>
                 </execution>
                 <execution>
+                    <id>html, configuration files and images</id>
+                    <phase>process-classes</phase>
+                    <goals>
+                        <goal>copy-resources</goal>
+                    </goals>
+                    <configuration>
+                        <outputDirectory>${basedir}/target/MapStore2-C098</outputDirectory>
+                        <encoding>UTF-8</encoding>
+                        <resources>
+                            <resource>
+                                <directory>${basedir}/..</directory>
+                                <includes>
+                                    <include>**/*.html</include>
+                                    <include>**/*.json</include>
+                                    <include>**/img/*</include>
+                                    <include>**/*.less</include>
+                                </includes>
+                                <excludes>
+                                    <exclude>node_modules/*</exclude>
+                                    <exclude>node_modules/**/*</exclude>
+                                    <exclude>MapStore2/*</exclude>
+                                    <exclude>MapStore2/**/*</exclude>
+                                    <exclude>**/libs/Cesium/**/*</exclude>
+                                    <exclude>**/test-resources/*</exclude>
+                                </excludes>
+                            </resource>
+                        </resources>
+                    </configuration>
+                </execution>
+                <execution>
                     <id>js files</id>
                     <phase>process-classes</phase>
                     <goals>
@@ -287,17 +287,11 @@
                         <goal>copy-resources</goal>
                     </goals>
                     <configuration>
-                        <outputDirectory>${basedir}/target/MapStore2-C098/MapStore2/web/client</outputDirectory>
+                        <outputDirectory>${basedir}/target/MapStore2-C098</outputDirectory>
                         <encoding>UTF-8</encoding>
                         <resources>
                             <resource>
-                                <directory>${basedir}/../js</directory>
-                                <includes>
-                                    <include>translations/*</include>
-                                </includes>
-                            </resource>
-                            <resource>
-                                <directory>${basedir}/../MapStore2/web/client</directory>
+                                <directory>${basedir}/../</directory>
                                 <includes>
                                     <include>translations/*</include>
                                 </includes>
@@ -389,7 +383,8 @@
                 <packagingExcludes>WEB-INF/lib/commons-codec-1.2.jar,
                 WEB-INF/lib/commons-io-1.1.jar,
                 WEB-INF/lib/commons-logging-1.0.4.jar,
-                WEB-INF/lib/commons-pool-1.3.jar
+                WEB-INF/lib/commons-pool-1.3.jar,
+		        WEB-INF/lib/spring-*-3.1.0*.jar
                 </packagingExcludes>
                 <overlays>
                     <overlay>
