@@ -540,6 +540,44 @@
 				}
 			}
 		],
-		"manager": ["Header", "Redirect", "Manager", "Home", "UserManager", "GroupManager", "Footer"]
+		"manager": ["Header", "Redirect", "Manager", "Home", "UserManager", "GroupManager", "Footer"],
+		"sciadro": [
+			"Notifications",
+			{
+				"name": "Map",
+				"cfg": {
+					"mapOptions": {
+						"openlayers": {
+							"interactions": {
+								"pinchRotate": false,
+								"altShiftDragRotate": false
+							},
+							"attribution": {
+								"container": "#mapstore-map-footer-container"
+							}
+						},
+						"leaflet": {
+							"attribution": {
+								"container": "#mapstore-map-footer-container"
+							}
+						}
+					},
+					"toolsOptions": {
+						"scalebar": {
+							"container": "#mapstore-map-footer-container"
+						}
+					}
+				}
+			},
+ 			{
+				"name": "MapLoading",
+				"override": {
+					"Toolbar": {
+						"alwaysVisible": true
+					}
+				}
+			},
+      "OmniBar", "Login"
+		]
 	}
 }
