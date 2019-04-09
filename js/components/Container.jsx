@@ -4,7 +4,7 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
- */
+*/
 
 
 import React from 'react';
@@ -17,28 +17,44 @@ import Message from '../../MapStore2/web/client/components/I18N/Message';
  * @class
  * @memberof components.Container
  * @prop {boolean} show the panel
-
- */
+*/
 class Container extends React.Component {
     static propTypes = {
-        show: PropTypes.bool
+        bsStyle: PropTypes.string,
+        dock: PropTypes.bool,
+        glyph: PropTypes.string,
+        position: PropTypes.string,
+        title: PropTypes.string,
+        show: PropTypes.bool,
+        size: PropTypes.number
     };
-
+    static contextTypes = {
+        messages: PropTypes.object
+    };
     static defaultProps = {
-        show: true
+        bsStyle: "primary",
+        dock: true,
+        glyph: "globe",
+        position: "left",
+        title: "sciadro.titlePanel",
+        show: true,
+        size: 660
     };
 
     render() {
 
         return (<DockablePanel
-            dock
-            bsStyle="primary"
-            position="left"
-            title={<Message key="title" msgId="sciadro.title"/>}
-            glyph="1-ruler"
-            size={660}
+            dock={this.props.dock}
+            bsStyle={this.props.bsStyle}
+            position={this.props.position}
+            title={<Message key="title" msgId={this.props.title}/>}
+            glyph={this.props.glyph}
+            size={this.props.size}
             open={this.props.show}>
-                Main panel component
+                <p>
+                    <h2>ASSET</h2>
+                </p>
+
             </DockablePanel>);
 
     }

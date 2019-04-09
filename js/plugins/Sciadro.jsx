@@ -4,10 +4,10 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
- */
+*/
 
-import { connect } from '../../MapStore2/web/client/utils/PluginsUtils';
 import assign from 'object-assign';
+import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import Container from '../components/Container';
@@ -27,7 +27,7 @@ const Sciadro = connect(createSelector([
     // action: ActionCreator
 })(Container);
 
-export const SciadroPlugin = assign({}, Sciadro);
+export const SciadroPlugin = assign(Sciadro);
 
 /*
 export const reducers = { controls };

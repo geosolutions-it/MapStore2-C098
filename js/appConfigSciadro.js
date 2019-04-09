@@ -1,10 +1,10 @@
-/**
- * Copyright 2016, GeoSolutions Sas.
+/*
+ * Copyright 2019, GeoSolutions Sas.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
- */
+*/
 
 module.exports = {
     pages: [{
@@ -22,7 +22,7 @@ module.exports = {
             mousePosition: {enabled: false, "crs": "EPSG:4326"},
             controls: {
                 sciadro: {
-                    enabled: false
+                    enabled: true
                 }
             },
             maps: {

@@ -4,12 +4,12 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
- */
-const React = require('react');
-const PropTypes = require('prop-types');
-const {connect} = require('react-redux');
-const Page = require('../../MapStore2/web/client/containers/Page');
-const {loadMapConfig} = require('../../MapStore2/web/client/actions/config');
+*/
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import Page from '../../MapStore2/web/client/containers/Page';
+import {loadMapConfig} from '../../MapStore2/web/client/actions/config';
 
 
 class SciadroPage extends React.Component {
@@ -39,7 +39,7 @@ class SciadroPage extends React.Component {
     render() {
         let plugins = this.props.pluginsConfig;
         let pluginsConfig = {
-            "desktop": plugins[this.props.name] || [], // TODO mesh page plugins with other plugins
+            "desktop": plugins[this.props.name] || [],
             "mobile": plugins[this.props.name] || []
         };
 
