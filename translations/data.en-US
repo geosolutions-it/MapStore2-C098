@@ -1,0 +1,22 @@
+{
+    "locale": "en-US",
+    "messages": {
+        "sciadro": {
+            "titlePanel": "Sciadro",
+            "mode": {
+                "asset-list": "Assets",
+                "asset-detail": "Asset",
+                "asset-edit": "Edit Asset",
+                "mission-list": "Missions",
+                "mission-detail": "Mission",
+                "mission-edit": "Edit Mission"
+            },
+            "assets": {
+                "add": "Create Asset"
+            },
+            "missions": {
+                "add": "Create Mission"
+            }
+        }
+    }
+}

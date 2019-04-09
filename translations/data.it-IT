@@ -1,0 +1,22 @@
+{
+    "locale": "it-IT",
+    "messages": {
+        "sciadro": {
+            "titlePanel": "Sciadro",
+            "mode": {
+                "asset-list": "Attività",
+                "asset-detail": "Attività",
+                "asset-edit": "Modifica Attività",
+                "mission-list": "Missioni",
+                "mission-detail": "Missione",
+                "mission-edit": "Missione"
+            },
+            "assets": {
+                "add": "Crea Attività"
+            },
+            "missions": {
+                "add": "Crea Mission Attività"
+            }
+        }
+    }
+}
