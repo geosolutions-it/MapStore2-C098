@@ -5,16 +5,16 @@
             "titlePanel": "Sciadro",
             "assets": {
                 "mode": {
-                    "list": "Assets",
-                    "detail": "Asset",
-                    "edit": "Asset"
+                    "list": "Attività",
+                    "detail": "Attività",
+                    "edit": "Attività"
                 }
             },
             "missions": {
                 "mode": {
-                    "list": "Missions",
-                    "detail": "Mission",
-                    "edit": "Mission"
+                    "list": "Missioni",
+                    "detail": "Missione",
+                    "edit": "Missione"
                 }
             }
         }

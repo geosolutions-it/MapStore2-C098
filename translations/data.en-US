@@ -1,8 +1,22 @@
 {
     "locale": "en-US",
     "messages": {
-        "sciadro": {
-            "titlePanel": "Sciadro"
+    "sciadro": {
+        "titlePanel": "Sciadro",
+        "assets": {
+            "mode": {
+                "list": "Assets",
+                "detail": "Asset",
+                "edit": "Asset"
+            }
+        },
+        "missions": {
+            "mode": {
+                "list": "Missions",
+                "detail": "Mission",
+                "edit": "Mission"
+            }
         }
+    }
     }
 }
