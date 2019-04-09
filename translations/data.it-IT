@@ -7,7 +7,7 @@
                 "mode": {
                     "list": "Attività",
                     "detail": "Attività",
-                    "edit": "Attività"
+                    "edit": "Modifica Attività"
                 }
             },
             "missions": {

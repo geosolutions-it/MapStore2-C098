@@ -1,5 +1,4 @@
 const path = require("path");
-
 const themeEntries = require('./MapStore2/themes.js').themeEntries;
 const extractThemesPlugin = require('./MapStore2/themes.js').extractThemesPlugin;
 
@@ -23,6 +22,7 @@ const config = require('./MapStore2/buildConfig')(
     "/dist/",
     '.MapStore2-C098'
 );
+
 config.devServer.proxy = {
     '/rest/geostore': {
         target: "http://localhost:8040/mapstore"
