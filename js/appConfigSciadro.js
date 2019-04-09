@@ -42,5 +42,6 @@ module.exports = {
         persist: {
             whitelist: ['security']
         }
-    }
+    },
+    printingEnabled: false
 };

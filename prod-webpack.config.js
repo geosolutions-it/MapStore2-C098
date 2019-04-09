@@ -13,9 +13,6 @@ const paths = {
 
 module.exports = require('./MapStore2/buildConfig')(
     {
-        'MapStore2-C098': path.join(__dirname, "js", "app"),
-        'MapStore2-C098-embedded': path.join(__dirname, "MapStore2", "web", "client", "product", "embedded"),
-        'MapStore2-C098-api': path.join(__dirname, "MapStore2", "web", "client", "product", "api"),
         'sciadro': path.join(__dirname, "js", "sciadro"),
         'themes-sciadro': path.join(__dirname, "assets", "themes", "sciadro.less") // custom theme for sciadro
     },
@@ -28,23 +25,9 @@ module.exports = require('./MapStore2/buildConfig')(
     [
         new HtmlWebpackPlugin({
             template: path.join(paths.base, 'indexTemplate.html'),
-            chunks: ['MapStore2-C098'],
+            chunks: ['sciadro'],
             inject: true,
             hash: true
-        }),
-        new HtmlWebpackPlugin({
-            template: path.join(paths.base, 'embeddedTemplate.html'),
-            chunks: ['MapStore2-C098-embedded'],
-            inject: true,
-            hash: true,
-            filename: 'embedded.html'
-        }),
-        new HtmlWebpackPlugin({
-            template: path.join(paths.base, 'apiTemplate.html'),
-            chunks: ['MapStore2-C098-api'],
-            inject: 'head',
-            hash: true,
-            filename: 'api.html'
         })
     ]
 );

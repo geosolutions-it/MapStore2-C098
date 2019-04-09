@@ -1,22 +1,22 @@
 {
     "locale": "en-US",
     "messages": {
-    "sciadro": {
-        "titlePanel": "Sciadro",
-        "assets": {
+        "sciadro": {
+            "titlePanel": "Sciadro",
             "mode": {
-                "list": "Assets",
-                "detail": "Asset",
-                "edit": "Edit Asset"
-            }
-        },
-        "missions": {
-            "mode": {
-                "list": "Missions",
-                "detail": "Mission",
-                "edit": "Mission"
+                "asset-list": "Assets",
+                "asset-detail": "Asset",
+                "asset-edit": "Edit Asset",
+                "mission-list": "Missions",
+                "mission-detail": "Mission",
+                "mission-edit": "Edit Mission"
+            },
+            "assets": {
+                "add": "Create Asset"
+            },
+            "missions": {
+                "add": "Create Mission"
             }
         }
-    }
     }
 }

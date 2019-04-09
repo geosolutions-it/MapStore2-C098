@@ -7,11 +7,6 @@
  */
 
 import ConfigUtils from '../MapStore2/web/client/utils/ConfigUtils';
-/**
- * Add custom (overriding) translations with:
- */
-ConfigUtils.setConfigProp('translationsPath', ['./MapStore2/web/client/translations', './translations']);
-ConfigUtils.setConfigProp('themePrefix', 'MapStore2-C098');
 
 /**
  * Use a custom plugins configuration file with:

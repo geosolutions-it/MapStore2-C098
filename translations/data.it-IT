@@ -3,19 +3,19 @@
     "messages": {
         "sciadro": {
             "titlePanel": "Sciadro",
+            "mode": {
+                "asset-list": "Attività",
+                "asset-detail": "Attività",
+                "asset-edit": "Modifica Attività",
+                "mission-list": "Missioni",
+                "mission-detail": "Missione",
+                "mission-edit": "Missione"
+            },
             "assets": {
-                "mode": {
-                    "list": "Attività",
-                    "detail": "Attività",
-                    "edit": "Modifica Attività"
-                }
+                "add": "Crea Attività"
             },
             "missions": {
-                "mode": {
-                    "list": "Missioni",
-                    "detail": "Missione",
-                    "edit": "Missione"
-                }
+                "add": "Crea Mission Attività"
             }
         }
     }

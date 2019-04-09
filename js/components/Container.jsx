@@ -11,6 +11,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import DockablePanel from '../../MapStore2/web/client/components/misc/panels/DockablePanel';
 import Message from '../../MapStore2/web/client/components/I18N/Message';
+import Toolbar from './Toolbar';
 
 /**
  * Main Container for sciadro app
@@ -23,6 +24,7 @@ class Container extends React.Component {
         bsStyle: PropTypes.string,
         dock: PropTypes.bool,
         glyph: PropTypes.string,
+        mode: PropTypes.string,
         position: PropTypes.string,
         title: PropTypes.string,
         show: PropTypes.bool,
@@ -34,7 +36,8 @@ class Container extends React.Component {
     static defaultProps = {
         bsStyle: "primary",
         dock: true,
-        glyph: "globe",
+        glyph: "",
+        mode: "asset-list",
         position: "left",
         title: "sciadro.titlePanel",
         show: true,
@@ -42,19 +45,15 @@ class Container extends React.Component {
     };
 
     render() {
-
         return (<DockablePanel
             dock={this.props.dock}
             bsStyle={this.props.bsStyle}
             position={this.props.position}
-            title={<Message key="title" msgId={this.props.title}/>}
+            title={<Message key="title" msgId={`sciadro.mode.${this.props.mode}`}/>}
             glyph={this.props.glyph}
             size={this.props.size}
             open={this.props.show}>
-                <p>
-                    <h2>ASSET</h2>
-                </p>
-
+                <Toolbar/>
             </DockablePanel>);
 
     }
