@@ -15,7 +15,9 @@ module.exports = require('./MapStore2/buildConfig')(
     {
         'MapStore2-C098': path.join(__dirname, "js", "app"),
         'MapStore2-C098-embedded': path.join(__dirname, "MapStore2", "web", "client", "product", "embedded"),
-        'MapStore2-C098-api': path.join(__dirname, "MapStore2", "web", "client", "product", "api")
+        'MapStore2-C098-api': path.join(__dirname, "MapStore2", "web", "client", "product", "api"),
+        'sciadro': path.join(__dirname, "js", "sciadro"),
+        'themes-sciadro': path.join(__dirname, "assets", "themes", "sciadro.less") // custom theme for sciadro
     },
     themeEntries,
     paths,
