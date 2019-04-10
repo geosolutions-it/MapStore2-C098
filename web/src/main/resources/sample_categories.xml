@@ -12,4 +12,10 @@
     <Category>
         <name>DASHBOARD</name>
     </Category>
+    <Category>
+        <name>ASSET</name>
+    </Category>
+    <Category>
+        <name>MISSION</name>
+    </Category>
 </CategoryList>

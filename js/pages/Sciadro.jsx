@@ -29,7 +29,6 @@ class SciadroPage extends React.Component {
         name: "sciadro",
         mode: 'desktop',
         match: {},
-        reset: () => {},
         pluginsConfig: {}
     }
     componentWillMount() {

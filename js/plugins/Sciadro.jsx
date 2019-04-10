@@ -11,6 +11,16 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import Container from '../components/Container';
+import { loadAssets } from '../actions/sciadro';
+import sciadro from '../reducers/sciadro';
+import * as sciadroEpics from '../epics/sciadro';
+import {
+    enabledSelector,
+    assetsListSelector,
+    missionsListSelector,
+    currentAssetSelector,
+    currentMissionSelector
+} from '../selectors/sciadro';
 
 /**
  * Sciadro plugins allows to manage Assets and Missions
@@ -20,16 +30,19 @@ import Container from '../components/Container';
 */
 
 const Sciadro = connect(createSelector([
-    state => state.controls && state.controls.sciadro && state.controls.sciadro.enabled
-], (show) => ({
-    show
+    enabledSelector,
+    assetsListSelector,
+    missionsListSelector,
+    currentAssetSelector,
+    currentMissionSelector
+], (show, assets, missions) => ({
+    show,
+    assets,
+    missions
 })), {
-    // action: ActionCreator
+    onLoadAssets: loadAssets
 })(Container);
 
 export const SciadroPlugin = assign(Sciadro);
-
-/*
-export const reducers = { controls };
-export const epics = shareEpics;
-*/
+export const reducers = { sciadro };
+export const epics = sciadroEpics;

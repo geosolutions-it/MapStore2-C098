@@ -12,7 +12,7 @@ import ReactDOM from "react-dom";
 import Container from "../Container";
 
 
-describe('testing Container for sciadro plugin', () => {
+describe('testing sciadro Container in Components', () => {
     beforeEach((done) => {
         document.body.innerHTML = '<div id="container"></div>';
         setTimeout(done);
