@@ -12,6 +12,8 @@ import PropTypes from 'prop-types';
 import DockablePanel from '../../MapStore2/web/client/components/misc/panels/DockablePanel';
 import Message from '../../MapStore2/web/client/components/I18N/Message';
 import Toolbar from './Toolbar';
+import AssetList from './asset/List';
+import MissionList from './mission/List';
 
 /**
  * Main Container for sciadro app
@@ -28,7 +30,10 @@ class Container extends React.Component {
         position: PropTypes.string,
         title: PropTypes.string,
         show: PropTypes.bool,
-        size: PropTypes.number
+        assets: PropTypes.array,
+        missions: PropTypes.array,
+        size: PropTypes.number,
+        onLoadAssets: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -54,6 +59,8 @@ class Container extends React.Component {
             size={this.props.size}
             open={this.props.show}>
                 <Toolbar/>
+                {this.props.mode === "asset-list" && <AssetList onLoadAssets={this.props.onLoadAssets} items={this.props.assets}/>}
+                {this.props.mode === "mission-list" && <MissionList items={this.props.missions}/>}
             </DockablePanel>);
 
     }

@@ -20,5 +20,9 @@ module.exports = function karmaConfig(config) {
                         }
                     ]
                 }, ...testConfig.webpack.module.rules];
+    testConfig.webpack.resolve = {
+        alias: { '@mapstore': path.resolve(__dirname, 'MapStore2/web/client')},
+        ...testConfig.webpack.resolve
+    };
     config.set(testConfig);
 };
