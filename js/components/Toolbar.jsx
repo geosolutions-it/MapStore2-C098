@@ -10,24 +10,29 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ButtonToolbar } from 'react-bootstrap';
 
-// import Message from '../../MapStore2/web/client/components/I18N/Message';
-import Toolbar from '../../MapStore2/web/client/components/misc/toolbar/Toolbar';
+// import Message from '@mapstore/components/I18N/Message';
+import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 
 /**
  * Toolbar for sciadro app
  * @class
  * @memberof components.Toolbar
  */
-class MainToolbar extends React.Component {
+export default class MainToolbar extends React.Component {
     static propTypes = {
-        size: PropTypes.number,
-        mode: PropTypes.string
+        mode: PropTypes.string,
+        onResetCurrentAsset: PropTypes.func,
+        onResetCurrentMission: PropTypes.func,
+        onChangeMode: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        mode: "asset-list"
+        mode: "asset-list",
+        onResetCurrentAsset: () => {},
+        onResetCurrentMission: () => {},
+        onChangeMode: () => {}
     };
 
     render() {
@@ -39,26 +44,31 @@ class MainToolbar extends React.Component {
                     btnDefaultProps = {{ className: 'square-button-md', bsStyle: 'primary' }}
                     buttons = {[
                         {
-                            tooltipId: "sciadro.assets.add",
+                            tooltipId: "sciadro.back",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                // do things
+                                if (this.props.mode === "mission-detail") {
+                                    this.props.onResetCurrentMission();
+                                }
+                                if (this.props.mode === "mission-list" || this.props.mode === "asset-edit") {
+                                    this.props.onResetCurrentAsset();
+                                }
                             },
-                            glyph: "plus",
-                            visible: this.props.mode === "asset-list"
+                            glyph: "arrow-left",
+                            visible: this.props.mode !== "asset-list" // all but the first has the back button
                         },
                         {
-                            tooltipId: "sciadro.assets.add",
+                            tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.add" : "sciadro.assets.add",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                // do things
+                                this.props.onChangeMode(this.props.mode.replace("list", "edit"));
                             },
                             glyph: "plus",
-                            visible: this.props.mode === "mission-list"
+                            visible: this.props.mode.indexOf("list") !== -1
                         }
                     ]}
                 />
@@ -66,5 +76,3 @@ class MainToolbar extends React.Component {
         );
     }
 }
-
-export default MainToolbar;

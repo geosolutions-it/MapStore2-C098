@@ -9,11 +9,13 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import DockablePanel from '../../MapStore2/web/client/components/misc/panels/DockablePanel';
-import Message from '../../MapStore2/web/client/components/I18N/Message';
+import DockablePanel from '@mapstore/components/misc/panels/DockablePanel';
+import Message from '@mapstore/components/I18N/Message';
 import Toolbar from './Toolbar';
+import {pick} from 'lodash';
 import AssetList from './asset/List';
 import MissionList from './mission/List';
+import MissionDetail from './mission/Detail';
 
 /**
  * Main Container for sciadro app
@@ -30,10 +32,19 @@ class Container extends React.Component {
         position: PropTypes.string,
         title: PropTypes.string,
         show: PropTypes.bool,
+        size: PropTypes.number,
+
+        // components
+        assetName: PropTypes.string,
         assets: PropTypes.array,
         missions: PropTypes.array,
-        size: PropTypes.number,
-        onLoadAssets: PropTypes.func
+        onLoadAssets: PropTypes.func,
+        onChangeMode: PropTypes.func,
+        onResetCurrentAsset: PropTypes.func,
+        onChangeCurrentAsset: PropTypes.func,
+        onSelectMission: PropTypes.func,
+        onChangeCurrentMission: PropTypes.func,
+        onResetCurrentMission: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -46,10 +57,24 @@ class Container extends React.Component {
         position: "left",
         title: "sciadro.titlePanel",
         show: true,
-        size: 660
+        size: 660,
+
+        // sciadro
+        onLoadAssets: () => {},
+        onChangeMode: () => {},
+        onResetCurrentAsset: () => {},
+        onResetCurrentMission: () => {},
+        onChangeCurrentAsset: () => {},
+        onSelectMission: () => {},
+        onChangeCurrentMission: () => {}
     };
 
     render() {
+        const assetProps = pick(this.props, ["onLoadAssets", "onChangeCurrentAsset", "assets"]);
+        const missionProps = pick(this.props, ["missions", "assetName", "onSelectMission", "onChangeCurrentMission"]);
+        const toolbarProps = pick(this.props, ["mode", "onChangeMode", "onResetCurrentAsset", "onResetCurrentMission"]);
+        const missionDetailProps = pick(this.props, ["mode", "currentMission"]);
+
         return (<DockablePanel
             dock={this.props.dock}
             bsStyle={this.props.bsStyle}
@@ -58,9 +83,10 @@ class Container extends React.Component {
             glyph={this.props.glyph}
             size={this.props.size}
             open={this.props.show}>
-                <Toolbar/>
-                {this.props.mode === "asset-list" && <AssetList onLoadAssets={this.props.onLoadAssets} items={this.props.assets}/>}
-                {this.props.mode === "mission-list" && <MissionList items={this.props.missions}/>}
+                <Toolbar {...toolbarProps}/>
+                {this.props.mode === "asset-list" && <AssetList {...assetProps}/>}
+                {this.props.mode === "mission-list" && <MissionList {...missionProps}/>}
+                {this.props.mode === "mission-detail" && <MissionDetail {...missionDetailProps}/>}
             </DockablePanel>);
 
     }

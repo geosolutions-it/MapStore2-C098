@@ -6,44 +6,32 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-
 import * as Rx from 'rxjs';
-// import axios from 'axios';
-import { LOAD_ASSETS, loadedAssets, loadAssetError } from '../actions/sciadro';
-import GeoStoreApi from "../../MapStore2/web/client/api/GeoStoreDAO";
-import * as Persistence from "../../MapStore2/web/client/api/persistence";
-
-/**
- * it removes the attributes
- * @param {object} res the resource to parse
- * @return {object} the asset object
-*//*
-const resourceIntoAsset = ({attributes, ...res}) => {
-    return {
-        ...res,
-        ...attributes
-    };
-};*/
+import {LOAD_ASSETS, SELECT_MISSION, loadedAssets, loadAssetError} from '../actions/sciadro';
+import {selectedMissionSelector} from '../selectors/sciadro';
+import GeoStoreApi from "@mapstore/api/GeoStoreDAO";
+import {updateAdditionalLayer} from "@mapstore/actions/additionallayers";
+import * as Persistence from "@mapstore/api/persistence";
 
 const mockAssetsGeojson = [{
     type: "Feature",
     geometry: {
         type: "Point",
-        coordinates: [45, 9]
+        coordinates: [9, 45]
     }
 },
 {
     type: "Feature",
     geometry: {
         type: "LineString",
-        coordinates: [[44, 9], [44, 4]]
+        coordinates: [[9, 44], [4, 44]]
     }
 },
 {
     type: "Feature",
     geometry: {
         type: "Point",
-        coordinates: [42, 9]
+        coordinates: [9, 42]
     }
 }];
 
@@ -68,13 +56,40 @@ export const loadAssetsEpic = (action$) =>
                     });
                     return getResourcesObs;
                 }
-                return Rx.Observable.of(loadedAssets([]));
+                return Rx.Observable.empty();
             })
             .combineAll()
-            .switchMap((assets) => {
+            .switchMap((assets = []) => {
                 // adding a fake asset geom and a fake mission to each asset
                 const assetWithMission = assets.map((a, i) => ({ ...a, feature: mockAssetsGeojson[i], missionsId: [1]}));
                 return Rx.Observable.of(loadedAssets(assetWithMission));
             })
             .catch((e) => loadAssetError(e));
+        });
+
+
+/**
+ * Intercept on `SELECT_MISSION` to show in the map the mission's feature
+ * @param {external:Observable} action$ manages `SELECT_MISSION`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ */
+export const highlightMissionEpic = (action$, store) =>
+    action$.ofType(SELECT_MISSION)
+        .switchMap(() => {
+            const state = store.getState();
+
+            const mission = selectedMissionSelector(state);
+            const layerOptions = {
+                id: "missions",
+                name: "missions",
+                type: "vector",
+                visibility: true,
+                features: [mission.feature],
+                style: {
+                    color: "#FF0000",
+                    weight: 3
+                }
+            };
+            return Rx.Observable.of(updateAdditionalLayer("missions", "sciadro", "overlay", layerOptions));
         });

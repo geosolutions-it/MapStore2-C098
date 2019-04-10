@@ -10,8 +10,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
-import Filter from '@mapstore/components/misc/Filter';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
+import Filter from '@mapstore/components/misc/Filter';
 
 /**
  * Asset List
@@ -20,16 +20,18 @@ import BorderLayout from '@mapstore/components/layout/BorderLayout';
 */
 class List extends React.Component {
     static propTypes = {
-        items: PropTypes.array,
+        assets: PropTypes.array,
         className: PropTypes.string,
-        onLoadAssets: PropTypes.func
+        onLoadAssets: PropTypes.func,
+        onChangeCurrentAsset: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        items: [],
+        assets: [],
         onLoadAssets: () => {},
+        onChangeCurrentAsset: () => {},
         className: "asset-list-container"
     };
 
@@ -48,22 +50,29 @@ class List extends React.Component {
                 <SideGrid
                     className={this.props.className}
                     size="sm"
+                    onItemClick= {(item) => {
+                        this.props.onChangeCurrentAsset(item.id);
+                    }}
                     items={
-                        this.props.items.map(item => ({
+                        this.props.assets.map(item => ({
+                            id: item.id,
                             title: item.name,
                             tools: <Toolbar
-                        btnDefaultProps={{
-                            bsStyle: 'primary',
-                            className: 'square-button-md'
-                        }}
-                        buttons={
-                            [
-                                {
-                                    glyph: 'wrench',
-                                    onClick: () => {/**/}
-                                }
-                            ]
-                        }/>
+                                btnDefaultProps={{
+                                    bsStyle: 'primary',
+                                    className: 'square-button-md'
+                                }}
+                                buttons={
+                                    [
+                                        {
+                                            glyph: 'wrench',
+                                            onClick: (e) => {
+                                                e.stopPropagation();
+                                                // edit permissions
+                                            }
+                                        }
+                                    ]
+                                }/>
                         }))
                     }
                 />

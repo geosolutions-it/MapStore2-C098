@@ -11,15 +11,23 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import Container from '../components/Container';
-import { loadAssets } from '../actions/sciadro';
 import sciadro from '../reducers/sciadro';
 import * as sciadroEpics from '../epics/sciadro';
+import {
+    loadAssets,
+    changeCurrentAsset,
+    changeMode,
+    resetCurrentAsset,
+    resetCurrentMission,
+    selectMission,
+    changeCurrentMission
+} from '../actions/sciadro';
 import {
     enabledSelector,
     assetsListSelector,
     missionsListSelector,
-    currentAssetSelector,
-    currentMissionSelector
+    modeSelector,
+    assetNameSelector
 } from '../selectors/sciadro';
 
 /**
@@ -33,14 +41,22 @@ const Sciadro = connect(createSelector([
     enabledSelector,
     assetsListSelector,
     missionsListSelector,
-    currentAssetSelector,
-    currentMissionSelector
-], (show, assets, missions) => ({
+    modeSelector,
+    assetNameSelector
+], (show, assets, missions, mode, assetName) => ({
     show,
     assets,
-    missions
+    missions,
+    mode,
+    assetName
 })), {
-    onLoadAssets: loadAssets
+    onLoadAssets: loadAssets,
+    onChangeCurrentAsset: changeCurrentAsset,
+    onChangeMode: changeMode,
+    onResetCurrentAsset: resetCurrentAsset,
+    onResetCurrentMission: resetCurrentMission,
+    onSelectMission: selectMission,
+    onChangeCurrentMission: changeCurrentMission
 })(Container);
 
 export const SciadroPlugin = assign(Sciadro);

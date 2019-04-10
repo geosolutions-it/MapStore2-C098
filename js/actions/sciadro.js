@@ -7,7 +7,23 @@
 */
 
 export const LOAD_ASSETS = "SCIADRO:LOAD_ASSETS";
+export const LOAD_ASSETS_ERROR = "SCIADRO:LOAD_ASSETS_ERROR";
 export const LOADED_ASSETS = "SCIADRO:LOADED_ASSETS";
 
+export const RESET_CURRENT_ASSET = "SCIADRO:RESET_CURRENT_ASSET";
+export const RESET_CURRENT_MISSION = "SCIADRO:RESET_CURRENT_MISSION";
+export const CHANGE_CURRENT_ASSET = "SCIADRO:CHANGE_CURRENT_ASSET";
+export const CHANGE_CURRENT_MISSION = "SCIADRO:CHANGE_CURRENT_MISSION";
+export const SELECT_MISSION = "SCIADRO:SELECT_MISSION";
+
 export const loadAssets = () => ({ type: LOAD_ASSETS });
+export const loadAssetError = (e) => ({ type: LOAD_ASSETS_ERROR, e });
 export const loadedAssets = (assets) => ({ type: LOADED_ASSETS, assets });
+
+export const resetCurrentAsset = () => ({ type: RESET_CURRENT_ASSET });
+export const resetCurrentMission = () => ({ type: RESET_CURRENT_MISSION });
+
+export const changeCurrentAsset = (id) => ({ type: CHANGE_CURRENT_ASSET, id });
+export const changeCurrentMission = (id) => ({ type: CHANGE_CURRENT_MISSION, id });
+
+export const selectMission = (id) => ({ type: SELECT_MISSION, id });
