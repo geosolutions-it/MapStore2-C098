@@ -49,7 +49,7 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                if (this.props.mode === "mission-detail") {
+                                if (this.props.mode === "mission-detail" || this.props.mode === "mission-edit") {
                                     this.props.onResetCurrentMission();
                                 }
                                 if (this.props.mode === "mission-list" || this.props.mode === "asset-edit") {

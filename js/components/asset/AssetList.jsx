@@ -16,9 +16,9 @@ import Filter from '@mapstore/components/misc/Filter';
 /**
  * Asset List
  * @class
- * @memberof components.List
+ * @memberof components.AssetList
 */
-class List extends React.Component {
+class AssetList extends React.Component {
     static propTypes = {
         assets: PropTypes.array,
         className: PropTypes.string,
@@ -81,4 +81,4 @@ class List extends React.Component {
     }
 }
 
-export default List;
+export default AssetList;

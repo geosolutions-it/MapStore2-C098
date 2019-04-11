@@ -13,14 +13,15 @@ import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 
 /**
- * Mission List
+ * Mission MissionList
  * @class
- * @memberof components.List
+ * @memberof components.MissionList
 */
-class List extends React.Component {
+class MissionList extends React.Component {
     static propTypes = {
         missions: PropTypes.array,
         assetName: PropTypes.string,
+        selectedMission: PropTypes.string,
         onChangeCurrentMission: PropTypes.func,
         onSelectMission: PropTypes.func
     };
@@ -29,6 +30,7 @@ class List extends React.Component {
     };
     static defaultProps = {
         assetName: "",
+        selectedMission: "",
         missions: [],
         onChangeCurrentMission: () => {},
         onSelectMission: () => {}
@@ -58,6 +60,7 @@ class List extends React.Component {
                     this.props.missions.map(item => ({
                         id: item.id,
                         title: item.name,
+                        selected: item.selected,
                         tools: <Toolbar
                             btnDefaultProps={{
                                 bsStyle: 'primary',
@@ -67,7 +70,8 @@ class List extends React.Component {
                                 [
                                     {
                                         glyph: 'arrow-right',
-                                        onClick: () => {
+                                        onClick: (e) => {
+                                            e.stopPropagation();
                                             this.props.onChangeCurrentMission(item.id);
                                         }
                                     }
@@ -81,4 +85,4 @@ class List extends React.Component {
     }
 }
 
-export default List;
+export default MissionList;

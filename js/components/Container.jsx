@@ -13,9 +13,12 @@ import DockablePanel from '@mapstore/components/misc/panels/DockablePanel';
 import Message from '@mapstore/components/I18N/Message';
 import Toolbar from './Toolbar';
 import {pick} from 'lodash';
-import AssetList from './asset/List';
-import MissionList from './mission/List';
-import MissionDetail from './mission/Detail';
+import AssetList from './asset/AssetList';
+import AssetEdit from './asset/AssetEdit';
+import MissionList from './mission/MissionList';
+import MissionDetail from './mission/MissionDetail';
+import MissionEdit from './mission/MissionEdit';
+import BorderLayout from '@mapstore/components/layout/BorderLayout';
 
 /**
  * Main Container for sciadro app
@@ -38,6 +41,7 @@ class Container extends React.Component {
         assetName: PropTypes.string,
         assets: PropTypes.array,
         missions: PropTypes.array,
+        anomalies: PropTypes.array,
         onLoadAssets: PropTypes.func,
         onChangeMode: PropTypes.func,
         onResetCurrentAsset: PropTypes.func,
@@ -71,9 +75,11 @@ class Container extends React.Component {
 
     render() {
         const assetProps = pick(this.props, ["onLoadAssets", "onChangeCurrentAsset", "assets"]);
+        const assetEditProps = pick(this.props, ["assets"]);
         const missionProps = pick(this.props, ["missions", "assetName", "onSelectMission", "onChangeCurrentMission"]);
         const toolbarProps = pick(this.props, ["mode", "onChangeMode", "onResetCurrentAsset", "onResetCurrentMission"]);
         const missionDetailProps = pick(this.props, ["mode", "currentMission"]);
+        const anomaliesProps = pick(this.props, ["anomalies"]);
 
         return (<DockablePanel
             dock={this.props.dock}
@@ -83,10 +89,16 @@ class Container extends React.Component {
             glyph={this.props.glyph}
             size={this.props.size}
             open={this.props.show}>
-                <Toolbar {...toolbarProps}/>
+            <BorderLayout
+                header={
+                    <Toolbar {...toolbarProps}/>
+                }>
                 {this.props.mode === "asset-list" && <AssetList {...assetProps}/>}
+                {this.props.mode === "asset-edit" && <AssetEdit {...assetEditProps}/>}
+                {this.props.mode === "mission-edit" && <MissionEdit {...assetEditProps}/>}
                 {this.props.mode === "mission-list" && <MissionList {...missionProps}/>}
-                {this.props.mode === "mission-detail" && <MissionDetail {...missionDetailProps}/>}
+                {this.props.mode === "mission-detail" && <MissionDetail {...missionDetailProps} {...anomaliesProps}/>}
+                </BorderLayout>
             </DockablePanel>);
 
     }

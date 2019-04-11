@@ -26,6 +26,7 @@ import {
     enabledSelector,
     assetsListSelector,
     missionsListSelector,
+    anomaliesListSelector,
     modeSelector,
     assetNameSelector
 } from '../selectors/sciadro';
@@ -41,12 +42,14 @@ const Sciadro = connect(createSelector([
     enabledSelector,
     assetsListSelector,
     missionsListSelector,
+    anomaliesListSelector,
     modeSelector,
     assetNameSelector
-], (show, assets, missions, mode, assetName) => ({
+], (show, assets, missions, anomalies, mode, assetName) => ({
     show,
     assets,
     missions,
+    anomalies,
     mode,
     assetName
 })), {

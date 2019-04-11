@@ -13,10 +13,20 @@
                 "mission-edit": "Edit Mission"
             },
             "assets": {
-                "add": "Create Asset"
+                "add": "Create Asset",
+                "type": "Type",
+                "name": "Name",
+                "description": "Description",
+                "note": "Note",
+                "dateCreation": "Date Creation",
+                "dateModified": "Date Modified"
             },
             "missions": {
-                "add": "Create Mission"
+                "add": "Create Mission",
+                "name": "Name",
+                "description": "Description",
+                "note": "Note",
+                "dateCreation": "Date Creation"
             }
         }
     }
