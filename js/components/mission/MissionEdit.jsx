@@ -11,25 +11,36 @@ import PropTypes from 'prop-types';
 import {Form, FormGroup, FormControl, ControlLabel, Col} from 'react-bootstrap';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Message from '@mapstore/components/I18N/Message';
+import {find} from 'lodash';
+
+import Moment from 'moment';
+import momentLocalizer from 'react-widgets/lib/localizers/moment';
+momentLocalizer(Moment);
+require('react-widgets/lib/less/react-widgets.less');
+
+import {DateTimePicker} from 'react-widgets';
 
 /**
- * Asset Edit
+ * MissionEdit
  * @class
- * @memberof components.AssetEdit
+ * @memberof components.MissionEdit
 */
-class AssetEdit extends React.Component {
+class MissionEdit extends React.Component {
     static propTypes = {
-        asset: PropTypes.object,
-        className: PropTypes.string
+        missions: PropTypes.array,
+        className: PropTypes.string,
+        onEditMission: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        assets: [],
-        className: ""
+        missions: [],
+        className: "",
+        onEditMission: () => {}
     };
     render() {
+        const mission = find(this.props.missions, a => a.edit) || {};
 
         return (
             <BorderLayout
@@ -42,19 +53,39 @@ class AssetEdit extends React.Component {
                     <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.name"/></ControlLabel>
-                            <FormControl/>
+                            <FormControl
+                                value={mission.name}
+                                onChange={(e) => this.props.onEditMission(mission.id, "name", e.target.value)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.description"/></ControlLabel>
-                            <FormControl/>
+                            <FormControl
+                                value={mission.description}
+                                onChange={(e) => this.props.onEditMission(mission.id, "description", e.target.value)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.note"/></ControlLabel>
-                            <FormControl/>
+                            <FormControl
+                                value={mission.note}
+                                onChange={(e) => this.props.onEditMission(mission.id, "note", e.target.value)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.dateCreation"/></ControlLabel>
-                            <FormControl/>
+                            <DateTimePicker
+                                defaultValue={new Date()}
+                                time
+                                calendar
+                                format="L"
+                                onChange={(date) => this.props.onEditMission(mission.id, "dateCreation", date)}
+                            />
+                        </Col>
+                        <Col xs={12} sm={12} md={12}>
+                            <ControlLabel><Message msgId="sciadro.missions.data"/></ControlLabel>
+                            <br/>
+                            <img src="/assets/images/upload_geom.png"/>
                         </Col>
                     </FormGroup>
                 </Form>
@@ -63,4 +94,4 @@ class AssetEdit extends React.Component {
     }
 }
 
-export default AssetEdit;
+export default MissionEdit;

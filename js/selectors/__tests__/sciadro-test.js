@@ -11,8 +11,6 @@ import {
     enabledSelector,
     assetsListSelector,
     missionsListSelector,
-    currentAssetSelector,
-    currentMissionSelector,
     selectedAssetSelector
 } from "../sciadro";
 
@@ -34,41 +32,25 @@ describe('testing sciadro selectors', () => {
                 id: 1,
                 missions: [{id: 1}]
             }],
-            currentAsset: 1,
             missions: [{id: 1}]
         }})).toEqual([{id: 1}]);
     });
-    it('currentAssetSelector', () => {
-        expect(currentAssetSelector({})).toEqual(null);
-        expect(currentAssetSelector({
-            sciadro: {
-                currentAsset: 1
-            }
-        })).toEqual(1);
-    });
-    it('currentMissionSelector', () => {
-        expect(currentMissionSelector({})).toEqual(null);
-        expect(currentMissionSelector({
-            sciadro: {
-                currentMission: 1
-            }
-        })).toEqual(1);
-    });
+
     it('selectedAssetSelector', () => {
         expect(selectedAssetSelector({})).toEqual(null);
         expect(selectedAssetSelector({
             sciadro: {
                 assets: [{
                     id: 1,
-                    missions: [{id: 1}]
+                    missions: [{id: 1}],
+                    selected: true
                 }],
-                currentAsset: 1,
-                currentMission: 1,
                 missions: [{id: 1}]
             }
         })).toEqual({
             id: 1,
-            missions: [{id: 1}]
+            missions: [{id: 1}],
+            selected: true
         });
     });
 

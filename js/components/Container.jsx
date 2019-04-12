@@ -38,7 +38,7 @@ class Container extends React.Component {
         size: PropTypes.number,
 
         // components
-        assetName: PropTypes.string,
+        drawMethod: PropTypes.string,
         assets: PropTypes.array,
         missions: PropTypes.array,
         anomalies: PropTypes.array,
@@ -47,6 +47,11 @@ class Container extends React.Component {
         onResetCurrentAsset: PropTypes.func,
         onChangeCurrentAsset: PropTypes.func,
         onSelectMission: PropTypes.func,
+        onEditAsset: PropTypes.func,
+        onEditMission: PropTypes.func,
+        onAddAsset: PropTypes.func,
+        onAddMission: PropTypes.func,
+        onDrawAsset: PropTypes.func,
         onChangeCurrentMission: PropTypes.func,
         onResetCurrentMission: PropTypes.func
     };
@@ -61,24 +66,31 @@ class Container extends React.Component {
         position: "left",
         title: "sciadro.titlePanel",
         show: true,
-        size: 660,
+        size: 350,
 
         // sciadro
+        drawMethod: "",
         onLoadAssets: () => {},
         onChangeMode: () => {},
         onResetCurrentAsset: () => {},
         onResetCurrentMission: () => {},
         onChangeCurrentAsset: () => {},
         onSelectMission: () => {},
+        onEditAsset: () => {},
+        onEditMission: () => {},
+        onAddAsset: () => {},
+        onDrawAsset: () => {},
+        onAddMission: () => {},
         onChangeCurrentMission: () => {}
     };
 
     render() {
         const assetProps = pick(this.props, ["onLoadAssets", "onChangeCurrentAsset", "assets"]);
-        const assetEditProps = pick(this.props, ["assets"]);
-        const missionProps = pick(this.props, ["missions", "assetName", "onSelectMission", "onChangeCurrentMission"]);
-        const toolbarProps = pick(this.props, ["mode", "onChangeMode", "onResetCurrentAsset", "onResetCurrentMission"]);
-        const missionDetailProps = pick(this.props, ["mode", "currentMission"]);
+        const assetEditProps = pick(this.props, ["assets", "onEditAsset"]);
+        const missionEditProps = pick(this.props, ["missions", "onEditMission"]);
+        const missionProps = pick(this.props, ["missions", "assets", "onSelectMission", "onChangeCurrentMission"]);
+        const toolbarProps = pick(this.props, ["assets", "mode", "onChangeMode", "onResetCurrentAsset", "onResetCurrentMission", "onAddAsset", "onAddMission", "onDrawAsset", "drawMethod"]);
+        const missionDetailProps = pick(this.props, ["mode", "missions"]);
         const anomaliesProps = pick(this.props, ["anomalies"]);
 
         return (<DockablePanel
@@ -95,7 +107,7 @@ class Container extends React.Component {
                 }>
                 {this.props.mode === "asset-list" && <AssetList {...assetProps}/>}
                 {this.props.mode === "asset-edit" && <AssetEdit {...assetEditProps}/>}
-                {this.props.mode === "mission-edit" && <MissionEdit {...assetEditProps}/>}
+                {this.props.mode === "mission-edit" && <MissionEdit {...missionEditProps}/>}
                 {this.props.mode === "mission-list" && <MissionList {...missionProps}/>}
                 {this.props.mode === "mission-detail" && <MissionDetail {...missionDetailProps} {...anomaliesProps}/>}
                 </BorderLayout>

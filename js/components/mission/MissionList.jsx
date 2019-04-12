@@ -11,6 +11,7 @@ import PropTypes from 'prop-types';
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
+import {find} from 'lodash';
 
 /**
  * Mission MissionList
@@ -20,7 +21,7 @@ import BorderLayout from '@mapstore/components/layout/BorderLayout';
 class MissionList extends React.Component {
     static propTypes = {
         missions: PropTypes.array,
-        assetName: PropTypes.string,
+        assets: PropTypes.array,
         selectedMission: PropTypes.string,
         onChangeCurrentMission: PropTypes.func,
         onSelectMission: PropTypes.func
@@ -29,7 +30,7 @@ class MissionList extends React.Component {
         messages: PropTypes.object
     };
     static defaultProps = {
-        assetName: "",
+        assets: [],
         selectedMission: "",
         missions: [],
         onChangeCurrentMission: () => {},
@@ -37,13 +38,14 @@ class MissionList extends React.Component {
     };
 
     render() {
+        const asset = find(this.props.assets, a => a.selected);
 
         return (
             <BorderLayout
                 header={
                     <div>
                         <div className="mission-list-header">
-                            {this.props.assetName}
+                            {asset.name}
                         </div>
                         <div className="mission-list-header">
                             Date Filter Section

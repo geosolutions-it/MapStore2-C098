@@ -8,10 +8,16 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {find} from 'lodash';
 import {Form, FormGroup, FormControl, ControlLabel, Col} from 'react-bootstrap';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Message from '@mapstore/components/I18N/Message';
+import Moment from 'moment';
+import momentLocalizer from 'react-widgets/lib/localizers/moment';
+momentLocalizer(Moment);
 
+require('react-widgets/lib/less/react-widgets.less');
+import {DateTimePicker} from 'react-widgets';
 /**
  * Asset Edit
  * @class
@@ -19,17 +25,20 @@ import Message from '@mapstore/components/I18N/Message';
 */
 class AssetEdit extends React.Component {
     static propTypes = {
-        asset: PropTypes.object,
-        className: PropTypes.string
+        assets: PropTypes.array,
+        className: PropTypes.string,
+        onEditAsset: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
         assets: [],
-        className: ""
+        className: "",
+        onEditAsset: () => {}
     };
     render() {
+        const asset = find(this.props.assets, a => a.edit) || {};
 
         return (
             <BorderLayout
@@ -42,27 +51,56 @@ class AssetEdit extends React.Component {
                     <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.type"/></ControlLabel>
-                            <FormControl/>
+                            <FormControl
+                                value={asset.type}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "type", e.target.value)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.name"/></ControlLabel>
-                            <FormControl/>
+                            <FormControl
+                                value={asset.name}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "name", e.target.value)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.description"/></ControlLabel>
-                            <FormControl/>
+                            <FormControl
+                                value={asset.description}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "description", e.target.value)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.note"/></ControlLabel>
-                            <FormControl/>
+                            <FormControl
+                                value={asset.note}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "note", e.target.value)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.dateCreation"/></ControlLabel>
-                            <FormControl/>
+                            <DateTimePicker
+                                defaultValue={new Date()}
+                                time
+                                calendar
+                                format="L"
+                                onChange={(date) => this.props.onEditAsset(asset.id, "dateCreation", date)}
+                            />
                         </Col>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.dateModified"/></ControlLabel>
-                            <FormControl/>
+                                <DateTimePicker
+                                    defaultValue={new Date()}
+                                    time
+                                    calendar
+                                    format="L"
+                                    onChange={(date) => this.props.onEditAsset(asset.id, "dateModified", date)}
+                                />
+                        </Col>
+                        <Col xs={12} sm={12} md={12}>
+                            <ControlLabel><Message msgId="sciadro.assets.geometry"/></ControlLabel>
+                            <br/>
+                            <img src="/assets/images/upload_geom.png"/>
                         </Col>
                     </FormGroup>
                 </Form>

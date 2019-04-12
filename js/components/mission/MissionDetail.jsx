@@ -20,22 +20,27 @@ import AnomaliesList from './AnomaliesList';
 */
 class MissionDetail extends React.Component {
     static propTypes = {
-        currentMission: PropTypes.object
+        missions: PropTypes.array,
+        anomalies: PropTypes.array
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        currentMission: {}
+        missions: [],
+        anomalies: []
     };
 
     render() {
+        const mission = find(this.props.missions, a => a.selected);
         const anomaliesProps = pick(this.props, ["anomalies"]);
         return (
             <BorderLayout
                 header={
                     <div>
                         <div className="mission-detail-header">
+                            {mission.name}
+                            <br/>
                             Video
                             <br/>
                             <ReactPlayer

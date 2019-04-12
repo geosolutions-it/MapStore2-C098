@@ -7,12 +7,22 @@
 */
 
 import * as Rx from 'rxjs';
-import {LOAD_ASSETS, SELECT_MISSION, RESET_CURRENT_ASSET, CHANGE_CURRENT_MISSION, CHANGE_CURRENT_ASSET, loadedAssets, loadAssetError} from '../actions/sciadro';
+import {
+    LOAD_ASSETS,
+    DRAW_ASSET,
+    SELECT_MISSION,
+    RESET_CURRENT_ASSET,
+    CHANGE_CURRENT_MISSION,
+    CHANGE_CURRENT_ASSET,
+    loadedAssets,
+    loadAssetError
+} from '../actions/sciadro';
 import {selectedMissionFeatureSelector, selectedAssetFeatureSelector} from '../selectors/sciadro';
 import {getAdditionalLayerAction} from '../utils/sciadro';
 import GeoStoreApi from "@mapstore/api/GeoStoreDAO";
 import {LOGIN_SUCCESS} from "@mapstore/actions/security";
 import * as Persistence from "@mapstore/api/persistence";
+import {changeDrawingStatus} from '@mapstore/actions/draw';
 
 const mockAssetsGeojson = [{
     type: "Feature",
@@ -102,4 +112,26 @@ export const highlightMissionEpic = (action$, store) =>
             actions.push(getAdditionalLayerAction({feature: featureMission, id: "missions", name: "missions"}));// remove or update feature for missions
 
             return Rx.Observable.from(actions);
+        });
+
+
+/**
+ * trigger draw of the asset feature
+ * @param {external:Observable} action$ manages `DRAW_ASSET`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ **/
+
+export const drawAssetFeatureEpic = (action$) =>
+    action$.ofType(DRAW_ASSET)
+        .switchMap((a) => {
+            const drawOptions = {
+                stopAfterDrawing: true,
+                editEnabled: false,
+                selectEnabled: false,
+                drawEnabled: true,
+                translateEnabled: false,
+                transformToFeatureCollection: false
+            };
+            return Rx.Observable.of(changeDrawingStatus("start", a.drawMethod, "sciadro", [], drawOptions, {}));
         });

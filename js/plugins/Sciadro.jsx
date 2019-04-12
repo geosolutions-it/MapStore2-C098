@@ -20,7 +20,12 @@ import {
     resetCurrentAsset,
     resetCurrentMission,
     selectMission,
-    changeCurrentMission
+    changeCurrentMission,
+    editAsset,
+    editMission,
+    addAsset,
+    addMission,
+    drawAsset
 } from '../actions/sciadro';
 import {
     enabledSelector,
@@ -28,7 +33,7 @@ import {
     missionsListSelector,
     anomaliesListSelector,
     modeSelector,
-    assetNameSelector
+    drawMethodSelector
 } from '../selectors/sciadro';
 
 /**
@@ -44,18 +49,18 @@ const Sciadro = connect(createSelector([
     missionsListSelector,
     anomaliesListSelector,
     modeSelector,
-    assetNameSelector
-], (show, assets, missions, anomalies, mode, assetName) => ({
-    show,
-    assets,
-    missions,
-    anomalies,
-    mode,
-    assetName
+    drawMethodSelector
+], (show, assets, missions, anomalies, mode, drawMethod ) => ({
+    show, assets, missions, anomalies, mode, drawMethod
 })), {
     onLoadAssets: loadAssets,
     onChangeCurrentAsset: changeCurrentAsset,
     onChangeMode: changeMode,
+    onAddAsset: addAsset,
+    onAddMission: addMission,
+    onEditAsset: editAsset,
+    onEditMission: editMission,
+    onDrawAsset: drawAsset,
     onResetCurrentAsset: resetCurrentAsset,
     onResetCurrentMission: resetCurrentMission,
     onSelectMission: selectMission,
