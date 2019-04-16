@@ -19,6 +19,7 @@ momentLocalizer(Moment);
 require('react-widgets/lib/less/react-widgets.less');
 
 import {DateTimePicker} from 'react-widgets';
+import {getValidationState} from '../../utils/sciadro';
 
 /**
  * MissionEdit
@@ -52,12 +53,19 @@ class MissionEdit extends React.Component {
                 <Form horizontal>
                     <FormGroup>
                         <Col xs={12} sm={12} md={12}>
-                            <ControlLabel><Message msgId="sciadro.missions.name"/></ControlLabel>
+                            <ControlLabel><Message msgId="sciadro.mandatory"/></ControlLabel>
+                        </Col>
+                    </FormGroup>
+                    <FormGroup validationState={getValidationState(mission.name)}>
+                        <Col xs={12} sm={12} md={12}>
+                            <ControlLabel><Message msgId="sciadro.missions.name"/> *</ControlLabel>
                             <FormControl
                                 value={mission.name}
                                 onChange={(e) => this.props.onEditMission(mission.id, "name", e.target.value)}
                             />
                         </Col>
+                    </FormGroup>
+                    <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.description"/></ControlLabel>
                             <FormControl
@@ -65,6 +73,8 @@ class MissionEdit extends React.Component {
                                 onChange={(e) => this.props.onEditMission(mission.id, "description", e.target.value)}
                             />
                         </Col>
+                    </FormGroup>
+                    <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.note"/></ControlLabel>
                             <FormControl
@@ -72,16 +82,20 @@ class MissionEdit extends React.Component {
                                 onChange={(e) => this.props.onEditMission(mission.id, "note", e.target.value)}
                             />
                         </Col>
+                    </FormGroup>
+                    <FormGroup validationState={getValidationState(mission.dateCreation)}>
                         <Col xs={12} sm={12} md={12}>
-                            <ControlLabel><Message msgId="sciadro.missions.dateCreation"/></ControlLabel>
+                            <ControlLabel><Message msgId="sciadro.missions.dateCreation"/> *</ControlLabel>
                             <DateTimePicker
-                                defaultValue={new Date()}
                                 time
+                                value={mission.dateCreation}
                                 calendar
                                 format="L"
                                 onChange={(date) => this.props.onEditMission(mission.id, "dateCreation", date)}
                             />
                         </Col>
+                    </FormGroup>
+                    <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.data"/></ControlLabel>
                             <br/>

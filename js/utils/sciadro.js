@@ -22,3 +22,11 @@ export const getAdditionalLayerAction = ({feature, id, name, style = { color: "#
     };
     return updateAdditionalLayer(id, "sciadro", "overlay", layerOptions);
 };
+
+export const removeAdditionalLayerById = (id) => {
+    return removeAdditionalLayer({id});
+};
+
+export const getValidationState = (val) => {
+    return !!val ? "success" : "warning";
+};

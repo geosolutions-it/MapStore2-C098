@@ -15,6 +15,7 @@ import sciadro from '../reducers/sciadro';
 import * as sciadroEpics from '../epics/sciadro';
 import {
     loadAssets,
+    selectAssets,
     changeCurrentAsset,
     changeMode,
     resetCurrentAsset,
@@ -25,7 +26,9 @@ import {
     editMission,
     addAsset,
     addMission,
-    drawAsset
+    drawAsset,
+    hideAdditionalLayer,
+    editAssetPermission
 } from '../actions/sciadro';
 import {
     enabledSelector,
@@ -33,7 +36,11 @@ import {
     missionsListSelector,
     anomaliesListSelector,
     modeSelector,
-    drawMethodSelector
+    drawMethodSelector,
+    saveDisabledSelector,
+    loadingAssetsSelector,
+    loadingMissionsSelector,
+    reloadAssetSelector
 } from '../selectors/sciadro';
 
 /**
@@ -49,11 +56,18 @@ const Sciadro = connect(createSelector([
     missionsListSelector,
     anomaliesListSelector,
     modeSelector,
-    drawMethodSelector
-], (show, assets, missions, anomalies, mode, drawMethod ) => ({
-    show, assets, missions, anomalies, mode, drawMethod
+    drawMethodSelector,
+    saveDisabledSelector,
+    loadingAssetsSelector,
+    loadingMissionsSelector,
+    reloadAssetSelector
+], (show, assets, missions, anomalies, mode, drawMethod, saveDisabled, loadingAssets, loadingMissions,
+    reloadAsset ) => ({
+    show, assets, missions, anomalies, mode, drawMethod, saveDisabled, loadingAssets, loadingMissions,
+    reloadAsset
 })), {
     onLoadAssets: loadAssets,
+    onSelectAsset: selectAssets,
     onChangeCurrentAsset: changeCurrentAsset,
     onChangeMode: changeMode,
     onAddAsset: addAsset,
@@ -64,7 +78,9 @@ const Sciadro = connect(createSelector([
     onResetCurrentAsset: resetCurrentAsset,
     onResetCurrentMission: resetCurrentMission,
     onSelectMission: selectMission,
-    onChangeCurrentMission: changeCurrentMission
+    onHideAdditionalLayer: hideAdditionalLayer,
+    onChangeCurrentMission: changeCurrentMission,
+    onEditAssetPermission: editAssetPermission
 })(Container);
 
 export const SciadroPlugin = assign(Sciadro);

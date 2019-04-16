@@ -8,11 +8,24 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {find} from 'lodash';
+import {compose} from 'recompose';
+
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
-import {find} from 'lodash';
+import loadingState from '@mapstore/components/misc/enhancers/loadingState';
+import emptyState from '@mapstore/components/misc/enhancers/emptyState';
+import Message from '@mapstore/components/I18N/Message';
 
+const SideGridEnhanced = compose(
+    loadingState(({loading} ) => loading),
+    emptyState( // TODO verify if we want this empty state enhancer
+        ({loading, items = []} ) => items.length === 0 && !loading,
+        {
+            title: <Message msgId="sciadro.no-matches" />
+        })
+)(SideGrid);
 /**
  * Mission MissionList
  * @class
@@ -22,7 +35,7 @@ class MissionList extends React.Component {
     static propTypes = {
         missions: PropTypes.array,
         assets: PropTypes.array,
-        selectedMission: PropTypes.string,
+        loadingMissions: PropTypes.bool,
         onChangeCurrentMission: PropTypes.func,
         onSelectMission: PropTypes.func
     };
@@ -31,14 +44,14 @@ class MissionList extends React.Component {
     };
     static defaultProps = {
         assets: [],
-        selectedMission: "",
+        loadingMissions: false,
         missions: [],
         onChangeCurrentMission: () => {},
         onSelectMission: () => {}
     };
 
     render() {
-        const asset = find(this.props.assets, a => a.selected);
+        const asset = find(this.props.assets, a => a.current) || {};
 
         return (
             <BorderLayout
@@ -52,7 +65,8 @@ class MissionList extends React.Component {
                         </div>
                     </div>
                 }>
-            <SideGrid
+            <SideGridEnhanced
+                loading={this.props.loadingMissions}
                 className="mission-list-container"
                 size="sm"
                 onItemClick = {(item) => {

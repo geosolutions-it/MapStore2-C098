@@ -8,11 +8,24 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {compose} from 'recompose';
+
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Filter from '@mapstore/components/misc/Filter';
+import Message from '@mapstore/components/I18N/Message';
+import loadingState from '@mapstore/components/misc/enhancers/loadingState';
+import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 
+const SideGridEnhanced = compose(
+    loadingState(({loading} ) => loading),
+    emptyState( // TODO verify if we want this empty state enhancer
+        ({loading, items = []} ) => items.length === 0 && !loading,
+        {
+            title: <Message msgId="sciadro.no-matches" />
+        })
+)(SideGrid);
 /**
  * Asset List
  * @class
@@ -21,8 +34,13 @@ import Filter from '@mapstore/components/misc/Filter';
 class AssetList extends React.Component {
     static propTypes = {
         assets: PropTypes.array,
+        loadingAssets: PropTypes.bool,
+        reloadAsset: PropTypes.bool,
         className: PropTypes.string,
         onLoadAssets: PropTypes.func,
+        onEditAssetPermission: PropTypes.func,
+        onHideAdditionalLayer: PropTypes.func,
+        onSelectAsset: PropTypes.func,
         onChangeCurrentAsset: PropTypes.func
     };
     static contextTypes = {
@@ -30,13 +48,20 @@ class AssetList extends React.Component {
     };
     static defaultProps = {
         assets: [],
+        loadingAssets: false,
+        reloadAsset: true,
         onLoadAssets: () => {},
+        onSelectAsset: () => {},
+        onEditAssetPermission: () => {},
+        onHideAdditionalLayer: () => {},
         onChangeCurrentAsset: () => {},
         className: "asset-list-container"
     };
 
     componentWillMount() {
-        this.props.onLoadAssets();
+        if (this.props.reloadAsset) {
+            this.props.onLoadAssets();
+        }
     }
     render() {
 
@@ -47,16 +72,18 @@ class AssetList extends React.Component {
                         <Filter filterPlaceholder="Filter assets..."/>
                     </div>
                 }>
-                <SideGrid
+                <SideGridEnhanced
+                    loading={this.props.loadingAssets}
                     className={this.props.className}
                     size="sm"
                     onItemClick= {(item) => {
-                        this.props.onChangeCurrentAsset(item.id);
+                        this.props.onSelectAsset(item.id);
                     }}
                     items={
                         this.props.assets.map(item => ({
                             id: item.id,
                             title: item.name,
+                            selected: item.selected,
                             tools: <Toolbar
                                 btnDefaultProps={{
                                     bsStyle: 'primary',
@@ -65,10 +92,10 @@ class AssetList extends React.Component {
                                 buttons={
                                     [
                                         {
-                                            glyph: 'wrench',
+                                            glyph: 'arrow-right',
                                             onClick: (e) => {
                                                 e.stopPropagation();
-                                                // edit permissions
+                                                this.props.onChangeCurrentAsset(item.id);
                                             }
                                         }
                                     ]

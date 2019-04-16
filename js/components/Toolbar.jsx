@@ -25,12 +25,14 @@ export default class MainToolbar extends React.Component {
         assets: PropTypes.array,
         mode: PropTypes.string,
         drawMethod: PropTypes.string,
+        saveDisabled: PropTypes.bool,
         onResetCurrentAsset: PropTypes.func,
         onResetCurrentMission: PropTypes.func,
         onAddMission: PropTypes.func,
         onAddAsset: PropTypes.func,
         onDrawAsset: PropTypes.func,
-        onChangeMode: PropTypes.func
+        onChangeMode: PropTypes.func,
+        onHideAdditionalLayer: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -43,11 +45,13 @@ export default class MainToolbar extends React.Component {
         onAddMission: () => {},
         onAddAsset: () => {},
         onDrawAsset: () => {},
-        onChangeMode: () => {}
+        onChangeMode: () => {},
+        onHideAdditionalLayer: () => {}
     };
 
     render() {
         const assetEdited = find(this.props.assets, a => a.edit) || {};
+        const assetSelected = find(this.props.assets, a => a.selected) || null;
 
         return (
             <ButtonToolbar className="buttonToolbar">
@@ -62,10 +66,11 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                if (this.props.mode === "mission-detail" || this.props.mode === "mission-edit") {
+                                const {mode} = this.props;
+                                if (mode === "mission-detail" || mode === "mission-edit") {
                                     this.props.onResetCurrentMission();
                                 }
-                                if (this.props.mode === "mission-list" || this.props.mode === "asset-edit") {
+                                if (mode === "mission-list" || mode === "asset-edit" || mode === "asset-permission") {
                                     this.props.onResetCurrentAsset();
                                 }
                             },
@@ -79,15 +84,17 @@ export default class MainToolbar extends React.Component {
                             pullRight: true,
                             onClick: () => {
                                 this.props.onChangeMode(this.props.mode.replace("list", "edit"));
+                                this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "plus",
                             visible: this.props.mode.indexOf("list") !== -1
                         },
                         {
-                            tooltipId: this.props.mode === "mission-edit" ? "sciadro.missions.edit" : "sciadro.assets.edit",
+                            tooltipId: "sciadro.save",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
+                            disabled: this.props.saveDisabled,
                             onClick: () => {
                                 if (this.props.mode === "mission-edit") {
                                     this.props.onAddMission();
@@ -100,20 +107,16 @@ export default class MainToolbar extends React.Component {
                             visible: this.props.mode.indexOf("edit") !== -1
                         },
                         {
-                            tooltipId: this.props.mode === "mission-edit" ? "sciadro.missions.upload" : "sciadro.assets.upload",
+                            tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.edit" : "sciadro.assets.edit",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                if (this.props.mode === "mission-edit") {
-                                    // this.props.onUploadMissionData();
-                                }
-                                if (this.props.mode === "asset-edit") {
-                                    // this.props.onUploadAssetData();
-                                }
+                                this.props.onChangeMode(this.props.mode.replace("list", "edit"));
+                                this.props.onHideAdditionalLayer("missions");
                             },
-                            glyph: "upload",
-                            visible: this.props.mode.indexOf("edit") !== -1
+                            glyph: "wrench",
+                            visible: assetSelected && assetSelected.selected
                         },
                         {
                         buttonConfig: {
@@ -129,9 +132,9 @@ export default class MainToolbar extends React.Component {
                             {
                                 glyph: "point",
                                 text: <Message msgId="sciadro.assets.point"/>,
-                                active: this.props.drawMethod === "Point",
+                                active: this.props.drawMethod === "Marker",
                                 onClick: () => {
-                                    this.props.onDrawAsset(assetEdited.id, "Point");
+                                    this.props.onDrawAsset(assetEdited.id, "Marker");
                                 }
                             }, {
                                 // active: this.props.format === "aeronautical",

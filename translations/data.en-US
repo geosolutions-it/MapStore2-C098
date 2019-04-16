@@ -3,9 +3,13 @@
     "messages": {
         "sciadro": {
             "titlePanel": "Sciadro",
+            "mandatory": "* mandatory fields",
             "back": "Back",
+            "save": "Save",
+            "no-matches": "No Matches",
             "mode": {
                 "asset-list": "Assets",
+                "asset-permission": "Asset Permissions",
                 "asset-detail": "Asset",
                 "asset-edit": "Edit Asset",
                 "mission-list": "Asset",
@@ -13,8 +17,10 @@
                 "mission-edit": "Edit Mission"
             },
             "assets": {
+                "permissions": "Asset Permissions",
                 "add": "Create Asset",
-                "edit": "Create Asset",
+                "edit": "Edit Asset",
+                "zoom": "Zoom to Asset",
                 "upload": "Upload geometry",
                 "draw": "Draw geometry",
                 "type": "Type",
@@ -28,8 +34,10 @@
                 "dateModified": "Date Modified"
             },
             "missions": {
+                "permissions": "Mission Permissions",
                 "add": "Create Mission",
-                "edit": "Create Mission",
+                "zoom": "Zoom to Mission",
+                "edit": "Edit Mission",
                 "data": "Telemetry, Geometry and other Metadata",
                 "upload": "Upload data",
                 "name": "Name",

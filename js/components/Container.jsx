@@ -15,6 +15,7 @@ import Toolbar from './Toolbar';
 import {pick} from 'lodash';
 import AssetList from './asset/AssetList';
 import AssetEdit from './asset/AssetEdit';
+import AssetPermission from './asset/AssetPermission';
 import MissionList from './mission/MissionList';
 import MissionDetail from './mission/MissionDetail';
 import MissionEdit from './mission/MissionEdit';
@@ -42,6 +43,9 @@ class Container extends React.Component {
         assets: PropTypes.array,
         missions: PropTypes.array,
         anomalies: PropTypes.array,
+        loadingMissions: PropTypes.bool,
+        loadingAssets: PropTypes.bool,
+        reloadAsset: PropTypes.bool,
         onLoadAssets: PropTypes.func,
         onChangeMode: PropTypes.func,
         onResetCurrentAsset: PropTypes.func,
@@ -50,9 +54,12 @@ class Container extends React.Component {
         onEditAsset: PropTypes.func,
         onEditMission: PropTypes.func,
         onAddAsset: PropTypes.func,
+        onSelectAsset: PropTypes.func,
         onAddMission: PropTypes.func,
+        onHideAdditionalLayer: PropTypes.func,
         onDrawAsset: PropTypes.func,
         onChangeCurrentMission: PropTypes.func,
+        onEditAssetPermission: PropTypes.func,
         onResetCurrentMission: PropTypes.func
     };
     static contextTypes = {
@@ -66,11 +73,12 @@ class Container extends React.Component {
         position: "left",
         title: "sciadro.titlePanel",
         show: true,
-        size: 350,
+        size: 500,
 
         // sciadro
         drawMethod: "",
         onLoadAssets: () => {},
+        onSelectAsset: () => {},
         onChangeMode: () => {},
         onResetCurrentAsset: () => {},
         onResetCurrentMission: () => {},
@@ -81,15 +89,18 @@ class Container extends React.Component {
         onAddAsset: () => {},
         onDrawAsset: () => {},
         onAddMission: () => {},
+        onHideAdditionalLayer: () => {},
+        onEditAssetPermission: () => {},
         onChangeCurrentMission: () => {}
     };
 
     render() {
-        const assetProps = pick(this.props, ["onLoadAssets", "onChangeCurrentAsset", "assets"]);
+        const assetListProps = pick(this.props, ["onLoadAssets", "onChangeCurrentAsset", "assets", "loadingAssets", "reloadAsset", "onSelectAsset", "onEditAssetPermission", "onHideAdditionalLayer"]);
         const assetEditProps = pick(this.props, ["assets", "onEditAsset"]);
+        const assetPermissionProps = pick(this.props, ["assets"]);
+        const missionListProps = pick(this.props, ["missions", "assets", "onSelectMission", "onChangeCurrentMission", "loadingMissions"]);
         const missionEditProps = pick(this.props, ["missions", "onEditMission"]);
-        const missionProps = pick(this.props, ["missions", "assets", "onSelectMission", "onChangeCurrentMission"]);
-        const toolbarProps = pick(this.props, ["assets", "mode", "onChangeMode", "onResetCurrentAsset", "onResetCurrentMission", "onAddAsset", "onAddMission", "onDrawAsset", "drawMethod"]);
+        const toolbarProps = pick(this.props, ["assets", "mode", "onChangeMode", "onResetCurrentAsset", "onResetCurrentMission", "onAddAsset", "onAddMission", "onDrawAsset", "drawMethod", "saveDisabled", "onHideAdditionalLayer"]);
         const missionDetailProps = pick(this.props, ["mode", "missions"]);
         const anomaliesProps = pick(this.props, ["anomalies"]);
 
@@ -105,10 +116,11 @@ class Container extends React.Component {
                 header={
                     <Toolbar {...toolbarProps}/>
                 }>
-                {this.props.mode === "asset-list" && <AssetList {...assetProps}/>}
+                {this.props.mode === "asset-list" && <AssetList {...assetListProps}/>}
                 {this.props.mode === "asset-edit" && <AssetEdit {...assetEditProps}/>}
+                {this.props.mode === "asset-permission" && <AssetPermission {...assetPermissionProps}/>}
                 {this.props.mode === "mission-edit" && <MissionEdit {...missionEditProps}/>}
-                {this.props.mode === "mission-list" && <MissionList {...missionProps}/>}
+                {this.props.mode === "mission-list" && <MissionList {...missionListProps}/>}
                 {this.props.mode === "mission-detail" && <MissionDetail {...missionDetailProps} {...anomaliesProps}/>}
                 </BorderLayout>
             </DockablePanel>);
