@@ -17,6 +17,10 @@
                 "mission-edit": "Edit Mission"
             },
             "assets": {
+                "powerline": "Powerline",
+                "pipeline": "Pipeline",
+                "electric-truss": "Electric truss",
+                "detail": "View asset details",
                 "permissions": "Asset Permissions",
                 "add": "Create Asset",
                 "edit": "Edit Asset",
@@ -34,6 +38,7 @@
                 "dateModified": "Date Modified"
             },
             "missions": {
+                "detail": "View mission details",
                 "permissions": "Mission Permissions",
                 "add": "Create Mission",
                 "zoom": "Zoom to Mission",

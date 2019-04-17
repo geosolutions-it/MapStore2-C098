@@ -92,6 +92,7 @@ class AssetList extends React.Component {
                                 buttons={
                                     [
                                         {
+                                            tooltipId: "sciadro.assets.detail",
                                             glyph: 'arrow-right',
                                             onClick: (e) => {
                                                 e.stopPropagation();

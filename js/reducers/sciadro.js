@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-const {
+import {
     LOADED_ASSETS,
     SELECT_ASSET,
     LOADING_ASSETS,
@@ -22,11 +22,16 @@ const {
     EDIT_ASSET_PERMISSION,
     ADD_ASSET,
     ADD_MISSION,
-    DRAW_ASSET
-} = require('../actions/sciadro');
+    DRAW_ASSET,
+    ENTER_CREATE_ITEM,
+    ENTER_EDIT_ITEM
+} from '@js/actions/sciadro';
+
+import {assetSelectedSelector, missionSelectedSelector} from '@js/selectors/sciadro';
 import { END_DRAWING } from '@mapstore/actions/draw';
 import { LOGOUT } from "@mapstore/actions/security";
 import {set} from "@mapstore/utils/ImmutableUtils";
+import {getStyleFromType} from "@js/utils/sciadro";
 import {reproject, reprojectBbox} from "@mapstore/utils/CoordinatesUtils";
 import {findIndex} from "lodash";
 import uuidv1 from 'uuid/v1';
@@ -93,7 +98,7 @@ export default function sciadro(state = {
                 coordinates: [[0.20, 40], [28, 49]]
             },
             style: {
-                color: "#0000FF",
+                color: "#FF0000",
                 weight: 5
             }
         },
@@ -129,7 +134,7 @@ export default function sciadro(state = {
                 coordinates: [[0, 35], [10, 36], [20, 35]]
             },
             style: {
-                color: "#FF00FF",
+                color: "#FF0000",
                 weight: 2
             }
         }
@@ -150,36 +155,60 @@ export default function sciadro(state = {
                 assets: action.assets.concat(state.assets.filter((a, i) => i > 2))
             };
         }
-        case CHANGE_MODE: {
+        case ENTER_CREATE_ITEM: {
             let assets = [...state.assets];
             let missions = [...state.missions];
-            if (action.mode === "asset-edit") {
-                assets = assets.concat([{
+            return {
+                ...state,
+                assets: action.mode === "asset-edit" ? assets.concat([{
                     id: uuidv1(),
-                    type: "",
+                    type: "powerline",
                     name: "",
                     description: "",
                     note: "",
                     dateCreation: null,
                     dateModified: null,
-                    edit: true
-                }]);
-            }
-            if (action.mode === "mission-edit") {
-                missions = missions.concat([{
+                    isNew: true
+                }]) : state.assets,
+                missions: action.mode === "mission-edit" ? missions.concat([{
                     id: uuidv1(),
                     name: "",
                     description: "",
                     note: "",
                     dateCreation: null,
-                    edit: true
-                }]);
+                    isNew: true
+                }]) : state.missions,
+                saveDisabled: true,
+                mode: action.mode
+            };
+        }
+        case ENTER_EDIT_ITEM: {
+            let assets = [...state.assets];
+            let missions = [...state.missions];
+            const selectedAsset = assetSelectedSelector({sciadro: state});
+            const selectedMission = missionSelectedSelector({sciadro: state});
+            if (action.mode === "asset-edit") {
+                if (selectedAsset) {
+                    assets = updateItems(state.assets, selectedAsset.id, "edit");
+                }
+            }
+            if (action.mode === "mission-edit") {
+                if (selectedMission) {
+                    missions = updateItems(state.missions, selectedMission.id, "edit");
+                }
             }
             return {
                 ...state,
                 assets,
                 missions,
-                saveDisabled: true,
+                oldItem: selectedAsset || selectedMission,
+                saveDisabled: false,
+                mode: action.mode
+            };
+        }
+        case CHANGE_MODE: {
+            return {
+                ...state,
                 mode: action.mode
             };
         }
@@ -188,7 +217,7 @@ export default function sciadro(state = {
                 ...state,
                 reloadAsset: true,
                 loadingAssets: true,
-                assets: resetProps(state.assets, ["edit"]),
+                assets: resetProps(state.assets, ["edit", "isNew"]),
                 mode: "asset-list"
             };
         }
@@ -228,8 +257,13 @@ export default function sciadro(state = {
         case RESET_CURRENT_ASSET: {
             let assets = [...state.assets];
             if (state.mode === "asset-edit") {
-                // exclude the one that was in edit mode
-                assets = assets.filter(a => !a.edit);
+                // exclude the one that was in edit mode for new item
+                assets = assets.filter(a => !a.isNew);
+                const oldAsset = state.oldItem;
+                if (oldAsset && oldAsset.id) {
+                    const selectedItemIndex = findIndex(assets, item => item.id === oldAsset.id);
+                    assets[selectedItemIndex] = oldAsset;
+                }
             }
             return {
                 ...state,
@@ -237,6 +271,7 @@ export default function sciadro(state = {
                 reloadAsset: false,
                 missions: resetProps(state.missions),
                 assets: resetProps(assets, ["current"]),
+                oldItem: null,
                 mode: "asset-list"
             };
         }
@@ -244,7 +279,7 @@ export default function sciadro(state = {
             let missions = [...state.missions];
             if (state.mode === "mission-edit") {
                 // exclude the one that was in edit mode
-                missions = missions.filter(a => !a.edit);
+                missions = missions.filter(a => !a.isNew);
             }
             const currentMissionIndex = findIndex(missions, item => item.current);
             if (currentMissionIndex !== -1) {
@@ -258,7 +293,7 @@ export default function sciadro(state = {
             };
         }
         case DRAW_ASSET: {
-            const itemIndex = findIndex(state.assets, item => item.edit);
+            const itemIndex = findIndex(state.assets, item => (item.edit || item.isNew));
             return {
                 ...state,
                 drawMethod: action.drawMethod,
@@ -284,7 +319,8 @@ export default function sciadro(state = {
                         id,
                         extent: reprojectBbox(extent, "EPSG:3857", "EPSG:4326"),
                         center: [center.x, center.y]
-                    }
+                    },
+                    style: getStyleFromType(type)
                 };
                 return {
                     ...state,

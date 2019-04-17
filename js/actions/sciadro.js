@@ -25,6 +25,9 @@ export const EDIT_MISSION = "SCIADRO:EDIT_MISSION";
 export const ADD_ASSET = "SCIADRO:ADD_ASSET";
 export const DRAW_ASSET = "SCIADRO:DRAW_ASSET";
 export const ADD_MISSION = "SCIADRO:ADD_MISSION";
+export const ENTER_CREATE_ITEM = "SCIADRO:ENTER_CREATE_ITEM";
+export const ENTER_EDIT_ITEM = "SCIADRO:ENTER_EDIT_ITEM";
+export const ZOOM_TO_ITEM = "SCIADRO:ZOOM_TO_ITEM";
 
 export const hideAdditionalLayer = (id) => ({ type: HIDE_ADDITIONAL_LAYER, id });
 export const editAssetPermission = (id) => ({ type: EDIT_ASSET_PERMISSION, id });
@@ -48,3 +51,6 @@ export const changeCurrentMission = (id) => ({ type: CHANGE_CURRENT_MISSION, id 
 export const selectMission = (id) => ({ type: SELECT_MISSION, id });
 
 export const changeMode = (mode) => ({ type: CHANGE_MODE, mode });
+export const createItem = (mode) => ({ type: ENTER_CREATE_ITEM, mode });
+export const editItem = (mode) => ({ type: ENTER_EDIT_ITEM, mode });
+export const zoomToItem = (zoom) => ({ type: ZOOM_TO_ITEM, zoom });

@@ -30,3 +30,23 @@ export const removeAdditionalLayerById = (id) => {
 export const getValidationState = (val) => {
     return !!val ? "success" : "warning";
 };
+
+export const getStyleFromType = (type = "LineString") => {
+    const styles = {
+        "LineString": {
+            color: "#FF0000",
+            weight: 3
+        },
+        "Point": {
+            iconColor: "orange",
+            iconShape: "circle",
+            iconGlyph: "comment"
+        },
+        "Marker": {
+            iconColor: "orange",
+            iconShape: "circle",
+            iconGlyph: "comment"
+        }
+    };
+    return styles[type];
+};

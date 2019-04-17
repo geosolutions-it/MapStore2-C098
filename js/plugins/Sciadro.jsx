@@ -9,39 +9,25 @@
 import assign from 'object-assign';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
+import Container from '@js/components/Container';
 
-import Container from '../components/Container';
-import sciadro from '../reducers/sciadro';
-import * as sciadroEpics from '../epics/sciadro';
 import {
-    loadAssets,
-    selectAssets,
-    changeCurrentAsset,
-    changeMode,
-    resetCurrentAsset,
-    resetCurrentMission,
-    selectMission,
-    changeCurrentMission,
-    editAsset,
-    editMission,
-    addAsset,
-    addMission,
-    drawAsset,
-    hideAdditionalLayer,
-    editAssetPermission
-} from '../actions/sciadro';
+    ToolbarConnected,
+    MissionDetailConnected,
+    // AnomaliesListConnected,
+    MissionEditConnected,
+    MissionListConnected,
+    AssetPermissionConnected,
+    AssetEditConnected,
+    AssetListConnected
+} from './index';
+
+import sciadro from '@js/reducers/sciadro';
+import * as sciadroEpics from '@js/epics/sciadro';
 import {
     enabledSelector,
-    assetsListSelector,
-    missionsListSelector,
-    anomaliesListSelector,
-    modeSelector,
-    drawMethodSelector,
-    saveDisabledSelector,
-    loadingAssetsSelector,
-    loadingMissionsSelector,
-    reloadAssetSelector
-} from '../selectors/sciadro';
+    modeSelector
+} from '@js/selectors/sciadro';
 
 /**
  * Sciadro plugins allows to manage Assets and Missions
@@ -49,39 +35,21 @@ import {
  * @memberof plugins
  * @prop {boolean} [show] show the opened main panel default true
 */
-
-const Sciadro = connect(createSelector([
+export const Sciadro = connect(createSelector([
     enabledSelector,
-    assetsListSelector,
-    missionsListSelector,
-    anomaliesListSelector,
-    modeSelector,
-    drawMethodSelector,
-    saveDisabledSelector,
-    loadingAssetsSelector,
-    loadingMissionsSelector,
-    reloadAssetSelector
-], (show, assets, missions, anomalies, mode, drawMethod, saveDisabled, loadingAssets, loadingMissions,
-    reloadAsset ) => ({
-    show, assets, missions, anomalies, mode, drawMethod, saveDisabled, loadingAssets, loadingMissions,
-    reloadAsset
-})), {
-    onLoadAssets: loadAssets,
-    onSelectAsset: selectAssets,
-    onChangeCurrentAsset: changeCurrentAsset,
-    onChangeMode: changeMode,
-    onAddAsset: addAsset,
-    onAddMission: addMission,
-    onEditAsset: editAsset,
-    onEditMission: editMission,
-    onDrawAsset: drawAsset,
-    onResetCurrentAsset: resetCurrentAsset,
-    onResetCurrentMission: resetCurrentMission,
-    onSelectMission: selectMission,
-    onHideAdditionalLayer: hideAdditionalLayer,
-    onChangeCurrentMission: changeCurrentMission,
-    onEditAssetPermission: editAssetPermission
-})(Container);
+    modeSelector
+], (show, mode) => ({
+    show, mode,
+    renderBodyComponents: {
+        "asset-list": AssetListConnected,
+        "asset-edit": AssetEditConnected,
+        "asset-permission": AssetPermissionConnected, // todo remove, and move it in asset-edit
+        "mission-edit": MissionEditConnected,
+        "mission-list": MissionListConnected,
+        "mission-detail": MissionDetailConnected
+    },
+    renderToolbarComponent: ToolbarConnected
+})), {})(Container);
 
 export const SciadroPlugin = assign(Sciadro);
 export const reducers = { sciadro };

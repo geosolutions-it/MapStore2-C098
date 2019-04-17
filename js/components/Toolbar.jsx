@@ -12,9 +12,7 @@ import { ButtonToolbar, Glyphicon } from 'react-bootstrap';
 
 import Message from '@mapstore/components/I18N/Message';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
-import {find} from 'lodash';
 import DropdownToolbarOptions from '@mapstore/components/misc/toolbar/DropdownToolbarOptions';
-
 /**
  * Toolbar for sciadro app
  * @class
@@ -22,37 +20,55 @@ import DropdownToolbarOptions from '@mapstore/components/misc/toolbar/DropdownTo
  */
 export default class MainToolbar extends React.Component {
     static propTypes = {
-        assets: PropTypes.array,
         mode: PropTypes.string,
         drawMethod: PropTypes.string,
         saveDisabled: PropTypes.bool,
+        assetEdited: PropTypes.object,
+        assetNew: PropTypes.object,
+        assetSelected: PropTypes.object,
+        missionSelected: PropTypes.object,
+        buttonsVisibility: PropTypes.object,
+        assetZoomLevel: PropTypes.number,
+        missionZoomLevel: PropTypes.number,
+
         onResetCurrentAsset: PropTypes.func,
         onResetCurrentMission: PropTypes.func,
+        onZoomToItem: PropTypes.func,
         onAddMission: PropTypes.func,
         onAddAsset: PropTypes.func,
         onDrawAsset: PropTypes.func,
-        onChangeMode: PropTypes.func,
+        // onChangeMode: PropTypes.func,
+        onCreateItem: PropTypes.func,
+        onEditItem: PropTypes.func,
         onHideAdditionalLayer: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        assets: [],
+        buttonsVisibility: {
+            back: false,
+            zoom: false,
+            edit: false,
+            add: false,
+            save: false,
+            draw: false
+        },
         mode: "asset-list",
         onResetCurrentAsset: () => {},
         onResetCurrentMission: () => {},
+        onZoomToItem: () => {},
         onAddMission: () => {},
         onAddAsset: () => {},
         onDrawAsset: () => {},
-        onChangeMode: () => {},
+        // onChangeMode: () => {},
+        onCreateItem: () => {},
         onHideAdditionalLayer: () => {}
     };
 
     render() {
-        const assetEdited = find(this.props.assets, a => a.edit) || {};
-        const assetSelected = find(this.props.assets, a => a.selected) || null;
-
+        const {missionSelected, assetSelected, assetEdited, assetNew} = this.props;
+        const editingAssetFeature = assetEdited || assetNew;
         return (
             <ButtonToolbar className="buttonToolbar">
                 <Toolbar
@@ -75,7 +91,7 @@ export default class MainToolbar extends React.Component {
                                 }
                             },
                             glyph: "arrow-left",
-                            visible: this.props.mode !== "asset-list" // all but the first has the back button
+                            visible: this.props.buttonsVisibility.back // all but the first has the back button
                         },
                         {
                             tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.add" : "sciadro.assets.add",
@@ -83,11 +99,11 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                this.props.onChangeMode(this.props.mode.replace("list", "edit"));
+                                this.props.onCreateItem(this.props.mode.replace("list", "edit"));
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "plus",
-                            visible: this.props.mode.indexOf("list") !== -1
+                            visible: this.props.buttonsVisibility.add
                         },
                         {
                             tooltipId: "sciadro.save",
@@ -104,7 +120,7 @@ export default class MainToolbar extends React.Component {
                                 }
                             },
                             glyph: "floppy-disk",
-                            visible: this.props.mode.indexOf("edit") !== -1
+                            visible: this.props.buttonsVisibility.save
                         },
                         {
                             tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.edit" : "sciadro.assets.edit",
@@ -112,11 +128,28 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                this.props.onChangeMode(this.props.mode.replace("list", "edit"));
+                                this.props.onEditItem(this.props.mode.replace("list", "edit"));
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "wrench",
-                            visible: assetSelected && assetSelected.selected
+                            visible: this.props.buttonsVisibility.edit
+                        },
+                        {
+                            tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.zoom" : "sciadro.assets.zoom",
+                            tooltipPosition: "top",
+                            className: "square-button-md no-border",
+                            pullRight: true,
+                            onClick: () => {
+                                if (missionSelected && missionSelected.selected && missionSelected.feature) {
+                                    this.props.onZoomToItem(this.props.missionZoomLevel);
+                                }
+                                if (assetSelected && assetSelected.selected && assetSelected.feature) {
+                                    this.props.onZoomToItem(this.props.assetZoomLevel);
+                                }
+                            },
+                            glyph: "zoom-to",
+                            visible: this.props.buttonsVisibility.zoom,
+                            disabled: this.props.buttonsVisibility.zoomDisabled
                         },
                         {
                         buttonConfig: {
@@ -125,7 +158,7 @@ export default class MainToolbar extends React.Component {
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
-                            bsStyle: assetEdited.draw ? "success" : "primary",
+                            bsStyle: editingAssetFeature && editingAssetFeature.draw ? "success" : "primary",
                             id: "geom"
                         },
                         menuOptions: [
@@ -134,7 +167,9 @@ export default class MainToolbar extends React.Component {
                                 text: <Message msgId="sciadro.assets.point"/>,
                                 active: this.props.drawMethod === "Marker",
                                 onClick: () => {
-                                    this.props.onDrawAsset(assetEdited.id, "Marker");
+                                    if (editingAssetFeature && editingAssetFeature.id) {
+                                        this.props.onDrawAsset(editingAssetFeature.id, "Marker");
+                                    }
                                 }
                             }, {
                                 // active: this.props.format === "aeronautical",
@@ -142,7 +177,9 @@ export default class MainToolbar extends React.Component {
                                 text: <Message msgId="sciadro.assets.line"/>,
                                 active: this.props.drawMethod === "LineString",
                                 onClick: () => {
-                                    this.props.onDrawAsset(assetEdited.id, "LineString");
+                                    if (editingAssetFeature && editingAssetFeature.id) {
+                                        this.props.onDrawAsset(editingAssetFeature.id, "LineString");
+                                    }
                                 }
                             }
                         ],

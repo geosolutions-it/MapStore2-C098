@@ -31,6 +31,9 @@ config.devServer.proxy = {
         target: "http://localhost:8040/mapstore"
     }
 };
-config.resolve.alias = { '@mapstore': path.resolve(__dirname, 'MapStore2/web/client')};
+config.resolve.alias = {
+    '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
+    '@js': path.resolve(__dirname, 'js')
+};
 
 module.exports = config;

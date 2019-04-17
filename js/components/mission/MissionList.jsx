@@ -85,6 +85,7 @@ class MissionList extends React.Component {
                             buttons={
                                 [
                                     {
+                                        tooltipId: "sciadro.missions.detail",
                                         glyph: 'arrow-right',
                                         onClick: (e) => {
                                             e.stopPropagation();

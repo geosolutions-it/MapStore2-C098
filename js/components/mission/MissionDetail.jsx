@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import ReactPlayer from 'react-player';
 import {pick} from 'lodash';
-import AnomaliesList from './AnomaliesList';
+
 
 /**
  * Mission List
@@ -21,6 +21,7 @@ import AnomaliesList from './AnomaliesList';
 class MissionDetail extends React.Component {
     static propTypes = {
         missions: PropTypes.array,
+        renderAnomaliesList: PropTypes.func,
         anomalies: PropTypes.array
     };
     static contextTypes = {
@@ -34,6 +35,7 @@ class MissionDetail extends React.Component {
     render() {
         const mission = find(this.props.missions, a => a.selected);
         const anomaliesProps = pick(this.props, ["anomalies"]);
+        const AnomaliesList = this.props.renderAnomaliesList;
         return (
             <BorderLayout
                 header={

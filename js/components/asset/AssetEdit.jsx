@@ -8,7 +8,6 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {find} from 'lodash';
 import {getValidationState} from '../../utils/sciadro';
 import {Form, FormGroup, FormControl, ControlLabel, Col} from 'react-bootstrap';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
@@ -27,6 +26,9 @@ import {DateTimePicker} from 'react-widgets';
 class AssetEdit extends React.Component {
     static propTypes = {
         assets: PropTypes.array,
+        typeList: PropTypes.array,
+        assetEdited: PropTypes.object,
+        assetNew: PropTypes.object,
         className: PropTypes.string,
         onEditAsset: PropTypes.func
     };
@@ -35,12 +37,18 @@ class AssetEdit extends React.Component {
     };
     static defaultProps = {
         assets: [],
+        typeList: [
+            { value: "powerline", label: "sciadro.assets.powerline" },
+            { value: "pipeline", label: "sciadro.assets.pipeline" },
+            { value: "electric-truss", label: "sciadro.assets.electric-truss" }
+        ],
         className: "",
         onEditAsset: () => {}
     };
 
     render() {
-        const asset = find(this.props.assets, a => a.edit) || {};
+        const {assetNew, assetEdited} = this.props;
+        const asset = assetEdited || assetNew || {};
 
         return (
             <BorderLayout
@@ -55,9 +63,15 @@ class AssetEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.type"/> *</ControlLabel>
                             <FormControl
-                                value={asset.type}
+                                componentClass="select"
+                                placeholder="..."
                                 onChange={(e) => this.props.onEditAsset(asset.id, "type", e.target.value)}
-                            />
+                                value={asset.type}
+                                >
+                                    {this.props.typeList.map((t, i) => (
+                                        <option key={i} value={t.value}><Message msgId={t.label}/></option>
+                                    ))}
+                            </FormControl>
                         </Col>
                     </FormGroup>
                     <FormGroup validationState={getValidationState(asset.name)}>
