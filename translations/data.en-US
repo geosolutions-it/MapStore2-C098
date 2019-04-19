@@ -17,6 +17,7 @@
                 "mission-edit": "Edit Mission"
             },
             "assets": {
+                "geom-trash": "Delete geometry",
                 "powerline": "Powerline",
                 "pipeline": "Pipeline",
                 "electric-truss": "Electric truss",
@@ -35,7 +36,11 @@
                 "point": "Point",
                 "line": "LineString",
                 "dateCreation": "Date Creation",
-                "dateModified": "Date Modified"
+                "dateModified": "Date Modified",
+                "rest": {
+                    "saveSuccess": "Asset has been correctly save",
+                    "saveError": "An error occured when saving the Asset"
+                }
             },
             "missions": {
                 "detail": "View mission details",
@@ -49,6 +54,12 @@
                 "description": "Description",
                 "note": "Note",
                 "dateCreation": "Date Creation"
+            }
+        },
+        "shapefile": {
+            "placeholder": "Drop your file here or click to select the Vector File to import. (supported files: file.json with a LineString or Point only, must be contained in a zip archive)",
+            "error": {
+                "select": "Select only one geoJSON.json file contained in a zip archive"
             }
         }
     }

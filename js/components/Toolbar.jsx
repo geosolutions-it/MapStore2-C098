@@ -8,11 +8,9 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ButtonToolbar, Glyphicon } from 'react-bootstrap';
+import { ButtonToolbar } from 'react-bootstrap';
 
-import Message from '@mapstore/components/I18N/Message';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
-import DropdownToolbarOptions from '@mapstore/components/misc/toolbar/DropdownToolbarOptions';
 /**
  * Toolbar for sciadro app
  * @class
@@ -22,9 +20,7 @@ export default class MainToolbar extends React.Component {
     static propTypes = {
         mode: PropTypes.string,
         drawMethod: PropTypes.string,
-        saveDisabled: PropTypes.bool,
         assetEdited: PropTypes.object,
-        assetNew: PropTypes.object,
         assetSelected: PropTypes.object,
         missionSelected: PropTypes.object,
         buttonsVisibility: PropTypes.object,
@@ -35,7 +31,7 @@ export default class MainToolbar extends React.Component {
         onResetCurrentMission: PropTypes.func,
         onZoomToItem: PropTypes.func,
         onAddMission: PropTypes.func,
-        onAddAsset: PropTypes.func,
+        onSaveAsset: PropTypes.func,
         onDrawAsset: PropTypes.func,
         // onChangeMode: PropTypes.func,
         onCreateItem: PropTypes.func,
@@ -49,6 +45,8 @@ export default class MainToolbar extends React.Component {
         buttonsVisibility: {
             back: false,
             zoom: false,
+            saveDisabled: false,
+            zoomDisabled: false,
             edit: false,
             add: false,
             save: false,
@@ -59,7 +57,7 @@ export default class MainToolbar extends React.Component {
         onResetCurrentMission: () => {},
         onZoomToItem: () => {},
         onAddMission: () => {},
-        onAddAsset: () => {},
+        onSaveAsset: () => {},
         onDrawAsset: () => {},
         // onChangeMode: () => {},
         onCreateItem: () => {},
@@ -67,8 +65,7 @@ export default class MainToolbar extends React.Component {
     };
 
     render() {
-        const {missionSelected, assetSelected, assetEdited, assetNew} = this.props;
-        const editingAssetFeature = assetEdited || assetNew;
+        const {missionSelected, assetSelected, assetEdited} = this.props;
         return (
             <ButtonToolbar className="buttonToolbar">
                 <Toolbar
@@ -91,7 +88,7 @@ export default class MainToolbar extends React.Component {
                                 }
                             },
                             glyph: "arrow-left",
-                            visible: this.props.buttonsVisibility.back // all but the first has the back button
+                            visible: this.props.buttonsVisibility.back // all but the first view(asset-list) has the back button
                         },
                         {
                             tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.add" : "sciadro.assets.add",
@@ -110,13 +107,13 @@ export default class MainToolbar extends React.Component {
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
-                            disabled: this.props.saveDisabled,
+                            disabled: this.props.buttonsVisibility.saveDisabled,
                             onClick: () => {
                                 if (this.props.mode === "mission-edit") {
                                     this.props.onAddMission();
                                 }
                                 if (this.props.mode === "asset-edit") {
-                                    this.props.onAddAsset();
+                                    this.props.onSaveAsset(assetEdited.id);
                                 }
                             },
                             glyph: "floppy-disk",
@@ -150,42 +147,7 @@ export default class MainToolbar extends React.Component {
                             glyph: "zoom-to",
                             visible: this.props.buttonsVisibility.zoom,
                             disabled: this.props.buttonsVisibility.zoomDisabled
-                        },
-                        {
-                        buttonConfig: {
-                            title: <Glyphicon glyph="pencil"/>,
-                            tooltipId: "sciadro.assets.draw",
-                            tooltipPosition: "top",
-                            className: "square-button-md no-border",
-                            pullRight: true,
-                            bsStyle: editingAssetFeature && editingAssetFeature.draw ? "success" : "primary",
-                            id: "geom"
-                        },
-                        menuOptions: [
-                            {
-                                glyph: "point",
-                                text: <Message msgId="sciadro.assets.point"/>,
-                                active: this.props.drawMethod === "Marker",
-                                onClick: () => {
-                                    if (editingAssetFeature && editingAssetFeature.id) {
-                                        this.props.onDrawAsset(editingAssetFeature.id, "Marker");
-                                    }
-                                }
-                            }, {
-                                // active: this.props.format === "aeronautical",
-                                glyph: "line",
-                                text: <Message msgId="sciadro.assets.line"/>,
-                                active: this.props.drawMethod === "LineString",
-                                onClick: () => {
-                                    if (editingAssetFeature && editingAssetFeature.id) {
-                                        this.props.onDrawAsset(editingAssetFeature.id, "LineString");
-                                    }
-                                }
-                            }
-                        ],
-                        visible: this.props.mode === "asset-edit",
-                        Element: DropdownToolbarOptions
-                    }
+                        }
                     ]}
                 />
             </ButtonToolbar>

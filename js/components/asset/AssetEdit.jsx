@@ -28,9 +28,10 @@ class AssetEdit extends React.Component {
         assets: PropTypes.array,
         typeList: PropTypes.array,
         assetEdited: PropTypes.object,
-        assetNew: PropTypes.object,
         className: PropTypes.string,
-        onEditAsset: PropTypes.func
+        onEditAsset: PropTypes.func,
+        renderDropZone: PropTypes.func,
+        renderToolbarGeom: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -38,18 +39,19 @@ class AssetEdit extends React.Component {
     static defaultProps = {
         assets: [],
         typeList: [
-            { value: "powerline", label: "sciadro.assets.powerline" },
-            { value: "pipeline", label: "sciadro.assets.pipeline" },
-            { value: "electric-truss", label: "sciadro.assets.electric-truss" }
+            { value: "POW", label: "sciadro.assets.powerline" },
+            { value: "PIP", label: "sciadro.assets.pipeline" },
+            { value: "ELE", label: "sciadro.assets.electric-truss" }
         ],
         className: "",
         onEditAsset: () => {}
     };
 
     render() {
-        const {assetNew, assetEdited} = this.props;
-        const asset = assetEdited || assetNew || {};
-
+        const {assetEdited} = this.props;
+        const asset = assetEdited || {};
+        const DropZone = this.props.renderDropZone;
+        const ToolbarGeom = this.props.renderToolbarGeom;
         return (
             <BorderLayout
                 className="padding15" >
@@ -59,9 +61,9 @@ class AssetEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.mandatory"/></ControlLabel>
                         </Col>
                     </FormGroup>
-                    <FormGroup validationState={getValidationState(asset.type)}>
+                    <FormGroup>
                         <Col xs={12} sm={12} md={12}>
-                            <ControlLabel><Message msgId="sciadro.assets.type"/> *</ControlLabel>
+                            <ControlLabel><Message msgId="sciadro.assets.type"/></ControlLabel>
                             <FormControl
                                 componentClass="select"
                                 placeholder="..."
@@ -101,35 +103,41 @@ class AssetEdit extends React.Component {
                             />
                         </Col>
                     </FormGroup>
-                    <FormGroup validationState={getValidationState(asset.dateCreation)}>
-                        <Col xs={12} sm={12} md={12}>
-                            <ControlLabel><Message msgId="sciadro.assets.dateCreation"/> *</ControlLabel>
-                            <DateTimePicker
-                                time
-                                calendar
-                                format="L"
-                                value={asset.dateCreation}
-                                onChange={(date) => this.props.onEditAsset(asset.id, "dateCreation", date)}
-                            />
-                        </Col>
-                    </FormGroup>
-                    <FormGroup>
-                        <Col xs={12} sm={12} md={12}>
-                            <ControlLabel><Message msgId="sciadro.assets.dateModified"/></ControlLabel>
+                    {
+                        assetEdited && !assetEdited.isNew && <FormGroup>
+                            <Col xs={12} sm={12} md={12}>
+                                <ControlLabel><Message msgId="sciadro.assets.dateCreation"/></ControlLabel>
                                 <DateTimePicker
                                     time
                                     calendar
                                     format="L"
-                                    value={asset.dateModified}
-                                    onChange={(date) => this.props.onEditAsset(asset.id, "dateModified", date)}
+                                    value={asset.dateCreation}
+                                    onChange={(date) => this.props.onEditAsset(asset.id, "dateCreation", date)}
                                 />
-                        </Col>
-                    </FormGroup>
+                            </Col>
+                        </FormGroup>
+                    }
+                    {
+                        assetEdited && !assetEdited.isNew && <FormGroup>
+                            <Col xs={12} sm={12} md={12}>
+                                <ControlLabel><Message msgId="sciadro.assets.dateModified"/></ControlLabel>
+                                    <DateTimePicker
+                                        time
+                                        calendar
+                                        format="L"
+                                        value={asset.dateModified}
+                                        onChange={(date) => this.props.onEditAsset(asset.id, "dateModified", date)}
+                                    />
+                            </Col>
+                        </FormGroup>
+                    }
                     <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.geometry"/></ControlLabel>
                             <br/>
-                            <img src="/assets/images/upload_geom.png"/>
+                            <ToolbarGeom/>
+                            <DropZone
+                                wrap={false}/>
                         </Col>
                     </FormGroup>
                 </Form>

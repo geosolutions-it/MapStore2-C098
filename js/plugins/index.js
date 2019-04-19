@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import Toolbar from '@js/components/Toolbar';
+import ToolbarGeometry from '@js/components/asset/ToolbarGeometry';
 import AssetList from '@js/components/asset/AssetList';
 import AssetEdit from '@js/components/asset/AssetEdit';
 import AssetPermission from '@js/components/asset/AssetPermission';
@@ -29,14 +30,16 @@ import {
     changeCurrentMission,
     editAsset,
     editMission,
-    addAsset,
+    saveAsset,
     addMission,
     drawAsset,
     hideAdditionalLayer,
     editAssetPermission,
     zoomToItem,
     createItem,
-    editItem
+    editItem,
+    addFeatureAsset,
+    deleteAssetFeature
 } from '@js/actions/sciadro';
 
 import {
@@ -45,16 +48,17 @@ import {
     anomaliesListSelector,
     modeSelector,
     drawMethodSelector,
-    saveDisabledSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
     reloadAssetSelector,
     assetEditedSelector,
     assetSelectedSelector,
-    assetNewSelector,
     missionSelectedSelector,
-    toolbarButtonsVisibilitySelector
+    toolbarButtonsVisibilitySelector,
+    isAssetEditSelector
 } from '@js/selectors/sciadro';
+import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
+import {zoomToExtent} from '@mapstore/actions/map';
 
 export const AssetListConnected = connect(createSelector([
     assetsListSelector,
@@ -71,12 +75,56 @@ export const AssetListConnected = connect(createSelector([
     onChangeCurrentMission: changeCurrentMission
 })(AssetList);
 
+import ShapeFile from '@mapstore/plugins/shapefile/ShapeFile';
+export const ShapeFileConnected = connect((state) => (
+    {
+        mapType: "openlayers",
+        visible: modeSelector(state) === "asset-edit",
+        layers: state.shapefile && state.shapefile.layers || null,
+        selected: state.shapefile && state.shapefile.selected || null,
+        bbox: state.shapefile && state.shapefile.bbox || null,
+        success: state.shapefile && state.shapefile.success || null,
+        error: state.shapefile && state.shapefile.error || null,
+        shapeStyle: state.style || {}
+    }
+), {
+    onShapeChoosen: onShapeChoosen,
+    onShapeError: onShapeError,
+    onLayerAdded: onLayerAdded,
+    onSelectLayer: onSelectLayer,
+    onShapeSuccess: onShapeSuccess,
+    addShapeLayer: addFeatureAsset,
+    onZoomSelected: zoomToExtent,
+    updateShapeBBox: updateShapeBBox,
+    shapeLoading: shapeLoading
+})(ShapeFile);
+
+export const ToolbarGeomConnected = connect(createSelector([
+    assetsListSelector,
+    modeSelector,
+    drawMethodSelector,
+    assetEditedSelector,
+    isAssetEditSelector
+], (assets, mode, drawMethod, assetEdited, drawGeom) => ({
+    assets, mode, drawMethod, assetEdited, drawGeom,
+    buttonsVisibility: {
+        drawGeom: drawGeom,
+        deleteGeom: drawGeom,
+        deleteGeomDisabled: !assetEdited.feature
+    }
+})), {
+    onDrawAsset: drawAsset,
+    onDeleteAssetFeature: deleteAssetFeature,
+    onHideAdditionalLayer: hideAdditionalLayer
+})(ToolbarGeometry);
+
 export const AssetEditConnected = connect(createSelector([
     assetsListSelector,
-    assetEditedSelector,
-    assetNewSelector
-], (assets, assetEdited, assetNew) => ({
-    assets, assetEdited, assetNew
+    assetEditedSelector
+], (assets, assetEdited) => ({
+    assets, assetEdited,
+    renderDropZone: ShapeFileConnected,
+    renderToolbarGeom: ToolbarGeomConnected
 })), {
     onEditAsset: editAsset
 })(AssetEdit);
@@ -132,17 +180,15 @@ export const ToolbarConnected = connect(createSelector([
     missionsListSelector,
     modeSelector,
     drawMethodSelector,
-    saveDisabledSelector,
     assetEditedSelector,
-    assetNewSelector,
     assetSelectedSelector,
     missionSelectedSelector,
     toolbarButtonsVisibilitySelector
-], (assets, missions, mode, drawMethod, saveDisabled, assetEdited,
-    assetNew, assetSelected, missionSelected, buttonsVisibility) => ({
+], (assets, missions, mode, drawMethod, assetEdited,
+    assetSelected, missionSelected, buttonsVisibility) => ({
 
-    assets, missions, mode, drawMethod, saveDisabled, assetEdited,
-    assetNew, assetSelected, missionSelected, buttonsVisibility
+    assets, missions, mode, drawMethod, assetEdited,
+    assetSelected, missionSelected, buttonsVisibility
 })), {
     onChangeMode: changeMode,
     onResetCurrentAsset: resetCurrentAsset,
@@ -150,8 +196,7 @@ export const ToolbarConnected = connect(createSelector([
     onCreateItem: createItem,
     onEditItem: editItem,
     onResetCurrentMission: resetCurrentMission,
-    onAddAsset: addAsset,
+    onSaveAsset: saveAsset,
     onAddMission: addMission,
-    onDrawAsset: drawAsset,
     onHideAdditionalLayer: hideAdditionalLayer
 })(Toolbar);

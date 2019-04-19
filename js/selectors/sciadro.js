@@ -20,10 +20,7 @@ export const assetEditedSelector = state => {
     const assets = state && assetsListSelector(state);
     return assets && find(assets, a => a.edit) || null;
 };
-export const assetNewSelector = state => {
-    const assets = state && assetsListSelector(state);
-    return assets && find(assets, a => a.isNew) || null;
-};
+
 export const assetSelectedSelector = state => {
     const assets = state && assetsListSelector(state);
     return assets && find(assets, a => a.selected) || null;
@@ -42,6 +39,7 @@ export const saveDisabledSelector = state => state && get(state, "sciadro.saveDi
 export const loadingAssetsSelector = state => state && get(state, "sciadro.loadingAssets", false);
 export const loadingMissionsSelector = state => state && get(state, "sciadro.loadingMissions", false);
 export const reloadAssetSelector = state => state && get(state, "sciadro.reloadAsset", true);
+export const isAssetEditSelector = state => state && modeSelector(state) === "asset-edit";
 
 export const toolbarButtonsVisibilitySelector = state => {
     const mode = modeSelector(state);
@@ -51,9 +49,10 @@ export const toolbarButtonsVisibilitySelector = state => {
         back: mode !== "asset-list",
         add: mode.indexOf("list") !== -1,
         save: mode.indexOf("edit") !== -1,
+        saveDisabled: saveDisabledSelector(state),
         edit: (missionSelected && mode === "mission-list" || assetSelected && mode === "asset-list"),
         zoom: (missionSelected && mode === "mission-list" || assetSelected && mode === "asset-list"),
-        zoomDisabled: (missionSelected && !missionSelected.feature || assetSelected && !assetSelected.feature) && mode.indexOf("edit") !== -1,
+        zoomDisabled: ((missionSelected && !missionSelected.feature) || (assetSelected && !assetSelected.feature)) && mode.indexOf("list") === -1,
         draw: mode === "asset-edit"
     };
 };

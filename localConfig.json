@@ -58,21 +58,7 @@
 						"description": "English"
 					}
 				}
-			},
-      "maplayout": {
-        "layout": {
-          "left": 500,
-          "right": 0,
-          "bottom": 30,
-          "transform": "none",
-          "height": "calc(100% - 30px)"
-        },
-        "boundingMapRect": {
-          "bottom": 30,
-          "left": 500,
-          "right": 0
-        }
-      }
+			}
     }
 	},
 	"plugins": {
@@ -107,7 +93,8 @@
         "cfg": {
           "toolbarCfg": {
             "assetZoomLevel": 10,
-            "missionZoomLevel": 10
+            "missionZoomLevel": 10,
+            "backend_url": "http://backendUrl:8000/"
           },
           "componentsCfg": {
             "asset-list": {},

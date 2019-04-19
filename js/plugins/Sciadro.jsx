@@ -23,6 +23,8 @@ import {
 } from './index';
 
 import sciadro from '@js/reducers/sciadro';
+import shapefile from '@mapstore/reducers/shapefile';
+import style from '@mapstore/reducers/style';
 import * as sciadroEpics from '@js/epics/sciadro';
 import {
     enabledSelector,
@@ -52,5 +54,5 @@ export const Sciadro = connect(createSelector([
 })), {})(Container);
 
 export const SciadroPlugin = assign(Sciadro);
-export const reducers = { sciadro };
+export const reducers = { shapefile, style, sciadro };
 export const epics = sciadroEpics;

@@ -50,3 +50,30 @@ export const getStyleFromType = (type = "LineString") => {
     };
     return styles[type];
 };
+
+
+/**
+ used to mock some axios req/res for sciadro backend
+*/
+const MockAdapter = require("axios-mock-adapter");
+const axios = require("@mapstore/libs/ajax");
+
+const DATA = {
+    POST_ASSET: require("json-loader!@js/test-resources/postAsset.json"),
+    GET_ALL_ASSETS: require("json-loader!@js/test-resources/getAllAssets.json")
+};
+
+
+export const postAssetResource = ({backendUrl = "http://localhost:8000", resource = {}, options = {
+    timeout: 3000,
+    headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}
+}} = {}) => {
+    let mockAxios = new MockAdapter(axios);
+    mockAxios.onPost(/assets/).reply(201, DATA.POST_ASSET);
+    return axios.post(`${backendUrl}/assets`, resource, options)
+        .then(data => {
+            mockAxios.reset();
+            mockAxios.restore();
+            return data;
+        });
+};

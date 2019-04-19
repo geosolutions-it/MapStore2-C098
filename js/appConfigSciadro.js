@@ -23,6 +23,9 @@ module.exports = {
             controls: {
                 sciadro: {
                     enabled: true
+                },
+                shapefile: {
+                    enabled: true
                 }
             },
             maps: {

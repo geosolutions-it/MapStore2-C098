@@ -22,16 +22,19 @@ export const SELECT_MISSION = "SCIADRO:SELECT_MISSION";
 export const LOADING_MISSIONS = "SCIADRO:LOADING_MISSIONS";
 export const EDIT_ASSET = "SCIADRO:EDIT_ASSET";
 export const EDIT_MISSION = "SCIADRO:EDIT_MISSION";
-export const ADD_ASSET = "SCIADRO:ADD_ASSET";
+export const SAVE_ASSET = "SCIADRO:SAVE_ASSET";
+export const ADD_FEATURE_ASSET = "SCIADRO:ADD_FEATURE_ASSET";
+export const UPDATE_ASSET = "SCIADRO:UPDATE_ASSET";
+export const DELETE_FEATURE_ASSET = "SCIADRO:DELETE_FEATURE_ASSET";
 export const DRAW_ASSET = "SCIADRO:DRAW_ASSET";
 export const ADD_MISSION = "SCIADRO:ADD_MISSION";
 export const ENTER_CREATE_ITEM = "SCIADRO:ENTER_CREATE_ITEM";
 export const ENTER_EDIT_ITEM = "SCIADRO:ENTER_EDIT_ITEM";
 export const ZOOM_TO_ITEM = "SCIADRO:ZOOM_TO_ITEM";
+import {error, success} from "@mapstore/actions/notifications";
 
 export const hideAdditionalLayer = (id) => ({ type: HIDE_ADDITIONAL_LAYER, id });
 export const editAssetPermission = (id) => ({ type: EDIT_ASSET_PERMISSION, id });
-
 export const loadAssets = () => ({ type: LOAD_ASSETS });
 export const selectAssets = (id) => ({ type: SELECT_ASSET, id });
 export const loadingAssets = (loading) => ({ type: LOADING_ASSETS, loading });
@@ -40,17 +43,20 @@ export const loadedAssets = (assets) => ({ type: LOADED_ASSETS, assets });
 export const resetCurrentAsset = () => ({ type: RESET_CURRENT_ASSET });
 export const changeCurrentAsset = (id) => ({ type: CHANGE_CURRENT_ASSET, id });
 export const editAsset = (id, prop, value) => ({ type: EDIT_ASSET, id, prop, value });
-export const addAsset = (id, prop, value) => ({ type: ADD_ASSET, id, prop, value });
+export const saveAsset = (id) => ({ type: SAVE_ASSET, id });
 export const drawAsset = (id, drawMethod) => ({ type: DRAW_ASSET, id, drawMethod });
-
 export const addMission = (id, prop, value) => ({ type: ADD_MISSION, id, prop, value });
 export const editMission = (id, prop, value) => ({ type: EDIT_MISSION, id, prop, value });
 export const loadingMissions = (loading) => ({ type: LOADING_MISSIONS, loading });
 export const resetCurrentMission = () => ({ type: RESET_CURRENT_MISSION });
 export const changeCurrentMission = (id) => ({ type: CHANGE_CURRENT_MISSION, id });
 export const selectMission = (id) => ({ type: SELECT_MISSION, id });
-
 export const changeMode = (mode) => ({ type: CHANGE_MODE, mode });
 export const createItem = (mode) => ({ type: ENTER_CREATE_ITEM, mode });
 export const editItem = (mode) => ({ type: ENTER_EDIT_ITEM, mode });
 export const zoomToItem = (zoom) => ({ type: ZOOM_TO_ITEM, zoom });
+export const addFeatureAsset = (layer) => ({ type: ADD_FEATURE_ASSET, layer });
+export const updateAsset = (props, id) => ({ type: UPDATE_ASSET, props, id });
+export const deleteAssetFeature = (id) => ({ type: DELETE_FEATURE_ASSET, id});
+export const saveAssetError = () => success({message: "sciadro.assets.rest.saveError"});
+export const saveAssetSuccess = () => error({message: "sciadro.assets.rest.saveSuccess"});

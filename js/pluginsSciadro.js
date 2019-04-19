@@ -11,7 +11,8 @@ import * as Toolbar from '@mapstore/plugins/Toolbar';
 import * as Login from '@mapstore/plugins/Login';
 import * as OmniBar from '@mapstore/plugins/OmniBar';
 import * as Notifications from '@mapstore/plugins/Notifications';
-import * as Sciadro from './plugins/Sciadro';
+// sciadro custom
+import * as Sciadro from '@js/plugins/Sciadro';
 
 module.exports = {
     plugins: {
@@ -20,6 +21,7 @@ module.exports = {
         LoginPlugin: Login,
         OmniBarPlugin: OmniBar,
         NotificationsPlugin: Notifications,
+        // sciadro custom
         SciadroPlugin: Sciadro
     },
     requires: {}
