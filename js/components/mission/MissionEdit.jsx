@@ -83,15 +83,15 @@ class MissionEdit extends React.Component {
                             />
                         </Col>
                     </FormGroup>
-                    <FormGroup validationState={getValidationState(mission.dateCreation)}>
+                    <FormGroup validationState={getValidationState(mission.created)}>
                         <Col xs={12} sm={12} md={12}>
-                            <ControlLabel><Message msgId="sciadro.missions.dateCreation"/> *</ControlLabel>
+                            <ControlLabel><Message msgId="sciadro.missions.created"/> *</ControlLabel>
                             <DateTimePicker
                                 time
-                                value={mission.dateCreation}
+                                value={mission.created}
                                 calendar
                                 format="L"
-                                onChange={(date) => this.props.onEditMission(mission.id, "dateCreation", date)}
+                                onChange={(date) => this.props.onEditMission(mission.id, "created", date)}
                             />
                         </Col>
                     </FormGroup>

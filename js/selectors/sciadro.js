@@ -38,7 +38,9 @@ export const drawMethodSelector = state => state && get(state, "sciadro.drawMeth
 export const saveDisabledSelector = state => state && get(state, "sciadro.saveDisabled", true);
 export const loadingAssetsSelector = state => state && get(state, "sciadro.loadingAssets", false);
 export const loadingMissionsSelector = state => state && get(state, "sciadro.loadingMissions", false);
+export const savingAssetSelector = state => state && get(state, "sciadro.savingAsset", false);
 export const reloadAssetSelector = state => state && get(state, "sciadro.reloadAsset", true);
+export const saveErrorSelector = state => state && get(state, "sciadro.saveError");
 export const isAssetEditSelector = state => state && modeSelector(state) === "asset-edit";
 
 export const toolbarButtonsVisibilitySelector = state => {
@@ -50,6 +52,7 @@ export const toolbarButtonsVisibilitySelector = state => {
         add: mode.indexOf("list") !== -1,
         save: mode.indexOf("edit") !== -1,
         saveDisabled: saveDisabledSelector(state),
+        saveError: !!saveErrorSelector(state),
         edit: (missionSelected && mode === "mission-list" || assetSelected && mode === "asset-list"),
         zoom: (missionSelected && mode === "mission-list" || assetSelected && mode === "asset-list"),
         zoomDisabled: ((missionSelected && !missionSelected.feature) || (assetSelected && !assetSelected.feature)) && mode.indexOf("list") === -1,

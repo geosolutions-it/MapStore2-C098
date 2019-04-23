@@ -7,6 +7,10 @@
             "back": "Back",
             "save": "Save",
             "no-matches": "No Matches",
+            "rest": {
+                "saveError": "An error occured during saving process",
+                "error": "An error occured"
+            },
             "mode": {
                 "asset-list": "Assets",
                 "asset-permission": "Asset Permissions",
@@ -35,10 +39,10 @@
                 "geometry": "Geometry",
                 "point": "Point",
                 "line": "LineString",
-                "dateCreation": "Date Creation",
-                "dateModified": "Date Modified",
+                "created": "Date Creation",
+                "modified": "Date Modified",
                 "rest": {
-                    "saveSuccess": "Asset has been correctly save",
+                    "saveSuccess": "The asset '{name}' has been correctly saved",
                     "saveError": "An error occured when saving the Asset"
                 }
             },
@@ -53,7 +57,7 @@
                 "name": "Name",
                 "description": "Description",
                 "note": "Note",
-                "dateCreation": "Date Creation"
+                "created": "Date Creation"
             }
         },
         "shapefile": {

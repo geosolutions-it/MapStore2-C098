@@ -16,7 +16,7 @@ import {
     RESET_CURRENT_MISSION,
     CHANGE_CURRENT_MISSION,
     CHANGE_CURRENT_ASSET,
-    SAVE_ASSET,
+    START_SAVE_ASSET,
     ENTER_CREATE_ITEM,
     HIDE_ADDITIONAL_LAYER,
     ZOOM_TO_ITEM,
@@ -25,10 +25,12 @@ import {
     updateAsset,
     loadingAssets,
     loadAssetError,
-    saveAssetError,
+    // saveAssetError,
+    endSaveAsset,
     saveAssetSuccess
 } from '@js/actions/sciadro';
-import {getStyleFromType, postAssetResource} from "@js/utils/sciadro";
+import {getStyleFromType} from "@js/utils/sciadro";
+import {saveResource} from "@js/API/Persistence";
 import {
     selectedMissionFeatureSelector,
     selectedAssetFeatureSelector,
@@ -109,7 +111,7 @@ const mockAssetsGeojson = [{
  */
 export const loadAssetsEpic = (action$, store) =>
     action$.ofType(LOAD_ASSETS, LOGIN_SUCCESS)
-    .delay(3000)
+     // .delay(3000) // remove after sciadro mock adapter is removed
         .switchMap(() => {
             // get all assets
             return Rx.Observable.defer( () =>
@@ -148,12 +150,12 @@ export const loadAssetsEpic = (action$, store) =>
 
 /**
  * Shows in the map the asset's and/or mission's features
- * @param {external:Observable} action$ manages `SELECT_MISSION`, `RESET_CURRENT_ASSET`, `RESET_CURRENT_MISSION`, `CHANGE_CURRENT_MISSION`, `CHANGE_CURRENT_ASSET`, `SAVE_ASSET`
+ * @param {external:Observable} action$ manages `SELECT_MISSION`, `RESET_CURRENT_ASSET`, `RESET_CURRENT_MISSION`, `CHANGE_CURRENT_MISSION`, `CHANGE_CURRENT_ASSET`, `START_SAVE_ASSET`
  * @memberof epics.sciadro
  * @return {external:Observable}
  */
 export const updateAdditionalLayerEpic = (action$, store) =>
-    action$.ofType(SELECT_MISSION, SELECT_ASSET, RESET_CURRENT_ASSET, RESET_CURRENT_MISSION, CHANGE_CURRENT_MISSION, CHANGE_CURRENT_ASSET, SAVE_ASSET )
+    action$.ofType(SELECT_MISSION, SELECT_ASSET, RESET_CURRENT_ASSET, RESET_CURRENT_MISSION, CHANGE_CURRENT_MISSION, CHANGE_CURRENT_ASSET, START_SAVE_ASSET )
         .switchMap((a) => {
             let actions = [];
             const state = store.getState();
@@ -161,7 +163,7 @@ export const updateAdditionalLayerEpic = (action$, store) =>
             const featureAsset = selectedAssetFeatureSelector(state);
             const featureMission = selectedMissionFeatureSelector(state);
             const featureDrone = selectedDroneFeatureSelector(state);
-            if (a.type === RESET_CURRENT_ASSET || a.type === SAVE_ASSET ) {
+            if (a.type === RESET_CURRENT_ASSET || a.type === START_SAVE_ASSET ) {
                 actions.push(changeDrawingStatus("clean", "", "sciadro", [], {}, {}));
                 actions.push(onShapeSuccess(null));
             }
@@ -288,60 +290,32 @@ export const addFeatureAssetEpic = (action$, store) =>
         });
 /**
  * it sends requesto to save the asset metadata and geom in the backend servers
- * @param {external:Observable} action$ manages `SAVE_ASSET`
+ * @param {external:Observable} action$ manages `START_SAVE_ASSET`
  * @memberof epics.sciadro
  * @return {external:Observable}
 **/
 export const saveAssetEpic = (action$, store) =>
-    action$.ofType(SAVE_ASSET)
+    action$.ofType(START_SAVE_ASSET)
         .switchMap((a) => {
             const state = store.getState();
             const asset = assetEditedSelector(state);
-
-            // TODO parse asset before sending it to the backend
-            // use only relevant info
-
-            // save asset on sciadro-backend
-            return Rx.Observable.defer( () =>
-                postAssetResource({asset})
-                    .catch((e) => {
-                        return Rx.Observable.of(saveAssetError(e));
-                    })
-            )
-            .switchMap(({status, data} = {}) => {
-                if (status === 201) {
-                    const {name = "", description = "", feature, id, missions, ...other} = data;
-                    return Rx.Observable.defer( () => Persistence.createResource(
-                        {
-                            metadata: {
-                                name,
-                                description,
-                                attributes: {
-                                    idBackend: id,
-                                    missionsId: missions.join(","),
-                                    ...other
-                                }
-                            },
-                            category: "ASSET",
-                            configuredPermission: {}
-                        }).catch( (e) => {
-                            // manage duplicated resource, this need to checked before running the previous request to the python backend server
-                            return Rx.Observable.of(saveAssetError(e));
-                        })
-                        .switchMap(idAssetGeostore => {
-                            return Rx.Observable.from([
-                                saveAssetSuccess(),
-                                updateAsset({
-                                     idBackend: id,
-                                     id: idAssetGeostore,
-                                     missionsId: missions.join(","),
-                                     dateCreation: data.created,
-                                     dateModified: data.modified
-                                 }, a.id)
-                             ]);
-                        })
-                    );
-                }
-                return Rx.Observable.of(saveAssetError());
-            });
+            const resource = {
+                name: asset.name,
+                feature: asset.feature,
+                description: asset.description,
+                note: asset.note,
+                type: asset.type
+            };
+            const postProcessActions = (sciadroData, idResourceGeostore) =>[
+                saveAssetSuccess(resource.name),
+                updateAsset({
+                    sciadroResourceId: sciadroData.id,
+                    id: idResourceGeostore,
+                    missionsId: sciadroData.missions.join(","),
+                    created: sciadroData.created,
+                    modified: sciadroData.modified
+                }, a.id),
+                endSaveAsset()
+            ];
+            return saveResource({resource, category: "ASSET", resourcePermissions: {}, postProcessActions});
         });

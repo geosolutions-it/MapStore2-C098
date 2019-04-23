@@ -20,13 +20,15 @@ import {
     EDIT_ASSET,
     EDIT_MISSION,
     EDIT_ASSET_PERMISSION,
-    SAVE_ASSET,
+    START_SAVE_ASSET,
+    END_SAVE_ASSET,
     ADD_MISSION,
     DRAW_ASSET,
     UPDATE_ASSET,
     ENTER_CREATE_ITEM,
     ENTER_EDIT_ITEM,
-    DELETE_FEATURE_ASSET
+    DELETE_FEATURE_ASSET,
+    SAVE_ERROR
 } from '@js/actions/sciadro';
 
 import {assetSelectedSelector, missionSelectedSelector} from '@js/selectors/sciadro';
@@ -99,7 +101,7 @@ export default function sciadro(state = {
         description: "",
         attributes: [{
             note: "",
-            dateCreation: "2019-01-12T16:30:00.000Z"
+            created: "2019-01-12T16:30:00.000Z"
         }],
         feature: {
             type: "Feature",
@@ -135,7 +137,7 @@ export default function sciadro(state = {
         description: "",
         attributes: [{
             note: "note for this mission",
-            dateCreation: "2018-01-12T16:30:00.000Z"
+            created: "2018-01-12T16:30:00.000Z"
         }],
         feature: {
             type: "Feature",
@@ -194,8 +196,8 @@ export default function sciadro(state = {
                     name: "",
                     description: "",
                     note: "",
-                    dateCreation: null,
-                    dateModified: null,
+                    created: null,
+                    modified: null,
                     edit: true,
                     isNew: true
                 }]) : state.assets,
@@ -204,7 +206,7 @@ export default function sciadro(state = {
                     name: "",
                     description: "",
                     note: "",
-                    dateCreation: null,
+                    created: null,
                     edit: true,
                     isNew: true
                 }]) : state.missions,
@@ -242,11 +244,24 @@ export default function sciadro(state = {
                 mode: action.mode
             };
         }
-        case SAVE_ASSET: {
+        case SAVE_ERROR: {
             return {
                 ...state,
-                reloadAsset: true,
-                loadingAssets: true,
+                saveError: action.message
+            };
+        }
+        case START_SAVE_ASSET: {
+            return {
+                ...state,
+                reloadAsset: false,
+                savingAsset: true
+            };
+        }
+        case END_SAVE_ASSET: {
+            return {
+                ...state,
+                savingAsset: false,
+                saveDisabled: false,
                 assets: resetProps(state.assets, ["edit", "isNew"]),
                 mode: "asset-list"
             };

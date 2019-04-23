@@ -17,9 +17,9 @@ import Filter from '@mapstore/components/misc/Filter';
 import Message from '@mapstore/components/I18N/Message';
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import emptyState from '@mapstore/components/misc/enhancers/emptyState';
-
+import LoadingWithText from '@js/components/asset/LoadingWithText';
 const SideGridEnhanced = compose(
-    loadingState(({loading} ) => loading),
+    loadingState(({loading}) => loading, {text: "Loading Asset"}, LoadingWithText),
     emptyState( // TODO verify if we want this empty state enhancer
         ({loading, items = []} ) => items.length === 0 && !loading,
         {

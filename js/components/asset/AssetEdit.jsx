@@ -15,6 +15,9 @@ import Message from '@mapstore/components/I18N/Message';
 import Moment from 'moment';
 import momentLocalizer from 'react-widgets/lib/localizers/moment';
 momentLocalizer(Moment);
+import loadingState from '@mapstore/components/misc/enhancers/loadingState';
+import {compose} from 'recompose';
+import LoadingWithText from '@js/components/asset/LoadingWithText';
 
 require('react-widgets/lib/less/react-widgets.less');
 import {DateTimePicker} from 'react-widgets';
@@ -29,6 +32,7 @@ class AssetEdit extends React.Component {
         typeList: PropTypes.array,
         assetEdited: PropTypes.object,
         className: PropTypes.string,
+        savingAsset: PropTypes.bool,
         onEditAsset: PropTypes.func,
         renderDropZone: PropTypes.func,
         renderToolbarGeom: PropTypes.func
@@ -106,13 +110,13 @@ class AssetEdit extends React.Component {
                     {
                         assetEdited && !assetEdited.isNew && <FormGroup>
                             <Col xs={12} sm={12} md={12}>
-                                <ControlLabel><Message msgId="sciadro.assets.dateCreation"/></ControlLabel>
+                                <ControlLabel><Message msgId="sciadro.assets.created"/></ControlLabel>
                                 <DateTimePicker
                                     time
                                     calendar
                                     format="L"
-                                    value={asset.dateCreation}
-                                    onChange={(date) => this.props.onEditAsset(asset.id, "dateCreation", date)}
+                                    value={asset.created}
+                                    onChange={(date) => this.props.onEditAsset(asset.id, "created", date)}
                                 />
                             </Col>
                         </FormGroup>
@@ -120,13 +124,13 @@ class AssetEdit extends React.Component {
                     {
                         assetEdited && !assetEdited.isNew && <FormGroup>
                             <Col xs={12} sm={12} md={12}>
-                                <ControlLabel><Message msgId="sciadro.assets.dateModified"/></ControlLabel>
+                                <ControlLabel><Message msgId="sciadro.assets.modified"/></ControlLabel>
                                     <DateTimePicker
                                         time
                                         calendar
                                         format="L"
-                                        value={asset.dateModified}
-                                        onChange={(date) => this.props.onEditAsset(asset.id, "dateModified", date)}
+                                        value={asset.modified}
+                                        onChange={(date) => this.props.onEditAsset(asset.id, "modified", date)}
                                     />
                             </Col>
                         </FormGroup>
@@ -146,4 +150,8 @@ class AssetEdit extends React.Component {
     }
 }
 
-export default AssetEdit;
+const AssetEditEnhanced = compose(
+   loadingState(({savingAsset}) => savingAsset, {text: "Saving Asset"}, LoadingWithText)
+)(AssetEdit);
+
+export default AssetEditEnhanced;

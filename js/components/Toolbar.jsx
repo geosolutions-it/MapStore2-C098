@@ -20,6 +20,7 @@ export default class MainToolbar extends React.Component {
     static propTypes = {
         mode: PropTypes.string,
         drawMethod: PropTypes.string,
+        error: PropTypes.string,
         assetEdited: PropTypes.object,
         assetSelected: PropTypes.object,
         missionSelected: PropTypes.object,
@@ -31,7 +32,7 @@ export default class MainToolbar extends React.Component {
         onResetCurrentMission: PropTypes.func,
         onZoomToItem: PropTypes.func,
         onAddMission: PropTypes.func,
-        onSaveAsset: PropTypes.func,
+        onStartSaveAsset: PropTypes.func,
         onDrawAsset: PropTypes.func,
         // onChangeMode: PropTypes.func,
         onCreateItem: PropTypes.func,
@@ -57,7 +58,7 @@ export default class MainToolbar extends React.Component {
         onResetCurrentMission: () => {},
         onZoomToItem: () => {},
         onAddMission: () => {},
-        onSaveAsset: () => {},
+        onStartSaveAsset: () => {},
         onDrawAsset: () => {},
         // onChangeMode: () => {},
         onCreateItem: () => {},
@@ -113,7 +114,7 @@ export default class MainToolbar extends React.Component {
                                     this.props.onAddMission();
                                 }
                                 if (this.props.mode === "asset-edit") {
-                                    this.props.onSaveAsset(assetEdited.id);
+                                    this.props.onStartSaveAsset(assetEdited.id);
                                 }
                             },
                             glyph: "floppy-disk",
@@ -147,6 +148,15 @@ export default class MainToolbar extends React.Component {
                             glyph: "zoom-to",
                             visible: this.props.buttonsVisibility.zoom,
                             disabled: this.props.buttonsVisibility.zoomDisabled
+                        },
+                        {
+                            tooltipId: this.props.error,
+                            tooltipPosition: "top",
+                            className: "square-button-md no-border",
+                            pullRight: true,
+                            bsStyle: "danger",
+                            glyph: "exclamation-mark",
+                            visible: this.props.buttonsVisibility.saveError
                         }
                     ]}
                 />

@@ -30,7 +30,7 @@ import {
     changeCurrentMission,
     editAsset,
     editMission,
-    saveAsset,
+    startSaveAsset,
     addMission,
     drawAsset,
     hideAdditionalLayer,
@@ -55,7 +55,9 @@ import {
     assetSelectedSelector,
     missionSelectedSelector,
     toolbarButtonsVisibilitySelector,
-    isAssetEditSelector
+    isAssetEditSelector,
+    saveErrorSelector,
+    savingAssetSelector
 } from '@js/selectors/sciadro';
 import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
 import {zoomToExtent} from '@mapstore/actions/map';
@@ -120,9 +122,10 @@ export const ToolbarGeomConnected = connect(createSelector([
 
 export const AssetEditConnected = connect(createSelector([
     assetsListSelector,
-    assetEditedSelector
-], (assets, assetEdited) => ({
-    assets, assetEdited,
+    assetEditedSelector,
+    savingAssetSelector
+], (assets, assetEdited, savingAsset) => ({
+    assets, assetEdited, savingAsset,
     renderDropZone: ShapeFileConnected,
     renderToolbarGeom: ToolbarGeomConnected
 })), {
@@ -183,12 +186,13 @@ export const ToolbarConnected = connect(createSelector([
     assetEditedSelector,
     assetSelectedSelector,
     missionSelectedSelector,
-    toolbarButtonsVisibilitySelector
+    toolbarButtonsVisibilitySelector,
+    saveErrorSelector
 ], (assets, missions, mode, drawMethod, assetEdited,
-    assetSelected, missionSelected, buttonsVisibility) => ({
+    assetSelected, missionSelected, buttonsVisibility, error) => ({
 
     assets, missions, mode, drawMethod, assetEdited,
-    assetSelected, missionSelected, buttonsVisibility
+    assetSelected, missionSelected, buttonsVisibility, error
 })), {
     onChangeMode: changeMode,
     onResetCurrentAsset: resetCurrentAsset,
@@ -196,7 +200,7 @@ export const ToolbarConnected = connect(createSelector([
     onCreateItem: createItem,
     onEditItem: editItem,
     onResetCurrentMission: resetCurrentMission,
-    onSaveAsset: saveAsset,
+    onStartSaveAsset: startSaveAsset,
     onAddMission: addMission,
     onHideAdditionalLayer: hideAdditionalLayer
 })(Toolbar);
