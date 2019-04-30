@@ -7,6 +7,8 @@
 */
 
 import {updateAdditionalLayer, removeAdditionalLayer} from "@mapstore/actions/additionallayers";
+import { findIndex } from "lodash";
+import { set } from "@mapstore/utils/ImmutableUtils";
 
 export const getAdditionalLayerAction = ({feature, id, name, style = { color: "#FF0000", weight: 3 }}) => {
     if (!feature) {
@@ -76,4 +78,52 @@ export const postAssetResource = ({backendUrl = "http://localhost:8000", resourc
             mockAxios.restore();
             return data;
         });
+};
+
+export const updateItem = (items = [], id, props = {}) => {
+    let newItems = [...items];
+    const itemIndex = findIndex(items, item => item.id === id);
+    if (itemIndex !== -1) {
+        newItems[itemIndex] = {...newItems[itemIndex], ...props};
+    }
+    return newItems;
+};
+
+// reset prop passed for all items but toggle provided one
+export const toggleItemsProps = (items = [], id, prop = "selected") => {
+    let newItems = [...items];
+    const selectedItemIndex = findIndex(items, item => item.id === id);
+    if (selectedItemIndex !== -1) {
+        newItems = newItems.map((m, index) => ({...m, [prop]: index !== selectedItemIndex ? false : !m[prop]}));
+    }
+    return newItems;
+};
+export const updateDroneProps = (items = [], id, props = {}) => {
+    let newItems = [...items];
+    const selectedItemIndex = findIndex(items, item => item.id === id);
+    if (selectedItemIndex !== -1) {
+        const currentItem = newItems[selectedItemIndex];
+        newItems = set(`[${selectedItemIndex}].drone.properties`, {...(currentItem.drone && currentItem.drone.properties || {}), ...props}, newItems);
+    }
+    return newItems;
+};
+
+export const resetProps = (items = [], propsToReset = ["selected", "current"]) => {
+    const props = propsToReset.reduce((p, c) => ({...p, [c]: false}), {});
+    return items.map( item => ({...item, ...props}));
+};
+
+export const updateItemAndResetOthers = ({items = "assets", id, state, propsToUpdate = {selected: true, current: true }, propsToReset = ["selected", "current"]}) => {
+    return {
+        ...state,
+        [items]: updateItem(resetProps(state[items], propsToReset), id, propsToUpdate)
+    };
+};
+
+export const isEditedItemValid = (type, item) => {
+    switch (type) {
+        case "asset": return !!item.name && !!item.type;
+        case "mission": return !!item.name;
+        default: return false;
+    }
 };

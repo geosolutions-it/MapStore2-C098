@@ -39,6 +39,16 @@ class Container extends React.Component {
         messages: PropTypes.object
     };
     static defaultProps = {
+        renderBodyComponents: {
+            "asset-list": () => null
+        },
+        componentsCfg: {
+            "asset-list": {}
+        },
+        toolbarCfg: {
+            "asset-list": {}
+        },
+        renderToolbarComponent: () => null,
         bsStyle: "primary",
         dock: true,
         glyph: "",

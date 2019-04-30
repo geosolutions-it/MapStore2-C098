@@ -20,7 +20,7 @@ import MissionDetail from '@js/components/mission/MissionDetail';
 import MissionEdit from '@js/components/mission/MissionEdit';
 
 import {
-    loadAssets,
+    startLoadingAssets,
     selectAssets,
     changeCurrentAsset,
     changeMode,
@@ -30,14 +30,14 @@ import {
     changeCurrentMission,
     editAsset,
     editMission,
-    startSaveAsset,
-    addMission,
+    startSavingAsset,
+    startSavingMission,
     drawAsset,
     hideAdditionalLayer,
     editAssetPermission,
     zoomToItem,
-    createItem,
-    editItem,
+    enterCreateItem,
+    enterEditItem,
     addFeatureAsset,
     deleteAssetFeature
 } from '@js/actions/sciadro';
@@ -50,13 +50,12 @@ import {
     drawMethodSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
-    reloadAssetSelector,
+    restartLoadingAssetselector,
     assetEditedSelector,
     assetSelectedSelector,
     missionSelectedSelector,
-    toolbarButtonsVisibilitySelector,
+    toolbarButtonsStatusSelector,
     isAssetEditSelector,
-    saveErrorSelector,
     savingAssetSelector
 } from '@js/selectors/sciadro';
 import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
@@ -65,11 +64,11 @@ import {zoomToExtent} from '@mapstore/actions/map';
 export const AssetListConnected = connect(createSelector([
     assetsListSelector,
     loadingAssetsSelector,
-    reloadAssetSelector
+    restartLoadingAssetselector
 ], (assets, loadingAssets, reloadAsset ) => ({
     assets, loadingAssets, reloadAsset
 })), {
-    onLoadAssets: loadAssets,
+    onStartLoadingAssets: startLoadingAssets,
     onChangeCurrentAsset: changeCurrentAsset,
     onSelectAsset: selectAssets,
     onHideAdditionalLayer: hideAdditionalLayer,
@@ -109,7 +108,7 @@ export const ToolbarGeomConnected = connect(createSelector([
     isAssetEditSelector
 ], (assets, mode, drawMethod, assetEdited, drawGeom) => ({
     assets, mode, drawMethod, assetEdited, drawGeom,
-    buttonsVisibility: {
+    buttonsStatus: {
         drawGeom: drawGeom,
         deleteGeom: drawGeom,
         deleteGeomDisabled: !assetEdited.feature
@@ -186,21 +185,20 @@ export const ToolbarConnected = connect(createSelector([
     assetEditedSelector,
     assetSelectedSelector,
     missionSelectedSelector,
-    toolbarButtonsVisibilitySelector,
-    saveErrorSelector
+    toolbarButtonsStatusSelector
 ], (assets, missions, mode, drawMethod, assetEdited,
-    assetSelected, missionSelected, buttonsVisibility, error) => ({
+    assetSelected, missionSelected, buttonsStatus) => ({
 
     assets, missions, mode, drawMethod, assetEdited,
-    assetSelected, missionSelected, buttonsVisibility, error
+    assetSelected, missionSelected, buttonsStatus
 })), {
     onChangeMode: changeMode,
     onResetCurrentAsset: resetCurrentAsset,
     onZoomToItem: zoomToItem,
-    onCreateItem: createItem,
-    onEditItem: editItem,
+    onEnterenterCreateItem: enterCreateItem,
+    onEnterEditItem: enterEditItem,
     onResetCurrentMission: resetCurrentMission,
-    onStartSaveAsset: startSaveAsset,
-    onAddMission: addMission,
+    onStartSavingAsset: startSavingAsset,
+    onStartSavingMission: startSavingMission,
     onHideAdditionalLayer: hideAdditionalLayer
 })(Toolbar);

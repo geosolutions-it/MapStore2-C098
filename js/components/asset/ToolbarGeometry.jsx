@@ -23,7 +23,7 @@ export default class ToolbarGeometry extends React.Component {
         mode: PropTypes.string,
         drawMethod: PropTypes.string,
         assetEdited: PropTypes.object,
-        buttonsVisibility: PropTypes.object,
+        buttonsStatus: PropTypes.object,
 
         onDrawAsset: PropTypes.func,
         onDeleteAssetFeature: PropTypes.func,
@@ -33,7 +33,7 @@ export default class ToolbarGeometry extends React.Component {
         messages: PropTypes.object
     };
     static defaultProps = {
-        buttonsVisibility: {
+        buttonsStatus: {
             deleteGeom: true,
             deleteGeomDisabled: true,
             drawGeom: true
@@ -44,7 +44,7 @@ export default class ToolbarGeometry extends React.Component {
     };
 
     render() {
-        const { assetEdited, mode, buttonsVisibility } = this.props;
+        const { assetEdited, mode, buttonsStatus } = this.props;
         return (
             <ButtonToolbar className="buttonToolbar">
                 <Toolbar
@@ -65,7 +65,7 @@ export default class ToolbarGeometry extends React.Component {
                             },
                             glyph: "trash",
                             visible: mode === "asset-edit",
-                            disabled: buttonsVisibility.deleteGeomDisabled
+                            disabled: buttonsStatus.deleteGeomDisabled
                         },
                         {
                             buttonConfig: {

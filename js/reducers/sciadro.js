@@ -7,83 +7,47 @@
 */
 
 import {
-    LOADED_ASSETS,
-    SELECT_ASSET,
-    LOADING_ASSETS,
-    LOADING_MISSIONS,
     CHANGE_CURRENT_ASSET,
-    RESET_CURRENT_ASSET,
-    RESET_CURRENT_MISSION,
-    CHANGE_MODE,
-    SELECT_MISSION,
     CHANGE_CURRENT_MISSION,
+    CHANGE_MODE,
+    DELETE_FEATURE_ASSET,
+    DRAW_ASSET,
     EDIT_ASSET,
     EDIT_MISSION,
     EDIT_ASSET_PERMISSION,
-    START_SAVE_ASSET,
     END_SAVE_ASSET,
-    ADD_MISSION,
-    DRAW_ASSET,
-    UPDATE_ASSET,
     ENTER_CREATE_ITEM,
     ENTER_EDIT_ITEM,
-    DELETE_FEATURE_ASSET,
-    SAVE_ERROR
+    LOADED_ASSETS,
+    LOADING_ASSETS,
+    LOADING_ASSET_FEATURE,
+    LOADING_MISSIONS,
+    RESET_CURRENT_ASSET,
+    RESET_CURRENT_MISSION,
+    SAVE_ERROR,
+    SELECT_ASSET,
+    SELECT_MISSION,
+    START_SAVING_ASSET,
+    START_SAVING_MISSION,
+    UPDATE_ASSET
 } from '@js/actions/sciadro';
 
-import {assetSelectedSelector, missionSelectedSelector} from '@js/selectors/sciadro';
+import { assetSelectedSelector, missionSelectedSelector } from '@js/selectors/sciadro';
 import { END_DRAWING } from '@mapstore/actions/draw';
 import { LOGOUT, LOGIN_SUCCESS } from "@mapstore/actions/security";
-import {set} from "@mapstore/utils/ImmutableUtils";
-import {getStyleFromType} from "@js/utils/sciadro";
-import {reproject, reprojectBbox} from "@mapstore/utils/CoordinatesUtils";
-import {findIndex} from "lodash";
+import { set, arrayUpdate } from "@mapstore/utils/ImmutableUtils";
+import {
+    getStyleFromType,
+    updateItemAndResetOthers,
+    toggleItemsProps,
+    updateItem,
+    updateDroneProps,
+    resetProps,
+    isEditedItemValid
+} from "@js/utils/sciadro";
+import { reproject, reprojectBbox } from "@mapstore/utils/CoordinatesUtils";
+import { findIndex, find } from "lodash";
 import uuidv1 from 'uuid/v1';
-
-const updateItem = (items, id, props = {}) => {
-    let newItems = [...items];
-    const itemIndex = findIndex(items, item => item.id === id);
-    if (itemIndex !== -1) {
-        newItems[itemIndex] = {...newItems[itemIndex], ...props};
-    }
-    return newItems;
-};
-
-// reset prop passed for all items but toggle provided one
-const toggleItemsProps = (items, id, prop = "selected") => {
-    let newItems = [...items];
-    const selectedItemIndex = findIndex(items, item => item.id === id);
-    if (selectedItemIndex !== -1) {
-        newItems = newItems.map((m, index) => ({...m, [prop]: index !== selectedItemIndex ? false : !m[prop]}));
-    }
-    return newItems;
-};
-const updateDroneProps = (items, id, props = {}) => {
-    let newItems = [...items];
-    const selectedItemIndex = findIndex(items, item => item.id === id);
-    if (selectedItemIndex !== -1) {
-        let currentItem = newItems[selectedItemIndex];
-        if (currentItem.drone) {
-            newItems = set(`[${selectedItemIndex}].drone.properties`, {...(currentItem.drone.properties || {}), ...props}, newItems);
-        } else {
-            newItems = set(`[${selectedItemIndex}].drone`, null, newItems);
-        }
-    }
-    return newItems;
-};
-
-const resetProps = (items, propsToReset = ["selected", "current"]) => {
-    const props = propsToReset.reduce((p, c) => ({...p, [c]: false}), {});
-    return items.map( item => ({...item, ...props}));
-};
-
-const isEditedItemValid = (type, item) => {
-    switch (type) {
-        case "asset": return !!item.name && !!item.type;
-        case "mission": return !!item.name;
-        default: return false;
-    }
-};
 
 export default function sciadro(state = {
     assets: [],
@@ -153,30 +117,29 @@ export default function sciadro(state = {
     }]
 }, action) {
     switch (action.type) {
-        case EDIT_ASSET_PERMISSION: {
+        case CHANGE_CURRENT_ASSET: {
+            return updateItemAndResetOthers({
+                id: action.id,
+                items: "assets",
+                state
+            });
+        }
+        case CHANGE_CURRENT_MISSION: {
+            const newState = updateItemAndResetOthers({
+                id: action.id,
+                items: "missions",
+                state
+            });
             return {
-                ...state,
-                mode: "asset-permission",
-                assets: toggleItemsProps(state.assets, action.id, "permission")
+                ...newState,
+                missions: updateDroneProps(newState.missions, action.id, { isVisible: true }),
+                mode: "mission-detail"
             };
         }
-        case LOGIN_SUCCESS: {
+        case CHANGE_MODE: {
             return {
                 ...state,
-                loadingAssets: true
-            };
-        }
-        case LOADED_ASSETS: {
-            return {
-                ...state,
-                loadingAssets: false,
-                assets: action.assets.concat(state.assets.filter((a, i) => i > 2))
-            };
-        }
-        case UPDATE_ASSET: {
-            return {
-                ...state,
-                assets: updateItem(state.assets, action.id, action.props)
+                mode: action.mode
             };
         }
         case DELETE_FEATURE_ASSET: {
@@ -185,38 +148,50 @@ export default function sciadro(state = {
                 assets: updateItem(state.assets, action.id, { feature: null })
             };
         }
+        case EDIT_ASSET_PERMISSION: {
+            return {
+                ...state,
+                mode: "asset-permission",
+                assets: toggleItemsProps(state.assets, action.id, "permission")
+            };
+        }
         case ENTER_CREATE_ITEM: {
-            let assets = [...state.assets];
-            let missions = [...state.missions];
+            let assets = [...(state.assets || [])];
+            let missions = [...(state.missions || [])];
             return {
                 ...state,
                 assets: action.mode === "asset-edit" ? assets.concat([{
                     id: uuidv1(),
-                    type: "powerline",
                     name: "",
                     description: "",
-                    note: "",
-                    created: null,
-                    modified: null,
                     edit: true,
-                    isNew: true
+                    isNew: true,
+                    attributes: {
+                        type: "powerline",
+                        note: "",
+                        created: null,
+                        modified: null
+                    }
                 }]) : state.assets,
                 missions: action.mode === "mission-edit" ? missions.concat([{
                     id: uuidv1(),
                     name: "",
                     description: "",
-                    note: "",
-                    created: null,
                     edit: true,
-                    isNew: true
+                    isNew: true,
+                    attributes: {
+                        note: "",
+                        created: null,
+                        modified: null
+                    }
                 }]) : state.missions,
                 saveDisabled: true,
                 mode: action.mode
             };
         }
         case ENTER_EDIT_ITEM: {
-            let assets = [...state.assets];
-            let missions = [...state.missions];
+            let assets = [...(state.assets || [])];
+            let missions = [...(state.missions || [])];
             const selectedAsset = assetSelectedSelector({sciadro: state});
             const selectedMission = missionSelectedSelector({sciadro: state});
             if (action.mode === "asset-edit") {
@@ -238,19 +213,27 @@ export default function sciadro(state = {
                 mode: action.mode
             };
         }
-        case CHANGE_MODE: {
+        case LOGIN_SUCCESS: {
             return {
                 ...state,
-                mode: action.mode
+                loadingAssets: true
+            };
+        }
+        case LOADED_ASSETS: {
+            return {
+                ...state,
+                loadingAssets: false,
+                assets: action.assets.concat(state.assets.filter((a, i) => i > 2)) // TODO remove this after backend works, and fix related test
             };
         }
         case SAVE_ERROR: {
             return {
                 ...state,
+                savingAsset: false,
                 saveError: action.message
             };
         }
-        case START_SAVE_ASSET: {
+        case START_SAVING_ASSET: {
             return {
                 ...state,
                 reloadAsset: false,
@@ -266,7 +249,7 @@ export default function sciadro(state = {
                 mode: "asset-list"
             };
         }
-        case ADD_MISSION: {
+        case START_SAVING_MISSION: {
             return {
                 ...state,
                 mode: "mission-list"
@@ -278,27 +261,7 @@ export default function sciadro(state = {
                 assets: toggleItemsProps(state.assets, action.id, "selected")
             };
         }
-        case CHANGE_CURRENT_ASSET: {
-            let assets = resetProps(state.assets, ["selected"]);
-            assets = toggleItemsProps(assets, action.id, "selected");
-            assets = toggleItemsProps(assets, action.id, "current");
-            return {
-                ...state,
-                assets,
-                mode: "mission-list"
-            };
-        }
-        case CHANGE_CURRENT_MISSION: {
-            let missions = resetProps(state.missions, ["selected"]);
-            missions = toggleItemsProps(missions, action.id, "selected");
-            missions = toggleItemsProps(missions, action.id, "current");
-            missions = updateDroneProps(missions, action.id, { isVisible: true });
-            return {
-                ...state,
-                missions,
-                mode: "mission-detail"
-            };
-        }
+
         case RESET_CURRENT_ASSET: {
             let assets = [...state.assets];
             if (state.mode === "asset-edit") {
@@ -314,6 +277,7 @@ export default function sciadro(state = {
                 ...state,
                 drawMethod: "",
                 reloadAsset: false,
+                saveError: null,
                 missions: resetProps(state.missions),
                 assets: resetProps(assets, ["current"]),
                 oldItem: null,
@@ -416,10 +380,20 @@ export default function sciadro(state = {
                 loadingAssets: action.loading
             };
         }
+        case LOADING_ASSET_FEATURE: {
+            const item = find(state.assets, i => i.selected);
+            return arrayUpdate("assets", {...item, loadingFeature: action.loading}, i => i.selected, state);
+        }
         case LOADING_MISSIONS: {
             return {
                 ...state,
                 loadingMissions: action.loading
+            };
+        }
+        case UPDATE_ASSET: {
+            return {
+                ...state,
+                assets: updateItem(state.assets, action.id, action.props)
             };
         }
         default:

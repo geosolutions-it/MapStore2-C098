@@ -32,6 +32,7 @@ class AssetEdit extends React.Component {
         typeList: PropTypes.array,
         assetEdited: PropTypes.object,
         className: PropTypes.string,
+        formatDate: PropTypes.string,
         savingAsset: PropTypes.bool,
         onEditAsset: PropTypes.func,
         renderDropZone: PropTypes.func,
@@ -42,6 +43,7 @@ class AssetEdit extends React.Component {
     };
     static defaultProps = {
         assets: [],
+        formatDate: "DD/MM/YYYY HH:mm:ss",
         typeList: [
             { value: "POW", label: "sciadro.assets.powerline" },
             { value: "PIP", label: "sciadro.assets.pipeline" },
@@ -52,8 +54,7 @@ class AssetEdit extends React.Component {
     };
 
     render() {
-        const {assetEdited} = this.props;
-        const asset = assetEdited || {};
+        const asset = this.props.assetEdited || {attributes: {}, isNew: true};
         const DropZone = this.props.renderDropZone;
         const ToolbarGeom = this.props.renderToolbarGeom;
         return (
@@ -72,7 +73,7 @@ class AssetEdit extends React.Component {
                                 componentClass="select"
                                 placeholder="..."
                                 onChange={(e) => this.props.onEditAsset(asset.id, "type", e.target.value)}
-                                value={asset.type}
+                                value={asset.attributes.type}
                                 >
                                     {this.props.typeList.map((t, i) => (
                                         <option key={i} value={t.value}><Message msgId={t.label}/></option>
@@ -108,28 +109,30 @@ class AssetEdit extends React.Component {
                         </Col>
                     </FormGroup>
                     {
-                        assetEdited && !assetEdited.isNew && <FormGroup>
+                        asset && !asset.isNew && <FormGroup>
                             <Col xs={12} sm={12} md={12}>
                                 <ControlLabel><Message msgId="sciadro.assets.created"/></ControlLabel>
                                 <DateTimePicker
-                                    time
-                                    calendar
-                                    format="L"
-                                    value={asset.created}
+                                    time={false}
+                                    calendar={false}
+                                    disabled
+                                    format={this.props.formatDate}
+                                    value={new Date(asset.attributes.created)}
                                     onChange={(date) => this.props.onEditAsset(asset.id, "created", date)}
                                 />
                             </Col>
                         </FormGroup>
                     }
                     {
-                        assetEdited && !assetEdited.isNew && <FormGroup>
+                        asset && !asset.isNew && <FormGroup>
                             <Col xs={12} sm={12} md={12}>
                                 <ControlLabel><Message msgId="sciadro.assets.modified"/></ControlLabel>
                                     <DateTimePicker
-                                        time
-                                        calendar
-                                        format="L"
-                                        value={asset.modified}
+                                        time={false}
+                                        calendar={false}
+                                        disabled
+                                        format={this.props.formatDate}
+                                        value={new Date(asset.attributes.modified)}
                                         onChange={(date) => this.props.onEditAsset(asset.id, "modified", date)}
                                     />
                             </Col>

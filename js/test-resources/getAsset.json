@@ -1,7 +1,7 @@
 {
     "id": "e4b678f6-ffff-4aa7-86a4-f43f6697691d",
     "type": "PIP",
-    "name": "pipeline 3",
+    "name": "with mock geom",
     "created": "2019-04-18T14:45:07.261967Z",
     "modified": "2019-04-18T14:45:07.261991Z",
     "description": "this ia a description attribute",

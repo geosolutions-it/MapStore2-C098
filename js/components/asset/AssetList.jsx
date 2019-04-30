@@ -18,7 +18,7 @@ import Message from '@mapstore/components/I18N/Message';
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 import LoadingWithText from '@js/components/asset/LoadingWithText';
-const SideGridEnhanced = compose(
+const SideGridWithLoadingState = compose(
     loadingState(({loading}) => loading, {text: "Loading Asset"}, LoadingWithText),
     emptyState( // TODO verify if we want this empty state enhancer
         ({loading, items = []} ) => items.length === 0 && !loading,
@@ -26,6 +26,10 @@ const SideGridEnhanced = compose(
             title: <Message msgId="sciadro.no-matches" />
         })
 )(SideGrid);
+/*
+const ToolbarWithLoadingState = compose(
+    loadingState(({loadingAssetFeature}) => loadingAssetFeature),
+)(Toolbar);*/
 /**
  * Asset List
  * @class
@@ -37,7 +41,7 @@ class AssetList extends React.Component {
         loadingAssets: PropTypes.bool,
         reloadAsset: PropTypes.bool,
         className: PropTypes.string,
-        onLoadAssets: PropTypes.func,
+        onStartLoadingAssets: PropTypes.func,
         onEditAssetPermission: PropTypes.func,
         onHideAdditionalLayer: PropTypes.func,
         onSelectAsset: PropTypes.func,
@@ -50,7 +54,7 @@ class AssetList extends React.Component {
         assets: [],
         loadingAssets: false,
         reloadAsset: true,
-        onLoadAssets: () => {},
+        onStartLoadingAssets: () => {},
         onSelectAsset: () => {},
         onEditAssetPermission: () => {},
         onHideAdditionalLayer: () => {},
@@ -60,7 +64,7 @@ class AssetList extends React.Component {
 
     componentWillMount() {
         if (this.props.reloadAsset) {
-            this.props.onLoadAssets();
+            this.props.onStartLoadingAssets();
         }
     }
     render() {
@@ -72,7 +76,7 @@ class AssetList extends React.Component {
                         <Filter filterPlaceholder="Filter assets..."/>
                     </div>
                 }>
-                <SideGridEnhanced
+                <SideGridWithLoadingState
                     loading={this.props.loadingAssets}
                     className={this.props.className}
                     size="sm"
@@ -94,6 +98,8 @@ class AssetList extends React.Component {
                                         {
                                             tooltipId: "sciadro.assets.detail",
                                             glyph: 'arrow-right',
+                                            loading: item.loadingFeature,
+                                            disabled: item.loadingFeature,
                                             onClick: (e) => {
                                                 e.stopPropagation();
                                                 this.props.onChangeCurrentAsset(item.id);

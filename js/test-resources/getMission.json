@@ -1,11 +1,10 @@
 {
-    "id": "e4b678f6-ffff-4aa7-86a4-f43f6697691d",
-    "type": "PIP",
+    "id": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
     "name": "pipeline 3",
+    "description": "this ia a description attribute",
     "created": "2019-04-18T14:45:07.261967Z",
     "modified": "2019-04-18T14:45:07.261991Z",
-    "description": "this ia a description attribute",
-    "note": "this is a note attribute",
+    "note": "this ia a note attribute",
     "feature": {
       "type": "Feature",
       "geometry": {

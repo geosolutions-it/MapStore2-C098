@@ -8,7 +8,8 @@
             "save": "Save",
             "no-matches": "No Matches",
             "rest": {
-                "saveError": "An error occured during saving process",
+                "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
+                "fetchFeatureError": "Cannot load feature for this resource",
                 "error": "An error occured"
             },
             "mode": {
@@ -39,8 +40,8 @@
                 "geometry": "Geometry",
                 "point": "Point",
                 "line": "LineString",
-                "created": "Date Creation",
-                "modified": "Date Modified",
+                "created": "Created",
+                "modified": "Modified",
                 "rest": {
                     "saveSuccess": "The asset '{name}' has been correctly saved",
                     "saveError": "An error occured when saving the Asset"
@@ -57,7 +58,7 @@
                 "name": "Name",
                 "description": "Description",
                 "note": "Note",
-                "created": "Date Creation"
+                "created": "Created"
             }
         },
         "shapefile": {

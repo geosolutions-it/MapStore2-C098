@@ -20,30 +20,29 @@ export default class MainToolbar extends React.Component {
     static propTypes = {
         mode: PropTypes.string,
         drawMethod: PropTypes.string,
-        error: PropTypes.string,
         assetEdited: PropTypes.object,
         assetSelected: PropTypes.object,
         missionSelected: PropTypes.object,
-        buttonsVisibility: PropTypes.object,
+        buttonsStatus: PropTypes.object,
         assetZoomLevel: PropTypes.number,
         missionZoomLevel: PropTypes.number,
 
         onResetCurrentAsset: PropTypes.func,
         onResetCurrentMission: PropTypes.func,
         onZoomToItem: PropTypes.func,
-        onAddMission: PropTypes.func,
-        onStartSaveAsset: PropTypes.func,
+        onStartSavingMission: PropTypes.func,
+        onStartSavingAsset: PropTypes.func,
         onDrawAsset: PropTypes.func,
         // onChangeMode: PropTypes.func,
-        onCreateItem: PropTypes.func,
-        onEditItem: PropTypes.func,
+        onEnterenterCreateItem: PropTypes.func,
+        onEnterEditItem: PropTypes.func,
         onHideAdditionalLayer: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        buttonsVisibility: {
+        buttonsStatus: {
             back: false,
             zoom: false,
             saveDisabled: false,
@@ -57,11 +56,11 @@ export default class MainToolbar extends React.Component {
         onResetCurrentAsset: () => {},
         onResetCurrentMission: () => {},
         onZoomToItem: () => {},
-        onAddMission: () => {},
-        onStartSaveAsset: () => {},
+        onStartSavingMission: () => {},
+        onStartSavingAsset: () => {},
         onDrawAsset: () => {},
         // onChangeMode: () => {},
-        onCreateItem: () => {},
+        onEnterenterCreateItem: () => {},
         onHideAdditionalLayer: () => {}
     };
 
@@ -89,7 +88,7 @@ export default class MainToolbar extends React.Component {
                                 }
                             },
                             glyph: "arrow-left",
-                            visible: this.props.buttonsVisibility.back // all but the first view(asset-list) has the back button
+                            visible: this.props.buttonsStatus.back // all but the first view(asset-list) has the back button
                         },
                         {
                             tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.add" : "sciadro.assets.add",
@@ -97,28 +96,28 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                this.props.onCreateItem(this.props.mode.replace("list", "edit"));
+                                this.props.onEnterenterCreateItem(this.props.mode.replace("list", "edit"));
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "plus",
-                            visible: this.props.buttonsVisibility.add
+                            visible: this.props.buttonsStatus.add
                         },
                         {
                             tooltipId: "sciadro.save",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
-                            disabled: this.props.buttonsVisibility.saveDisabled,
+                            disabled: this.props.buttonsStatus.saveDisabled,
                             onClick: () => {
                                 if (this.props.mode === "mission-edit") {
-                                    this.props.onAddMission();
+                                    this.props.onStartSavingMission();
                                 }
                                 if (this.props.mode === "asset-edit") {
-                                    this.props.onStartSaveAsset(assetEdited.id);
+                                    this.props.onStartSavingAsset(assetEdited.id);
                                 }
                             },
                             glyph: "floppy-disk",
-                            visible: this.props.buttonsVisibility.save
+                            visible: this.props.buttonsStatus.save
                         },
                         {
                             tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.edit" : "sciadro.assets.edit",
@@ -126,11 +125,11 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                this.props.onEditItem(this.props.mode.replace("list", "edit"));
+                                this.props.onEnterEditItem(this.props.mode.replace("list", "edit"));
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "wrench",
-                            visible: this.props.buttonsVisibility.edit
+                            visible: this.props.buttonsStatus.edit
                         },
                         {
                             tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.zoom" : "sciadro.assets.zoom",
@@ -146,18 +145,19 @@ export default class MainToolbar extends React.Component {
                                 }
                             },
                             glyph: "zoom-to",
-                            visible: this.props.buttonsVisibility.zoom,
-                            disabled: this.props.buttonsVisibility.zoomDisabled
+                            visible: this.props.buttonsStatus.zoom,
+                            disabled: this.props.buttonsStatus.zoomDisabled
                         },
                         {
-                            tooltipId: this.props.error,
+                            tooltipId: this.props.buttonsStatus.saveError.message,
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
                             bsStyle: "danger",
                             glyph: "exclamation-mark",
-                            visible: this.props.buttonsVisibility.saveError
+                            visible: this.props.buttonsStatus.saveError.visible
                         }
+                        // TODO add  DELETE BUTTON, FOR ASSETS OR MISSIONS
                     ]}
                 />
             </ButtonToolbar>

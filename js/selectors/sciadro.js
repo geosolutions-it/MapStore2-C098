@@ -9,53 +9,42 @@
 import {get, find} from 'lodash';
 
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
-
 export const assetsListSelector = state => get(state, "sciadro.assets", []);
 export const anomaliesListSelector = state => get(state, "sciadro.anomalies", []);
 export const missionsListSelector = state => get(state, "sciadro.missions", []);
-
-export const modeSelector = state => state && get(state, "sciadro.mode", "asset-list");
-
-export const assetEditedSelector = state => {
-    const assets = state && assetsListSelector(state);
-    return assets && find(assets, a => a.edit) || null;
-};
-
-export const assetSelectedSelector = state => {
-    const assets = state && assetsListSelector(state);
-    return assets && find(assets, a => a.selected) || null;
-};
-export const missionSelectedSelector = state => {
-    const missions = state && missionsListSelector(state);
-    return missions && find(missions, a => a.selected) || null;
-};
-
-export const selectedMissionFeatureSelector = state => missionSelectedSelector(state) && missionSelectedSelector(state).feature || null;
-export const selectedDroneFeatureSelector = state => missionSelectedSelector(state) && get(missionSelectedSelector(state), "drone.properties.isVisible", false) && get(missionSelectedSelector(state), "drone", null) || null;
-export const selectedAssetFeatureSelector = state => assetSelectedSelector(state) && assetSelectedSelector(state).feature || null;
-
-export const drawMethodSelector = state => state && get(state, "sciadro.drawMethod", "");
+export const modeSelector = state => get(state, "sciadro.mode", "asset-list");
+export const assetEditedSelector = state => find(assetsListSelector(state), a => a.edit) || null;
+export const assetSelectedSelector = state => find(assetsListSelector(state), a => a.selected) || null;
+export const assetSelectedFeatureSelector = state => get(assetSelectedSelector(state), "feature");
+export const missionSelectedSelector = state => find(missionsListSelector(state), a => a.selected) || null;
+export const missionSelectedFeatureSelector = state => get(missionSelectedSelector(state), "feature");
+export const missionSelectedDroneFeatureSelector = state => get(missionSelectedSelector(state), "drone.properties.isVisible", null) && get(missionSelectedSelector(state), "drone", null); // TODO verify this needs to be undefined instead of null
+export const drawMethodSelector = state => get(state, "sciadro.drawMethod", "");
 export const saveDisabledSelector = state => state && get(state, "sciadro.saveDisabled", true);
 export const loadingAssetsSelector = state => state && get(state, "sciadro.loadingAssets", false);
+export const loadingAssetFeatureSelector = state => state && get(state, "sciadro.loadingAssetFeature", false);
 export const loadingMissionsSelector = state => state && get(state, "sciadro.loadingMissions", false);
 export const savingAssetSelector = state => state && get(state, "sciadro.savingAsset", false);
-export const reloadAssetSelector = state => state && get(state, "sciadro.reloadAsset", true);
+export const restartLoadingAssetselector = state => state && get(state, "sciadro.reloadAsset", true);
 export const saveErrorSelector = state => state && get(state, "sciadro.saveError");
-export const isAssetEditSelector = state => state && modeSelector(state) === "asset-edit";
+export const isAssetEditSelector = state => modeSelector(state) === "asset-edit";
 
-export const toolbarButtonsVisibilitySelector = state => {
+export const toolbarButtonsStatusSelector = state => {
     const mode = modeSelector(state);
     const assetSelected = assetSelectedSelector(state);
     const missionSelected = missionSelectedSelector(state);
-    return state && {
+    return {
         back: mode !== "asset-list",
         add: mode.indexOf("list") !== -1,
         save: mode.indexOf("edit") !== -1,
         saveDisabled: saveDisabledSelector(state),
-        saveError: !!saveErrorSelector(state),
-        edit: (missionSelected && mode === "mission-list" || assetSelected && mode === "asset-list"),
+        saveError: {
+            visible: !!saveErrorSelector(state) && mode.indexOf("edit") !== -1,
+            message: saveErrorSelector(state)
+        },
+        edit: (missionSelected || assetSelected) && mode.indexOf("list") !== -1,
         zoom: (missionSelected && mode === "mission-list" || assetSelected && mode === "asset-list"),
-        zoomDisabled: ((missionSelected && !missionSelected.feature) || (assetSelected && !assetSelected.feature)) && mode.indexOf("list") === -1,
-        draw: mode === "asset-edit"
+        zoomDisabled: ((missionSelected && !missionSelected.feature) || (assetSelected && !assetSelected.feature)),
+        draw: isAssetEditSelector(state)
     };
 };
