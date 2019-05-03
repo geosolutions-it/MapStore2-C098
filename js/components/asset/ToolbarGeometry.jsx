@@ -33,12 +33,13 @@ export default class ToolbarGeometry extends React.Component {
         messages: PropTypes.object
     };
     static defaultProps = {
+        assetEdited: {},
         buttonsStatus: {
             deleteGeom: true,
             deleteGeomDisabled: true,
             drawGeom: true
         },
-        mode: "asset-list",
+        mode: "asset-edit",
         onDrawAsset: () => {},
         onDeleteAssetFeature: () => {}
     };

@@ -45,11 +45,15 @@ export default class MainToolbar extends React.Component {
         buttonsStatus: {
             back: false,
             zoom: false,
-            saveDisabled: false,
             zoomDisabled: false,
+            saveError: {
+                message: "",
+                visible: false
+            },
             edit: false,
             add: false,
             save: false,
+            saveDisabled: false,
             draw: false
         },
         mode: "asset-list",
@@ -125,7 +129,7 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                this.props.onEnterEditItem(this.props.mode.replace("list", "edit"));
+                                this.props.onEnterEditItem(this.props.mode.replace("list", "edit"), missionSelected && missionSelected.id || assetSelected && assetSelected.id);
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "wrench",

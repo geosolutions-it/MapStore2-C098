@@ -9,6 +9,7 @@
             "no-matches": "No Matches",
             "rest": {
                 "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
+                "loadError": "An error occured while loading the assets resources. Please contact the web admin in order to verify this problem",
                 "fetchFeatureError": "Cannot load feature for this resource",
                 "error": "An error occured"
             },

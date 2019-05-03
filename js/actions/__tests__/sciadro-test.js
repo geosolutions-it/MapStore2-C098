@@ -115,10 +115,12 @@ describe('testing sciadro actions', () => {
         expect(action.id).toEqual(id);
     });
     it('enterEditItem', () => {
+        const id = 1;
         const mode = "asset-edit";
-        const action = enterEditItem(mode);
+        const action = enterEditItem(mode, id);
         expect(action.type).toEqual(ENTER_EDIT_ITEM);
         expect(action.mode).toEqual(mode);
+        expect(action.id).toEqual(id);
     });
     it('endSaveAsset', () => {
         const id = 1;

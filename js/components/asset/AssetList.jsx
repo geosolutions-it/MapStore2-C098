@@ -26,10 +26,7 @@ const SideGridWithLoadingState = compose(
             title: <Message msgId="sciadro.no-matches" />
         })
 )(SideGrid);
-/*
-const ToolbarWithLoadingState = compose(
-    loadingState(({loadingAssetFeature}) => loadingAssetFeature),
-)(Toolbar);*/
+
 /**
  * Asset List
  * @class

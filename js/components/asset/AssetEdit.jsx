@@ -42,6 +42,8 @@ class AssetEdit extends React.Component {
         messages: PropTypes.object
     };
     static defaultProps = {
+        assetEdited: {attributes: {}, isNew: true},
+        savingAsset: false,
         assets: [],
         formatDate: "DD/MM/YYYY HH:mm:ss",
         typeList: [
@@ -50,11 +52,13 @@ class AssetEdit extends React.Component {
             { value: "ELE", label: "sciadro.assets.electric-truss" }
         ],
         className: "",
-        onEditAsset: () => {}
+        onEditAsset: () => {},
+        renderDropZone: () => null,
+        renderToolbarGeom: () => null
     };
 
     render() {
-        const asset = this.props.assetEdited || {attributes: {}, isNew: true};
+        const asset = this.props.assetEdited;
         const DropZone = this.props.renderDropZone;
         const ToolbarGeom = this.props.renderToolbarGeom;
         return (
@@ -154,7 +158,7 @@ class AssetEdit extends React.Component {
 }
 
 const AssetEditEnhanced = compose(
-   loadingState(({savingAsset}) => savingAsset, {text: "Saving Asset"}, LoadingWithText)
+   loadingState(({savingAsset}) => savingAsset, {text: "Saving Asset"}, LoadingWithText),
 )(AssetEdit);
 
 export default AssetEditEnhanced;

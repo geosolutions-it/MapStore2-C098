@@ -80,7 +80,7 @@ export const postAssetResource = ({backendUrl = "http://localhost:8000", resourc
         });
 };
 
-export const updateItem = (items = [], id, props = {}) => {
+export const updateItemById = (items = [], id, props = {}) => {
     let newItems = [...items];
     const itemIndex = findIndex(items, item => item.id === id);
     if (itemIndex !== -1) {
@@ -90,7 +90,7 @@ export const updateItem = (items = [], id, props = {}) => {
 };
 
 // reset prop passed for all items but toggle provided one
-export const toggleItemsProps = (items = [], id, prop = "selected") => {
+export const toggleItemsProp = (items = [], id, prop = "selected") => {
     let newItems = [...items];
     const selectedItemIndex = findIndex(items, item => item.id === id);
     if (selectedItemIndex !== -1) {
@@ -116,7 +116,7 @@ export const resetProps = (items = [], propsToReset = ["selected", "current"]) =
 export const updateItemAndResetOthers = ({items = "assets", id, state, propsToUpdate = {selected: true, current: true }, propsToReset = ["selected", "current"]}) => {
     return {
         ...state,
-        [items]: updateItem(resetProps(state[items], propsToReset), id, propsToUpdate)
+        [items]: updateItemById(resetProps(state[items], propsToReset), id, propsToUpdate)
     };
 };
 

@@ -15,7 +15,6 @@ import {
     SELECT_MISSION,
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
-    CHANGE_CURRENT_MISSION,
     CHANGE_CURRENT_ASSET,
     START_SAVING_ASSET,
     ENTER_CREATE_ITEM,
@@ -54,7 +53,7 @@ import {
 } from '@mapstore/actions/shapefile';
 import {
     UPDATE_MAP_LAYOUT, updateMapLayout
-} from '@mapstore/actions/mapLayout';
+} from '@mapstore/actions/maplayout';
 import {
     getGeoJSONExtent
 } from '@mapstore/utils/CoordinatesUtils';
@@ -120,7 +119,6 @@ const mockAssetsGeojson = [{
  */
 export const startLoadingAssetsEpic = (action$, store) =>
     action$.ofType(START_LOADING_ASSETS, LOGIN_SUCCESS)
-     // .delay(3000) // remove after sciadro mock adapter is removed
         .switchMap(() => {
             // get all assets
             return Rx.Observable.defer( () =>
@@ -130,7 +128,8 @@ export const startLoadingAssetsEpic = (action$, store) =>
                 if (results.length) {
                     // observables object that will retrieve all the info of the reosurces
                     const getResourcesObs = results.map(({id}) => {
-                        return Persistence.getResource(id).catch((e) => Rx.Observable.of(loadAssetError(e)));
+                        return Persistence.getResource(id)
+                            .catch(() => Rx.Observable.of("loadError"));
                     });
                     return getResourcesObs;
                 }
@@ -138,6 +137,11 @@ export const startLoadingAssetsEpic = (action$, store) =>
             })
             .combineAll()
             .switchMap((assets = []) => {
+                if (assets.length === 1 && assets[0] === "loadError") {
+                    return Rx.Observable.from([
+                        loadAssetError(),
+                        loadingAssets(false)]);
+                }
                 if (assets.length === 1 && !assets[0]) {
                     return Rx.Observable.of(loadingAssets(false));
                 }
@@ -155,13 +159,13 @@ export const startLoadingAssetsEpic = (action$, store) =>
                     selected: a.id === (assetSelected && assetSelected.id)}));
                 return Rx.Observable.of(loadedAssets(assetsWithMission));
             })
-            .catch((e) => Rx.Observable.of(loadAssetError(e)));
+            .catch(() => Rx.Observable.of(loadAssetError()));// this is probably unneeded
         }).startWith(loadingAssets(true));
 
 
 /**
- * Shows in the map the asset's and/or mission's features
- * @param {external:Observable} action$ manages `RESET_CURRENT_ASSET`, `RESET_CURRENT_MISSION`, `CHANGE_CURRENT_MISSION`, `CHANGE_CURRENT_ASSET`, `START_SAVING_ASSET`
+ * Shows in the map the asset's and/or mission's features and drone
+ * @param {external:Observable} action$ manages `RESET_CURRENT_ASSET`, `RESET_CURRENT_MISSION`, START_SAVING_ASSET`
  * @memberof epics.sciadro
  * @return {external:Observable}
  */
@@ -191,7 +195,7 @@ export const updateAdditionalLayerEpic = (action$, store) =>
 /**
  * fetch the asset feature from sciadro backend if it is undefined,
  * otherwise it returns directly the actions to dispatch
- * @param {external:Observable} action$ manages `SELECT_ASSET`
+ * @param {external:Observable} action$ manages `SELECT_ASSET`, `CHANGE_CURRENT_ASSET`
  * @memberof epics.sciadro
  * @return {external:Observable}
  */
@@ -300,6 +304,7 @@ export const hideAdditionalLayerEpic = (action$) =>
 export const hideAssetsLayerEpic = (action$) =>
     action$.ofType(ENTER_CREATE_ITEM)
         .switchMap(() => {
+            // TODO handle mode from action here
             return Rx.Observable.of(removeAdditionalLayerById("assets"));
         });
 
@@ -314,18 +319,13 @@ export const zoomToItemEpic = (action$, store) =>
         .switchMap((a) => {
             const state = store.getState();
             const featureMission = missionSelectedFeatureSelector(state);
-            if (featureMission) {
-                if (featureMission.geometry.type === "Point") {
-                    return Rx.Observable.of(zoomToPoint(featureMission.geometry.coordinates, a.zoom, "EPSG:4326"));
-                }
-                return Rx.Observable.of(zoomToExtent(getGeoJSONExtent(featureMission), "EPSG:4326", a.zoom));
-            }
             const featureAsset = assetSelectedFeatureSelector(state);
-            if (featureAsset) {
-                if (featureAsset.geometry.type === "Point") {
-                    return Rx.Observable.of(zoomToPoint(featureAsset.geometry.coordinates, a.zoom, "EPSG:4326"));
+            const feature = featureMission || featureAsset;
+            if (feature) {
+                if (feature.geometry.type === "Point") {
+                    return Rx.Observable.of(zoomToPoint(feature.geometry.coordinates, a.zoom, "EPSG:4326"));
                 }
-                return Rx.Observable.of(zoomToExtent(getGeoJSONExtent(featureAsset), "EPSG:4326", a.zoom));
+                return Rx.Observable.of(zoomToExtent(getGeoJSONExtent(feature), "EPSG:4326", a.zoom));
             }
             return Rx.Observable.empty();
         });
