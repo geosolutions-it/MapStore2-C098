@@ -56,7 +56,9 @@ import {
     missionSelectedSelector,
     toolbarButtonsStatusSelector,
     isAssetEditSelector,
-    savingAssetSelector
+    savingAssetSelector,
+    missionEditedSelector,
+    savingMissionSelector
 } from '@js/selectors/sciadro';
 import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
 import {zoomToExtent} from '@mapstore/actions/map';
@@ -151,9 +153,10 @@ export const MissionListConnected = connect(createSelector([
 })(MissionList);
 
 export const MissionEditConnected = connect(createSelector([
-    missionsListSelector
-], (missions) => ({
-    missions
+    missionsListSelector, missionEditedSelector, savingMissionSelector
+], (missions, missionEdited, savingMission) => ({
+    missions, missionEdited, savingMission,
+    renderDropZone: ShapeFileConnected
 })), {
     onEditMission: editMission
 })(MissionEdit);

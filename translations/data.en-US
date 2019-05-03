@@ -54,7 +54,7 @@
                 "add": "Create Mission",
                 "zoom": "Zoom to Mission",
                 "edit": "Edit Mission",
-                "data": "Telemetry, Geometry and other Metadata",
+                "data": "Telemetry (.telem), Anomalies (.xml) and Video (.avi)",
                 "upload": "Upload data",
                 "name": "Name",
                 "description": "Description",
@@ -64,6 +64,7 @@
         },
         "shapefile": {
             "placeholder": "Drop your file here or click to select the Vector File to import. (supported files: file.json with a LineString or Point only, must be contained in a zip archive)",
+            "placeholderMissionFiles": "Drop your file here or click to select the file to import (supported formats: .zip)",
             "error": {
                 "select": "Select only one geoJSON.json file contained in a zip archive"
             }

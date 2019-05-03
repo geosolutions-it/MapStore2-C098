@@ -8,19 +8,20 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {getValidationState} from '../../utils/sciadro';
 import {Form, FormGroup, FormControl, ControlLabel, Col} from 'react-bootstrap';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Message from '@mapstore/components/I18N/Message';
 import Moment from 'moment';
+import {compose} from 'recompose';
 import momentLocalizer from 'react-widgets/lib/localizers/moment';
 momentLocalizer(Moment);
+require('react-widgets/lib/less/react-widgets.less');
+
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
-import {compose} from 'recompose';
+import {DateTimePicker} from 'react-widgets';
+import {getValidationState} from '@js/utils/sciadro';
 import LoadingWithText from '@js/components/asset/LoadingWithText';
 
-require('react-widgets/lib/less/react-widgets.less');
-import {DateTimePicker} from 'react-widgets';
 /**
  * Asset Edit
  * @class
@@ -147,8 +148,7 @@ class AssetEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.assets.geometry"/></ControlLabel>
                             <br/>
                             <ToolbarGeom/>
-                            <DropZone
-                                wrap={false}/>
+                            <DropZone wrap={false}/>
                         </Col>
                     </FormGroup>
                 </Form>
