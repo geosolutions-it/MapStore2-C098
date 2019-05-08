@@ -1,0 +1,12 @@
+{
+    "id": "e4b6a8f6-e72c-4aa7-86a4-f43f6697691d",
+    "type": "PIP",
+    "name": "pipeline 345",
+    "created": "2019-04-18T14:45:07.261967Z",
+    "modified": "2019-04-18T14:45:07.261991Z",
+    "description": "",
+    "note": "",
+    "point": null,
+    "line": "SRID=4326;LINESTRING (1 1, 2 2)",
+    "missions": []
+}

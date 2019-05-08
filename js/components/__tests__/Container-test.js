@@ -9,10 +9,9 @@
 import expect from "expect";
 import React from "react";
 import ReactDOM from "react-dom";
-import Container from "../Container";
+import Container from "@js/components/Container";
 
-
-describe('testing sciadro Container in Components', () => {
+describe('testing Container in Components', () => {
     beforeEach((done) => {
         document.body.innerHTML = '<div id="container"></div>';
         setTimeout(done);

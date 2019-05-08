@@ -1,8 +1,8 @@
 const path = require("path");
-const themeEntries = require('./MapStore2/themes.js').themeEntries;
-const extractThemesPlugin = require('./MapStore2/themes.js').extractThemesPlugin;
+const themeEntries = require('./MapStore2/build/themes.js').themeEntries;
+const extractThemesPlugin = require('./MapStore2/build/themes.js').extractThemesPlugin;
 
-const config = require('./MapStore2/buildConfig')(
+const config = require('./MapStore2/build/buildConfig')(
     {
         'sciadro': path.join(__dirname, "js", "sciadro"),
         'themes-sciadro': path.join(__dirname, "assets", "themes", "sciadro.less") // custom theme for sciadro
@@ -31,6 +31,9 @@ config.devServer.proxy = {
         target: "http://localhost:8040/mapstore"
     }
 };
-config.resolve.alias = { '@mapstore': path.resolve(__dirname, 'MapStore2/web/client')};
+config.resolve.alias = {
+    '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
+    '@js': path.resolve(__dirname, 'js')
+};
 
 module.exports = config;

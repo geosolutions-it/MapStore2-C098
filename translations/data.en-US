@@ -3,19 +3,69 @@
     "messages": {
         "sciadro": {
             "titlePanel": "Sciadro",
+            "mandatory": "* mandatory fields",
+            "back": "Back",
+            "save": "Save",
+            "no-matches": "No Matches",
+            "rest": {
+                "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
+                "loadError": "An error occured while loading the assets resources. Please contact the web admin in order to verify this problem",
+                "fetchFeatureError": "Cannot load feature for this resource",
+                "error": "An error occured"
+            },
             "mode": {
                 "asset-list": "Assets",
+                "asset-permission": "Asset Permissions",
                 "asset-detail": "Asset",
                 "asset-edit": "Edit Asset",
-                "mission-list": "Missions",
+                "mission-list": "Asset",
                 "mission-detail": "Mission",
                 "mission-edit": "Edit Mission"
             },
             "assets": {
-                "add": "Create Asset"
+                "geom-trash": "Delete geometry",
+                "powerline": "Powerline",
+                "pipeline": "Pipeline",
+                "electric-truss": "Electric truss",
+                "detail": "View asset details",
+                "permissions": "Asset Permissions",
+                "add": "Create Asset",
+                "edit": "Edit Asset",
+                "zoom": "Zoom to Asset",
+                "upload": "Upload geometry",
+                "draw": "Draw geometry",
+                "type": "Type",
+                "name": "Name",
+                "description": "Description",
+                "note": "Note",
+                "geometry": "Geometry",
+                "point": "Point",
+                "line": "LineString",
+                "created": "Created",
+                "modified": "Modified",
+                "rest": {
+                    "saveSuccess": "The asset '{name}' has been correctly saved",
+                    "saveError": "An error occured when saving the Asset"
+                }
             },
             "missions": {
-                "add": "Create Mission"
+                "detail": "View mission details",
+                "permissions": "Mission Permissions",
+                "add": "Create Mission",
+                "zoom": "Zoom to Mission",
+                "edit": "Edit Mission",
+                "data": "Telemetry, Geometry and other Metadata",
+                "upload": "Upload data",
+                "name": "Name",
+                "description": "Description",
+                "note": "Note",
+                "created": "Created"
+            }
+        },
+        "shapefile": {
+            "placeholder": "Drop your file here or click to select the Vector File to import. (supported files: file.json with a LineString or Point only, must be contained in a zip archive)",
+            "error": {
+                "select": "Select only one geoJSON.json file contained in a zip archive"
             }
         }
     }

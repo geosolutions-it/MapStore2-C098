@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import ConfigUtils from '../MapStore2/web/client/utils/ConfigUtils';
+import ConfigUtils from '@mapstore/utils/ConfigUtils';
 
 /**
  * Use a custom plugins configuration file with:
@@ -24,5 +24,5 @@ import appConfig from './appConfigSciadro';
  */
 import plugins from './pluginsSciadro';
 
-import main from '../MapStore2/web/client/product/main';
+import main from '@mapstore/product/main';
 main(appConfig, plugins);

@@ -1,0 +1,21 @@
+{
+    "id": "e4b678f6-ffff-4aa7-86a4-f43f6697691d",
+    "type": "PIP",
+    "name": "pipeline 3",
+    "created": "2019-04-18T14:45:07.261967Z",
+    "modified": "2019-04-18T14:45:07.261991Z",
+    "description": "this ia a description attribute",
+    "note": "this is a note attribute",
+    "feature": {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[0.20, 40], [28, 49]]
+      },
+      "style": {
+        "color": "#FF0000",
+        "weight": 5
+      }
+    },
+    "missions": []
+}

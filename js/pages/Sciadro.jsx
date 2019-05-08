@@ -8,8 +8,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import Page from '../../MapStore2/web/client/containers/Page';
-import {loadMapConfig} from '../../MapStore2/web/client/actions/config';
+import Page from '@mapstore/containers/Page';
+import {loadMapConfig} from '@mapstore/actions/config';
 
 
 class SciadroPage extends React.Component {

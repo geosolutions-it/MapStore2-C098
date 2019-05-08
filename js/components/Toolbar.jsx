@@ -10,27 +10,66 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ButtonToolbar } from 'react-bootstrap';
 
-// import Message from '../../MapStore2/web/client/components/I18N/Message';
-import Toolbar from '../../MapStore2/web/client/components/misc/toolbar/Toolbar';
-
+import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 /**
  * Toolbar for sciadro app
  * @class
  * @memberof components.Toolbar
  */
-class MainToolbar extends React.Component {
+export default class MainToolbar extends React.Component {
     static propTypes = {
-        size: PropTypes.number,
-        mode: PropTypes.string
+        mode: PropTypes.string,
+        drawMethod: PropTypes.string,
+        assetEdited: PropTypes.object,
+        assetSelected: PropTypes.object,
+        missionSelected: PropTypes.object,
+        buttonsStatus: PropTypes.object,
+        assetZoomLevel: PropTypes.number,
+        missionZoomLevel: PropTypes.number,
+
+        onResetCurrentAsset: PropTypes.func,
+        onResetCurrentMission: PropTypes.func,
+        onZoomToItem: PropTypes.func,
+        onStartSavingMission: PropTypes.func,
+        onStartSavingAsset: PropTypes.func,
+        onDrawAsset: PropTypes.func,
+        // onChangeMode: PropTypes.func,
+        onEnterenterCreateItem: PropTypes.func,
+        onEnterEditItem: PropTypes.func,
+        onHideAdditionalLayer: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        mode: "asset-list"
+        buttonsStatus: {
+            back: false,
+            zoom: false,
+            zoomDisabled: false,
+            saveError: {
+                message: "",
+                visible: false
+            },
+            edit: false,
+            add: false,
+            save: false,
+            saveDisabled: false,
+            draw: false
+        },
+        mode: "asset-list",
+        onResetCurrentAsset: () => {},
+        onResetCurrentMission: () => {},
+        onZoomToItem: () => {},
+        onStartSavingMission: () => {},
+        onStartSavingAsset: () => {},
+        onDrawAsset: () => {},
+        // onChangeMode: () => {},
+        onEnterenterCreateItem: () => {},
+        onHideAdditionalLayer: () => {}
     };
 
     render() {
+        const {missionSelected, assetSelected, assetEdited} = this.props;
         return (
             <ButtonToolbar className="buttonToolbar">
                 <Toolbar
@@ -39,32 +78,93 @@ class MainToolbar extends React.Component {
                     btnDefaultProps = {{ className: 'square-button-md', bsStyle: 'primary' }}
                     buttons = {[
                         {
-                            tooltipId: "sciadro.assets.add",
+                            tooltipId: "sciadro.back",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                // do things
+                                const {mode} = this.props;
+                                if (mode === "mission-detail" || mode === "mission-edit") {
+                                    this.props.onResetCurrentMission();
+                                }
+                                if (mode === "mission-list" || mode === "asset-edit" || mode === "asset-permission") {
+                                    this.props.onResetCurrentAsset();
+                                }
                             },
-                            glyph: "plus",
-                            visible: this.props.mode === "asset-list"
+                            glyph: "arrow-left",
+                            visible: this.props.buttonsStatus.back // all but the first view(asset-list) has the back button
                         },
                         {
-                            tooltipId: "sciadro.assets.add",
+                            tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.add" : "sciadro.assets.add",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                // do things
+                                this.props.onEnterenterCreateItem(this.props.mode.replace("list", "edit"));
+                                this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "plus",
-                            visible: this.props.mode === "mission-list"
+                            visible: this.props.buttonsStatus.add
+                        },
+                        {
+                            tooltipId: "sciadro.save",
+                            tooltipPosition: "top",
+                            className: "square-button-md no-border",
+                            pullRight: true,
+                            disabled: this.props.buttonsStatus.saveDisabled,
+                            onClick: () => {
+                                if (this.props.mode === "mission-edit") {
+                                    this.props.onStartSavingMission();
+                                }
+                                if (this.props.mode === "asset-edit") {
+                                    this.props.onStartSavingAsset(assetEdited.id);
+                                }
+                            },
+                            glyph: "floppy-disk",
+                            visible: this.props.buttonsStatus.save
+                        },
+                        {
+                            tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.edit" : "sciadro.assets.edit",
+                            tooltipPosition: "top",
+                            className: "square-button-md no-border",
+                            pullRight: true,
+                            onClick: () => {
+                                this.props.onEnterEditItem(this.props.mode.replace("list", "edit"), missionSelected && missionSelected.id || assetSelected && assetSelected.id);
+                                this.props.onHideAdditionalLayer("missions");
+                            },
+                            glyph: "wrench",
+                            visible: this.props.buttonsStatus.edit
+                        },
+                        {
+                            tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.zoom" : "sciadro.assets.zoom",
+                            tooltipPosition: "top",
+                            className: "square-button-md no-border",
+                            pullRight: true,
+                            onClick: () => {
+                                if (missionSelected && missionSelected.selected && missionSelected.feature) {
+                                    this.props.onZoomToItem(this.props.missionZoomLevel);
+                                }
+                                if (assetSelected && assetSelected.selected && assetSelected.feature) {
+                                    this.props.onZoomToItem(this.props.assetZoomLevel);
+                                }
+                            },
+                            glyph: "zoom-to",
+                            visible: this.props.buttonsStatus.zoom,
+                            disabled: this.props.buttonsStatus.zoomDisabled
+                        },
+                        {
+                            tooltipId: this.props.buttonsStatus.saveError.message,
+                            tooltipPosition: "top",
+                            className: "square-button-md no-border",
+                            pullRight: true,
+                            bsStyle: "danger",
+                            glyph: "exclamation-mark",
+                            visible: this.props.buttonsStatus.saveError.visible
                         }
+                        // TODO add  DELETE BUTTON, FOR ASSETS OR MISSIONS
                     ]}
                 />
             </ButtonToolbar>
         );
     }
 }
-
-export default MainToolbar;

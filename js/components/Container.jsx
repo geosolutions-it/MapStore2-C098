@@ -6,14 +6,12 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-
 import React from 'react';
 import PropTypes from 'prop-types';
-import DockablePanel from '../../MapStore2/web/client/components/misc/panels/DockablePanel';
-import Message from '../../MapStore2/web/client/components/I18N/Message';
-import Toolbar from './Toolbar';
-import AssetList from './asset/List';
-import MissionList from './mission/List';
+
+import DockablePanel from '@mapstore/components/misc/panels/DockablePanel';
+import BorderLayout from '@mapstore/components/layout/BorderLayout';
+import Message from '@mapstore/components/I18N/Message';
 
 /**
  * Main Container for sciadro app
@@ -26,42 +24,61 @@ class Container extends React.Component {
         bsStyle: PropTypes.string,
         dock: PropTypes.bool,
         glyph: PropTypes.string,
-        mode: PropTypes.string,
         position: PropTypes.string,
         title: PropTypes.string,
         show: PropTypes.bool,
-        assets: PropTypes.array,
-        missions: PropTypes.array,
         size: PropTypes.number,
-        onLoadAssets: PropTypes.func
+        // sciadro
+        componentsCfg: PropTypes.object,
+        toolbarCfg: PropTypes.object,
+        mode: PropTypes.string,
+        renderBodyComponents: PropTypes.object,
+        renderToolbarComponent: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
+        renderBodyComponents: {
+            "asset-list": () => null
+        },
+        componentsCfg: {
+            "asset-list": {}
+        },
+        toolbarCfg: {
+            "asset-list": {}
+        },
+        renderToolbarComponent: () => null,
         bsStyle: "primary",
         dock: true,
         glyph: "",
-        mode: "asset-list",
         position: "left",
         title: "sciadro.titlePanel",
         show: true,
-        size: 660
+        size: 500,
+
+        // sciadro
+        mode: "asset-list"
+
     };
 
     render() {
+        const { mode } = this.props;
+        const BodyComp = this.props.renderBodyComponents[mode];
+        const ToolbarComp = this.props.renderToolbarComponent;
         return (<DockablePanel
             dock={this.props.dock}
             bsStyle={this.props.bsStyle}
             position={this.props.position}
-            title={<Message key="title" msgId={`sciadro.mode.${this.props.mode}`}/>}
+            title={<Message key="title" msgId={`sciadro.mode.${mode}`}/>}
             glyph={this.props.glyph}
             size={this.props.size}
             open={this.props.show}>
-                <Toolbar/>
-                {this.props.mode === "asset-list" && <AssetList onLoadAssets={this.props.onLoadAssets} items={this.props.assets}/>}
-                {this.props.mode === "mission-list" && <MissionList items={this.props.missions}/>}
-            </DockablePanel>);
+            <BorderLayout
+                header={<ToolbarComp {...this.props.toolbarCfg}/>}>
+                <BodyComp {...this.props.componentsCfg[mode]}/>
+            </BorderLayout>
+        </DockablePanel>);
 
     }
 }

@@ -9,18 +9,27 @@
 import assign from 'object-assign';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
+import Container from '@js/components/Container';
 
-import Container from '../components/Container';
-import { loadAssets } from '../actions/sciadro';
-import sciadro from '../reducers/sciadro';
-import * as sciadroEpics from '../epics/sciadro';
+import {
+    ToolbarConnected,
+    MissionDetailConnected,
+    // AnomaliesListConnected,
+    MissionEditConnected,
+    MissionListConnected,
+    AssetPermissionConnected,
+    AssetEditConnected,
+    AssetListConnected
+} from './index';
+
+import sciadro from '@js/reducers/sciadro';
+import shapefile from '@mapstore/reducers/shapefile';
+import style from '@mapstore/reducers/style';
+import * as sciadroEpics from '@js/epics/sciadro';
 import {
     enabledSelector,
-    assetsListSelector,
-    missionsListSelector,
-    currentAssetSelector,
-    currentMissionSelector
-} from '../selectors/sciadro';
+    modeSelector
+} from '@js/selectors/sciadro';
 
 /**
  * Sciadro plugins allows to manage Assets and Missions
@@ -28,21 +37,22 @@ import {
  * @memberof plugins
  * @prop {boolean} [show] show the opened main panel default true
 */
-
-const Sciadro = connect(createSelector([
+export const Sciadro = connect(createSelector([
     enabledSelector,
-    assetsListSelector,
-    missionsListSelector,
-    currentAssetSelector,
-    currentMissionSelector
-], (show, assets, missions) => ({
-    show,
-    assets,
-    missions
-})), {
-    onLoadAssets: loadAssets
-})(Container);
+    modeSelector
+], (show, mode) => ({
+    show, mode,
+    renderBodyComponents: {
+        "asset-list": AssetListConnected,
+        "asset-edit": AssetEditConnected,
+        "asset-permission": AssetPermissionConnected, // todo remove, and move it in asset-edit
+        "mission-edit": MissionEditConnected,
+        "mission-list": MissionListConnected,
+        "mission-detail": MissionDetailConnected
+    },
+    renderToolbarComponent: ToolbarConnected
+})), {})(Container);
 
 export const SciadroPlugin = assign(Sciadro);
-export const reducers = { sciadro };
+export const reducers = { shapefile, style, sciadro };
 export const epics = sciadroEpics;

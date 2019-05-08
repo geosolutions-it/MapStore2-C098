@@ -3,11 +3,12 @@
     "messages": {
         "sciadro": {
             "titlePanel": "Sciadro",
+            "back": "Indietro",
             "mode": {
                 "asset-list": "Attività",
                 "asset-detail": "Attività",
                 "asset-edit": "Modifica Attività",
-                "mission-list": "Missioni",
+                "mission-list": "Attività",
                 "mission-detail": "Missione",
                 "mission-edit": "Missione"
             },
