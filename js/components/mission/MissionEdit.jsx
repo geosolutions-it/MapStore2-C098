@@ -11,15 +11,16 @@ import PropTypes from 'prop-types';
 import {Form, FormGroup, FormControl, ControlLabel, Col} from 'react-bootstrap';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Message from '@mapstore/components/I18N/Message';
-import {find} from 'lodash';
-
 import Moment from 'moment';
+import {compose} from 'recompose';
 import momentLocalizer from 'react-widgets/lib/localizers/moment';
 momentLocalizer(Moment);
 require('react-widgets/lib/less/react-widgets.less');
 
+import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import {DateTimePicker} from 'react-widgets';
-import {getValidationState} from '../../utils/sciadro';
+import { getValidationState, getValidationFiles} from '@js/utils/sciadro';
+import LoadingWithText from '@js/components/LoadingWithText';
 
 /**
  * MissionEdit
@@ -29,19 +30,33 @@ import {getValidationState} from '../../utils/sciadro';
 class MissionEdit extends React.Component {
     static propTypes = {
         missions: PropTypes.array,
+        missionEdited: PropTypes.object,
         className: PropTypes.string,
+        formatDate: PropTypes.string,
+        savingMission: PropTypes.bool,
+        renderDropZone: PropTypes.func,
+        renderToolbarDropzone: PropTypes.func,
         onEditMission: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
+        formatDate: "DD/MM/YYYY HH:mm:ss",
+        missionEdited: {
+            attributes: {}
+        },
         missions: [],
+        savingMission: false,
         className: "",
+        renderDropZone: () => null,
+        renderToolbarDropzone: () => null,
         onEditMission: () => {}
     };
     render() {
-        const mission = find(this.props.missions, a => a.edit) || {};
+        const mission = this.props.missionEdited;
+        const DropZone = this.props.renderDropZone;
+        const ToolbarDropzone = this.props.renderToolbarDropzone;
 
         return (
             <BorderLayout
@@ -56,11 +71,11 @@ class MissionEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.mandatory"/></ControlLabel>
                         </Col>
                     </FormGroup>
-                    <FormGroup validationState={getValidationState(mission.name)}>
+                    <FormGroup validationState={getValidationState(mission && mission.name)}>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.name"/> *</ControlLabel>
                             <FormControl
-                                value={mission.name}
+                                value={mission && mission.name}
                                 onChange={(e) => this.props.onEditMission(mission.id, "name", e.target.value)}
                             />
                         </Col>
@@ -69,7 +84,7 @@ class MissionEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.description"/></ControlLabel>
                             <FormControl
-                                value={mission.description}
+                                value={mission && mission.description}
                                 onChange={(e) => this.props.onEditMission(mission.id, "description", e.target.value)}
                             />
                         </Col>
@@ -78,28 +93,30 @@ class MissionEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.note"/></ControlLabel>
                             <FormControl
-                                value={mission.note}
-                                onChange={(e) => this.props.onEditMission(mission.id, "note", e.target.value)}
+                                value={mission.attributes && mission.attributes.note}
+                                onChange={(e) => this.props.onEditMission(mission.id, "attributes.note", e.target.value)}
                             />
                         </Col>
                     </FormGroup>
-                    <FormGroup validationState={getValidationState(mission.created)}>
+                    {mission && !mission.isNew && <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.created"/> *</ControlLabel>
                             <DateTimePicker
-                                time
-                                value={mission.created}
-                                calendar
-                                format="L"
-                                onChange={(date) => this.props.onEditMission(mission.id, "created", date)}
+                                calendar={false}
+                                disabled
+                                format={this.props.formatDate}
+                                time={false}
+                                defaultValue={new Date(mission.attributes && mission.attributes.created)}
                             />
                         </Col>
-                    </FormGroup>
-                    <FormGroup>
+                    </FormGroup>}
+                    {/* not working when editing*/}
+                    <FormGroup validationState={getValidationFiles(mission)}>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.data"/></ControlLabel>
                             <br/>
-                            <img src="/assets/images/upload_geom.png"/>
+                            <ToolbarDropzone/>
+                            <DropZone/>
                         </Col>
                     </FormGroup>
                 </Form>
@@ -107,5 +124,8 @@ class MissionEdit extends React.Component {
         );
     }
 }
+const MissionEditEnhanced = compose(
+   loadingState(({savingMission}) => savingMission, {text: "Saving Mission"}, LoadingWithText),
+)(MissionEdit);
 
-export default MissionEdit;
+export default MissionEditEnhanced;

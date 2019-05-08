@@ -22,6 +22,7 @@ export default class MainToolbar extends React.Component {
         drawMethod: PropTypes.string,
         assetEdited: PropTypes.object,
         assetSelected: PropTypes.object,
+        missionEdited: PropTypes.object,
         missionSelected: PropTypes.object,
         buttonsStatus: PropTypes.object,
         assetZoomLevel: PropTypes.number,
@@ -42,6 +43,10 @@ export default class MainToolbar extends React.Component {
         messages: PropTypes.object
     };
     static defaultProps = {
+        assetEdited: {},
+        assetSelected: {},
+        missionEdited: {},
+        missionSelected: {},
         buttonsStatus: {
             back: false,
             zoom: false,
@@ -69,7 +74,7 @@ export default class MainToolbar extends React.Component {
     };
 
     render() {
-        const {missionSelected, assetSelected, assetEdited} = this.props;
+        const {missionEdited, missionSelected, assetSelected, assetEdited} = this.props;
         return (
             <ButtonToolbar className="buttonToolbar">
                 <Toolbar
@@ -114,7 +119,7 @@ export default class MainToolbar extends React.Component {
                             disabled: this.props.buttonsStatus.saveDisabled,
                             onClick: () => {
                                 if (this.props.mode === "mission-edit") {
-                                    this.props.onStartSavingMission();
+                                    this.props.onStartSavingMission(missionEdited.id);
                                 }
                                 if (this.props.mode === "asset-edit") {
                                     this.props.onStartSavingAsset(assetEdited.id);

@@ -14,24 +14,30 @@ import {
     changeMode,
     deleteAssetFeature,
     drawAsset,
+    dropFiles,
+    dropError,
     editAsset,
     // editAssetPermission,
     editMission,
     endSaveAsset,
+    endSaveMission,
     enterCreateItem,
     enterEditItem,
     loadedAssets,
+    loadedMissions,
     loadingAssets,
     loadingAssetFeature,
     loadingMissions,
+    loadingMissionFeature,
     resetCurrentAsset,
     resetCurrentMission,
     saveError,
-    selectAssets,
+    selectAsset,
     selectMission,
     startSavingAsset,
     startSavingMission,
-    updateAsset
+    updateAsset,
+    updateMission
 } from "@js/actions/sciadro";
 import { logout, loginSuccess } from "@mapstore/actions/security";
 import { endDrawing } from '@mapstore/actions/draw';
@@ -40,6 +46,12 @@ import { endDrawing } from '@mapstore/actions/draw';
 import { last, pick, find } from "lodash";
 
 describe('testing sciadro reducers', () => {
+    it('DEFAULT', () => {
+        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", selected: true}];
+        const stateBefore = {assets};
+        const stateAfter = sciadro(stateBefore, {type: 'UNKNOWN'});
+        expect(stateBefore).toBe(stateAfter);
+    });
     it('CHANGE_CURRENT_ASSET, one is selected then view detail of another one', () => {
         const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", selected: true}];
         const state = sciadro({assets}, changeCurrentAsset(2));
@@ -122,12 +134,27 @@ describe('testing sciadro reducers', () => {
         expect(state.drawMethod).toEqual(drawMethod);
         expect(state.assets[1].draw).toEqual(true);
     });
+    it('DROP_MISSION_FILES', () => {
+        const files = "blob:url";
+        const missions = [{id: 2, name: "mission2"}, {id: 3, name: "miss1", edit: true, selected: true}];
+        const state = sciadro({assets: [], missions}, dropFiles(files));
+        expect(state.missions[1].files).toEqual(files);
+        expect(state.showSuccessMessage).toEqual(true);
+        expect(state.saveDisabled).toEqual(false);
+        expect(state.showErrorMessage).toEqual(false);
+    });
+    it('DROP_MISSION_FILES_ERROR ', () => {
+        const missions = [{id: 2, name: "mission2"}, {id: 3, name: "miss1", edit: true, selected: true}];
+        const state = sciadro({assets: [], missions}, dropError());
+        expect(state.showSuccessMessage).toEqual(false);
+        expect(state.showErrorMessage).toEqual(true);
+    });
     it('EDIT_ASSET description, save remains disabled', () => {
         // type and name are mandatory for asset
         const id = 3;
         const prop = "description";
         const value = "the description of the asset";
-        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline", edit: true, selected: true}];
+        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "", attributes: {type: "powerline"}, edit: true, selected: true}];
         const state = sciadro({assets, missions: []}, editAsset(id, prop, value));
         const asset = find(state.assets, item => item.id === id);
         expect(asset[prop]).toEqual(value);
@@ -138,7 +165,7 @@ describe('testing sciadro reducers', () => {
         const id = 3;
         const prop = "name";
         const value = "the name of the asset";
-        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", type: "powerline", edit: true, selected: true}];
+        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", attributes: {type: "powerline"}, edit: true, selected: true}];
         const state = sciadro({assets, missions: []}, editAsset(id, prop, value));
         const asset = find(state.assets, item => item.id === id);
         expect(asset[prop]).toEqual(value);
@@ -160,7 +187,8 @@ describe('testing sciadro reducers', () => {
         const id = 3;
         const prop = "name";
         const value = "the name of the mission";
-        const missions = [{id: 2, name: "mission2"}, {id: 3, name: "MISSION1", edit: true, selected: true}];
+        const missions = [{id: 2, name: "mission2"},
+        {id: 3, name: "MISSION1", edit: true, selected: true, files: "blob:url"}];
         const state = sciadro({missions}, editMission(id, prop, value));
         const mission = find(state.missions, item => item.id === id);
         expect(mission[prop]).toEqual(value);
@@ -219,11 +247,11 @@ describe('testing sciadro reducers', () => {
     });
     it('ENTER_EDIT_ITEM of an mission', () => {
         const mode = "mission-edit";
-        const id = 3;
-        const oldAsset = {id: 3, name: "", type: "powerline", selected: true};
+        const id = 4;
+        const oldAsset = {id: 3, name: "", selected: true, attributes: {type: "powerline", missionsId: "4"}};
         const assets = [{id: 2, name: "asset2"}, oldAsset];
-        const oldMission = {id: 3, name: "", selected: true};
-        const missions = [{id: 2, name: "mission2"}, oldMission];
+        const oldMission = {id: 4, name: "mission4", selected: true};
+        const missions = [{id: 5, name: "mission5", selected: false}, oldMission];
         const state = sciadro({missions, assets}, enterEditItem(mode, id));
         const mission = find(state.missions, item => item.id === id);
         expect(mission.edit).toEqual(true);
@@ -312,7 +340,7 @@ describe('testing sciadro reducers', () => {
     it('END_SAVE_ASSET', () => {
         const id = 3;
         const oldAsset = {id: 3, name: "", type: "powerline", selected: true};
-        const assets = [{id: 2, name: "asset2"}, oldAsset];
+        const assets = [{id: 2, name: "asset2"}, {...oldAsset, edit: true}];
         const state = sciadro({assets}, endSaveAsset(id));
         const asset = find(state.assets, item => item.id === id);
         expect(asset.edit).toEqual(false);
@@ -321,11 +349,29 @@ describe('testing sciadro reducers', () => {
         expect(state.saveDisabled).toEqual(false);
         expect(state.mode).toEqual("asset-list");
     });
+    it('END_SAVE_MISSION', () => {
+        const id = 3;
+        const oldMission = {id: 3, name: "miss3", selected: true};
+        const missions = [{id: 2, name: "mission 2"}, {...oldMission, edit: true}];
+        const state = sciadro({missions}, endSaveMission(id));
+        const mission = find(state.missions, item => item.id === id);
+        expect(mission.edit).toEqual(false);
+        expect(mission.isNew).toEqual(false);
+        expect(state.savingMission).toEqual(false);
+        expect(state.saveDisabled).toEqual(false);
+        expect(state.mode).toEqual("mission-list");
+    });
     it('LOADED_ASSETS', () => {
         const assets = [];
         const state = sciadro({assets: []}, loadedAssets(assets));
         expect(state.assets).toEqual(assets);
         expect(state.loadingAssets).toEqual(false);
+    });
+    it('LOADED_MISSIONS', () => {
+        const missions = [{id: 1, name: "miss1"}];
+        const state = sciadro({missions: []}, loadedMissions(missions));
+        expect(state.missions).toEqual(missions);
+        expect(state.loadingMissions).toEqual(false);
     });
     it('LOADING_ASSETS', () => {
         const state = sciadro({assets: []}, loadingAssets(true));
@@ -342,6 +388,16 @@ describe('testing sciadro reducers', () => {
         expect(asset.loadingFeature).toEqual(true);
         expect(asset.id).toEqual(id);
         expect(asset.name).toEqual(name);
+    });
+    it('LOADING_MISSION_FEATURE', () => {
+        const id = 3;
+        const name = "mission3";
+        const missions = [{id: 2, name: "mission2"}, {id, name, selected: true, feature: {}}];
+        const state = sciadro({missions}, loadingMissionFeature(true));
+        const mission = find(state.missions, item => item.id === id);
+        expect(mission.loadingFeature).toEqual(true);
+        expect(mission.id).toEqual(id);
+        expect(mission.name).toEqual(name);
     });
     it('LOADING_MISSIONS', () => {
         const state = sciadro({missions: []}, loadingMissions(true));
@@ -410,8 +466,10 @@ describe('testing sciadro reducers', () => {
         const mode = "mission-edit";
         const missions = [{id: 2, name: "mission2"}, {id: 3, name: "mission 4", selected: true}];
         const id = 3;
+        const oldAsset = {id: 1, name: "", selected: true, attributes: {type: "powerline", missionsId: "3"}};
+
         const oldItem = {id: 3, name: "mission 3", selected: true};
-        const state = sciadro({assets: [], missions}, enterEditItem(mode, id));
+        const state = sciadro({assets: [oldAsset], missions}, enterEditItem(mode, id));
         const nextState = sciadro({...state, oldItem}, resetCurrentMission());
         expect(nextState.mode).toEqual("mission-list");
         const mission = find(nextState.missions, item => item.id === id);
@@ -440,7 +498,7 @@ describe('testing sciadro reducers', () => {
         const mode = "asset-list";
         const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline"}];
         const id = 3;
-        const state = sciadro({assets, missions: [], mode }, selectAssets(id));
+        const state = sciadro({assets, missions: [], mode }, selectAsset(id));
         expect(state.mode).toEqual(mode);
         const asset = find(state.assets, item => item.id === id);
         const assetPreviouslySelected = find(state.assets, item => item.id === 2);
@@ -469,7 +527,7 @@ describe('testing sciadro reducers', () => {
         const missions = [{id: 2, name: "mission2"}, {id: 3, selected: true, edit: true, name: "mission3"}];
         const id = 3;
         const state = sciadro({assets: [], missions}, startSavingMission(id));
-        expect(state.mode).toEqual("mission-list");
+        expect(state.savingMission).toEqual(true);
     });
     it('UPDATE_ASSET', () => {
         const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline"}];
@@ -479,5 +537,14 @@ describe('testing sciadro reducers', () => {
         const asset = find(state.assets, item => item.id === id);
         expect(asset.feature).toEqual({type: "Feature"});
         expect(asset.name).toEqual("tre");
+    });
+    it('UPDATE_MISSION', () => {
+        const missions = [{selected: true, id: 2, name: "mission2"}, {id: 3, name: "", type: "powerline"}];
+        const id = 3;
+        const props = {feature: {type: "Feature"}, name: "tre"};
+        const state = sciadro({missions, assets: []}, updateMission(props, id));
+        const mission = find(state.missions, item => item.id === id);
+        expect(mission.feature).toEqual({type: "Feature"});
+        expect(mission.name).toEqual("tre");
     });
 });

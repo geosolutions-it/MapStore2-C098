@@ -9,6 +9,7 @@
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
+import MissionFileUpload from '@js/components/mission/MissionFileUpload';
 import Toolbar from '@js/components/Toolbar';
 import ToolbarGeometry from '@js/components/asset/ToolbarGeometry';
 import AssetList from '@js/components/asset/AssetList';
@@ -16,47 +17,56 @@ import AssetEdit from '@js/components/asset/AssetEdit';
 import AssetPermission from '@js/components/asset/AssetPermission';
 import MissionList from '@js/components/mission/MissionList';
 import AnomaliesList from '@js/components/mission/AnomaliesList';
+import ToolbarDropzone from '@js/components/mission/ToolbarDropzone';
 import MissionDetail from '@js/components/mission/MissionDetail';
 import MissionEdit from '@js/components/mission/MissionEdit';
 
 import {
-    startLoadingAssets,
-    selectAssets,
+    addFeatureAsset,
     changeCurrentAsset,
-    changeMode,
-    resetCurrentAsset,
-    resetCurrentMission,
-    selectMission,
     changeCurrentMission,
-    editAsset,
-    editMission,
-    startSavingAsset,
-    startSavingMission,
+    changeMode,
+    deleteAssetFeature,
     drawAsset,
-    hideAdditionalLayer,
+    dropError,
+    dropFiles,
+    editAsset,
     editAssetPermission,
-    zoomToItem,
+    editMission,
     enterCreateItem,
     enterEditItem,
-    addFeatureAsset,
-    deleteAssetFeature
+    fileLoading,
+    hideAdditionalLayer,
+    resetCurrentAsset,
+    resetCurrentMission,
+    selectAsset,
+    selectMission,
+    startLoadingAssets,
+    startSavingAsset,
+    startSavingMission,
+    zoomToItem
 } from '@js/actions/sciadro';
 
 import {
-    assetsListSelector,
-    missionsListSelector,
     anomaliesListSelector,
-    modeSelector,
-    drawMethodSelector,
-    loadingAssetsSelector,
-    loadingMissionsSelector,
-    restartLoadingAssetselector,
+    assetsListSelector,
     assetEditedSelector,
     assetSelectedSelector,
-    missionSelectedSelector,
-    toolbarButtonsStatusSelector,
+    drawMethodSelector,
     isAssetEditSelector,
-    savingAssetSelector
+    loadingAssetsSelector,
+    loadingMissionsSelector,
+    missionsListSelector,
+    missionSelectedSelector,
+    missionEditedSelector,
+    missionEditedFilesSelector,
+    modeSelector,
+    restartLoadingAssetSelector,
+    savingAssetSelector,
+    savingMissionSelector,
+    showErrorMessageSelector,
+    showSuccessMessageSelector,
+    toolbarButtonsStatusSelector
 } from '@js/selectors/sciadro';
 import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
 import {zoomToExtent} from '@mapstore/actions/map';
@@ -64,13 +74,13 @@ import {zoomToExtent} from '@mapstore/actions/map';
 export const AssetListConnected = connect(createSelector([
     assetsListSelector,
     loadingAssetsSelector,
-    restartLoadingAssetselector
+    restartLoadingAssetSelector
 ], (assets, loadingAssets, reloadAsset ) => ({
     assets, loadingAssets, reloadAsset
 })), {
     onStartLoadingAssets: startLoadingAssets,
     onChangeCurrentAsset: changeCurrentAsset,
-    onSelectAsset: selectAssets,
+    onSelectAsset: selectAsset,
     onHideAdditionalLayer: hideAdditionalLayer,
     onEditAssetPermission: editAssetPermission,
     onChangeCurrentMission: changeCurrentMission
@@ -119,6 +129,19 @@ export const ToolbarGeomConnected = connect(createSelector([
     onHideAdditionalLayer: hideAdditionalLayer
 })(ToolbarGeometry);
 
+export const ToolbarDropzoneConnected = connect(createSelector([
+    missionEditedSelector,
+    missionEditedFilesSelector
+], (missionEdited, files) => ({
+    missionEdited, files,
+    buttonsStatus: {
+        deleteFiles: true,
+        deleteFilesDisabled: !files
+    }
+})), {
+    onDropFiles: dropFiles
+})(ToolbarDropzone);
+
 export const AssetEditConnected = connect(createSelector([
     assetsListSelector,
     assetEditedSelector,
@@ -150,10 +173,24 @@ export const MissionListConnected = connect(createSelector([
     onChangeCurrentMission: changeCurrentMission
 })(MissionList);
 
+export const MissionFileUploadConnected = connect(createSelector([
+    showErrorMessageSelector,
+    showSuccessMessageSelector
+], (showErrorMessage, showSuccessMessage) => ({
+    showErrorMessage, showSuccessMessage
+})), {
+    onDropError: dropError,
+    onDropFiles: dropFiles,
+    onDropSuccess: () => {},
+    onFileLoading: fileLoading
+})(MissionFileUpload);
+
 export const MissionEditConnected = connect(createSelector([
-    missionsListSelector
-], (missions) => ({
-    missions
+    missionsListSelector, missionEditedSelector, savingMissionSelector
+], (missions, missionEdited, savingMission) => ({
+    missions, missionEdited, savingMission,
+    renderDropZone: MissionFileUploadConnected,
+    renderToolbarDropzone: ToolbarDropzoneConnected
 })), {
     onEditMission: editMission
 })(MissionEdit);
@@ -185,12 +222,13 @@ export const ToolbarConnected = connect(createSelector([
     assetEditedSelector,
     assetSelectedSelector,
     missionSelectedSelector,
-    toolbarButtonsStatusSelector
+    toolbarButtonsStatusSelector,
+    missionEditedSelector
 ], (assets, missions, mode, drawMethod, assetEdited,
-    assetSelected, missionSelected, buttonsStatus) => ({
+    assetSelected, missionSelected, buttonsStatus, missionEdited) => ({
 
     assets, missions, mode, drawMethod, assetEdited,
-    assetSelected, missionSelected, buttonsStatus
+    assetSelected, missionSelected, buttonsStatus, missionEdited
 })), {
     onChangeMode: changeMode,
     onResetCurrentAsset: resetCurrentAsset,

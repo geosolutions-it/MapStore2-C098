@@ -12,16 +12,21 @@ import {
     CHANGE_MODE,
     DELETE_FEATURE_ASSET,
     DRAW_ASSET,
+    DROP_MISSION_FILES,
+    DROP_MISSION_FILES_ERROR,
     EDIT_ASSET,
     // EDIT_ASSET_PERMISSION,
     EDIT_MISSION,
     END_SAVE_ASSET,
+    END_SAVE_MISSION,
     ENTER_CREATE_ITEM,
     ENTER_EDIT_ITEM,
     LOADED_ASSETS,
+    LOADED_MISSIONS,
     LOADING_ASSETS,
     LOADING_ASSET_FEATURE,
     LOADING_MISSIONS,
+    LOADING_MISSION_FEATURE,
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
     SAVE_ERROR,
@@ -29,7 +34,8 @@ import {
     SELECT_MISSION,
     START_SAVING_ASSET,
     START_SAVING_MISSION,
-    UPDATE_ASSET
+    UPDATE_ASSET,
+    UPDATE_MISSION
 } from '@js/actions/sciadro';
 
 import { assetSelectedSelector, missionSelectedSelector } from '@js/selectors/sciadro';
@@ -51,7 +57,7 @@ import uuidv1 from 'uuid/v1';
 
 export default function sciadro(state = {
     assets: [],
-    anomalies: [{
+    anomalies: [] || [{
         id: 1,
         name: "insulator 1"
     },
@@ -59,7 +65,7 @@ export default function sciadro(state = {
         id: 2,
         name: "insulator 2"
     }],
-    missions: [{
+    missions: [] || [{
         id: 1,
         name: "Anomalies detection",
         description: "",
@@ -157,6 +163,24 @@ export default function sciadro(state = {
                 // potentially useless, see edit property
             };
         }
+        case DROP_MISSION_FILES: {
+            const itemIndex = findIndex(state.missions, item => item.edit);
+            const missions = updateItemById(state.missions, state.missions[itemIndex].id, { files: action.files });
+            return {
+                ...state,
+                showSuccessMessage: true,
+                showErrorMessage: false,
+                saveDisabled: !isEditedItemValid("mission", missions[itemIndex]),
+                missions
+            };
+        }
+        case DROP_MISSION_FILES_ERROR: {
+            return {
+                ...state,
+                showErrorMessage: true,
+                showSuccessMessage: false
+            };
+        }
         case EDIT_ASSET: {
             const itemIndex = findIndex(state.assets, item => item.id === action.id);
             const assets = set(`[${itemIndex}][${action.prop}]`, action.value, state.assets);
@@ -222,6 +246,15 @@ export default function sciadro(state = {
                 mode: "asset-list"
             };
         }
+        case END_SAVE_MISSION: {
+            return {
+                ...state,
+                savingMission: false,
+                saveDisabled: false,
+                missions: resetProps(state.missions, ["edit", "isNew"]),
+                mode: "mission-list"
+            };
+        }
         case ENTER_CREATE_ITEM: {
             let assets = [...(state.assets || [])];
             let missions = [...(state.missions || [])];
@@ -253,6 +286,8 @@ export default function sciadro(state = {
                     }
                 }]) : state.missions,
                 saveDisabled: true,
+                showErrorMessage: false,
+                showSuccessMessage: false,
                 mode: action.mode
             };
         }
@@ -268,16 +303,6 @@ export default function sciadro(state = {
             if (action.mode === "mission-edit") {
                 missions = updateItemById(missions, selectedMission.id, {edit: true});
             }
-            /*if (action.mode === "asset-edit") {
-                if (selectedAsset) {
-                    assets = toggleItemsProp(state.assets, selectedAsset.id, "edit");
-                }
-            }
-            if (action.mode === "mission-edit") {
-                if (selectedMission) {
-                    missions = toggleItemsProp(state.missions, selectedMission.id, "edit");
-                }
-            }*/
             return {
                 ...state,
                 assets,
@@ -291,7 +316,15 @@ export default function sciadro(state = {
             return {
                 ...state,
                 loadingAssets: false,
-                assets: action.assets.concat(state.assets.filter((a, i) => i > 2)) // TODO remove this after backend works, and fix related test
+                assets: action.assets
+            };
+        }
+        case LOADED_MISSIONS: {
+            // adding new missions to the actual list
+            return {
+                ...state,
+                loadingMissions: false,
+                missions: state.missions.concat(action.missions)
             };
         }
         case LOADING_ASSETS: {
@@ -303,6 +336,10 @@ export default function sciadro(state = {
         case LOADING_ASSET_FEATURE: {
             const item = find(state.assets, i => i.selected);
             return arrayUpdate("assets", {...item, loadingFeature: action.loading}, i => i.selected, state);
+        }
+        case LOADING_MISSION_FEATURE: {
+            const item = find(state.missions, i => i.selected);
+            return arrayUpdate("missions", {...item, loadingFeature: action.loading}, i => i.selected, state);
         }
         case LOADING_MISSIONS: {
             return {
@@ -368,7 +405,9 @@ export default function sciadro(state = {
             return {
                 ...state,
                 missions,
-                mode: "mission-list"
+                mode: "mission-list",
+                showErrorMessage: false,
+                showSuccessMessage: false
             };
         }
         case SAVE_ERROR: {
@@ -401,13 +440,19 @@ export default function sciadro(state = {
             // TODO some work needs to be done here
             return {
                 ...state,
-                mode: "mission-list"
+                savingMission: true
             };
         }
         case UPDATE_ASSET: {
             return {
                 ...state,
                 assets: updateItemById(state.assets, action.id, action.props)
+            };
+        }
+        case UPDATE_MISSION: {
+            return {
+                ...state,
+                missions: updateItemById(state.missions, action.id, action.props)
             };
         }
         default:

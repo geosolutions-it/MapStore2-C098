@@ -1,7 +1,7 @@
 {
     "id": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
     "name": "pipeline 3",
-    "description": "this ia a description attribute",
+    "description": "this is a description attribute",
     "created": "2019-04-18T14:45:07.261967Z",
     "modified": "2019-04-18T14:45:07.261991Z",
     "note": "this ia a note attribute",
@@ -9,12 +9,13 @@
       "type": "Feature",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[0.20, 40], [28, 49]]
+        "coordinates": [[10.39985, 43.71024], [10.40483, 43.71001]]
       },
       "style": {
         "color": "#FF0000",
         "weight": 5
       }
     },
-    "missions": []
+    "telemetries": [],
+    "anomalies": []
 }

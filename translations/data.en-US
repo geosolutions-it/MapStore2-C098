@@ -6,7 +6,8 @@
             "mandatory": "* mandatory fields",
             "back": "Back",
             "save": "Save",
-            "no-matches": "No Matches",
+            "no-assets": "No assets found, please add one",
+            "no-missions": "No missions found, please add one",
             "rest": {
                 "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
                 "loadError": "An error occured while loading the assets resources. Please contact the web admin in order to verify this problem",
@@ -45,7 +46,7 @@
                 "modified": "Modified",
                 "rest": {
                     "saveSuccess": "The asset '{name}' has been correctly saved",
-                    "saveError": "An error occured when saving the Asset"
+                    "saveError": "An error occured when saving the asset"
                 }
             },
             "missions": {
@@ -54,16 +55,26 @@
                 "add": "Create Mission",
                 "zoom": "Zoom to Mission",
                 "edit": "Edit Mission",
-                "data": "Telemetry, Geometry and other Metadata",
+                "data": "Telemetry (.telem), Anomalies (.xml) and Video (.avi) *",
                 "upload": "Upload data",
                 "name": "Name",
                 "description": "Description",
                 "note": "Note",
-                "created": "Created"
+                "created": "Created",
+                "file-trash": "Clear files",
+                "rest": {
+                    "saveSuccess": "The mission '{name}' has been correctly saved",
+                    "saveError": "An error occured when saving the mission"
+                },
+                "files" : {
+                    "valid": "Files dropped are valid",
+                    "invalid": "Files dropped are invalid, Please drop a .zip file containing the .avi, .telem and .xml files"
+                }
             }
         },
         "shapefile": {
             "placeholder": "Drop your file here or click to select the Vector File to import. (supported files: file.json with a LineString or Point only, must be contained in a zip archive)",
+            "placeholderMissionFiles": "Drop your file here or click to select the file to import (supported formats: .zip file containing the .avi, .telem and .xml files)",
             "error": {
                 "select": "Select only one geoJSON.json file contained in a zip archive"
             }

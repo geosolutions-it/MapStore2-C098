@@ -8,19 +8,20 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {getValidationState} from '../../utils/sciadro';
 import {Form, FormGroup, FormControl, ControlLabel, Col} from 'react-bootstrap';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Message from '@mapstore/components/I18N/Message';
 import Moment from 'moment';
+import {compose} from 'recompose';
 import momentLocalizer from 'react-widgets/lib/localizers/moment';
 momentLocalizer(Moment);
-import loadingState from '@mapstore/components/misc/enhancers/loadingState';
-import {compose} from 'recompose';
-import LoadingWithText from '@js/components/asset/LoadingWithText';
-
 require('react-widgets/lib/less/react-widgets.less');
+
+import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import {DateTimePicker} from 'react-widgets';
+import {getValidationState} from '@js/utils/sciadro';
+import LoadingWithText from '@js/components/LoadingWithText';
+
 /**
  * Asset Edit
  * @class
@@ -76,8 +77,8 @@ class AssetEdit extends React.Component {
                             <FormControl
                                 componentClass="select"
                                 placeholder="..."
-                                onChange={(e) => this.props.onEditAsset(asset.id, "type", e.target.value)}
-                                value={asset.attributes.type}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "attributes.type", e.target.value)}
+                                value={asset.attributes && asset.attributes.type}
                                 >
                                     {this.props.typeList.map((t, i) => (
                                         <option key={i} value={t.value}><Message msgId={t.label}/></option>
@@ -107,8 +108,8 @@ class AssetEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.note"/></ControlLabel>
                             <FormControl
-                                value={asset.note}
-                                onChange={(e) => this.props.onEditAsset(asset.id, "note", e.target.value)}
+                                value={asset.attributes && asset.attributes.note}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "attributes.note", e.target.value)}
                             />
                         </Col>
                     </FormGroup>
@@ -121,8 +122,7 @@ class AssetEdit extends React.Component {
                                     calendar={false}
                                     disabled
                                     format={this.props.formatDate}
-                                    value={new Date(asset.attributes.created)}
-                                    onChange={(date) => this.props.onEditAsset(asset.id, "created", date)}
+                                    defaultValue={new Date(asset.attributes && asset.attributes.created)}
                                 />
                             </Col>
                         </FormGroup>
@@ -131,14 +131,13 @@ class AssetEdit extends React.Component {
                         asset && !asset.isNew && <FormGroup>
                             <Col xs={12} sm={12} md={12}>
                                 <ControlLabel><Message msgId="sciadro.assets.modified"/></ControlLabel>
-                                    <DateTimePicker
-                                        time={false}
-                                        calendar={false}
-                                        disabled
-                                        format={this.props.formatDate}
-                                        value={new Date(asset.attributes.modified)}
-                                        onChange={(date) => this.props.onEditAsset(asset.id, "modified", date)}
-                                    />
+                                <DateTimePicker
+                                    time={false}
+                                    calendar={false}
+                                    disabled
+                                    format={this.props.formatDate}
+                                    defaultValue={new Date(asset.attributes && asset.attributes.modified)}
+                                />
                             </Col>
                         </FormGroup>
                     }
@@ -147,8 +146,7 @@ class AssetEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.assets.geometry"/></ControlLabel>
                             <br/>
                             <ToolbarGeom/>
-                            <DropZone
-                                wrap={false}/>
+                            <DropZone wrap={false}/>
                         </Col>
                     </FormGroup>
                 </Form>
