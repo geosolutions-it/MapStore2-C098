@@ -134,7 +134,7 @@ const manageCreationResourceGeostore = (metadata, category, configuredPermission
  * @param {string} fileUrl optional file to upload. Required only for MISSION resources
  * @return observable actions
 */
-export const saveResource = ({resource = {}, category, resourcePermissions = {}, postProcessActions = [], errorsActions = [], fileUrl, path, updateAssetAttribute = false} = {}) =>
+export const saveResource = ({resource = {}, category, resourcePermissions = {}, postProcessActions = () => [], errorsActions = () => [], fileUrl, path, updateAssetAttribute = false} = {}) =>
     Rx.Observable.defer( () =>
         createResourceSciadroServer({resource, fileUrl, category, path})
             .then(res => {
@@ -225,13 +225,13 @@ export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://
 * @param {function} errorsActions actions to dispatch in case of error
 * @return
 */
-export const getAssetResource = ({id, postProcessActions, errorsActions}) => {
+export const getAssetResource = ({id, postProcessActions = () => [], errorsActions = () => []}) => {
     return Rx.Observable.defer( () => getResourceSciadroServer({path: `/assets/${id}`}))
         .switchMap((result) => {
             return Rx.Observable.from(postProcessActions(result.data));
         })
         .catch(() => {
-            return Rx.Observable.from([...(errorsActions())]); // error on sciadro backend
+            return Rx.Observable.from(errorsActions()); // error on sciadro backend
         });
 };
 
@@ -242,7 +242,7 @@ export const getAssetResource = ({id, postProcessActions, errorsActions}) => {
 * @param {function} errorsActions actions to dispatch in case of error
 * @return
 */
-export const getMissionResource = ({id, assetId, postProcessActions, errorsActions}) => {
+export const getMissionResource = ({id, assetId, postProcessActions = () => [], errorsActions = () => []}) => {
     return Rx.Observable.defer( () => getResourceSciadroServer({id, path: `/assets/${assetId}/missions/${id}`}))
         .switchMap((result) => {
             return Rx.Observable.from(postProcessActions(result.data));

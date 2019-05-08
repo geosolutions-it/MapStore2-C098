@@ -78,7 +78,7 @@ class AssetEdit extends React.Component {
                                 componentClass="select"
                                 placeholder="..."
                                 onChange={(e) => this.props.onEditAsset(asset.id, "attributes.type", e.target.value)}
-                                value={asset.attributes.type}
+                                value={asset.attributes && asset.attributes.type}
                                 >
                                     {this.props.typeList.map((t, i) => (
                                         <option key={i} value={t.value}><Message msgId={t.label}/></option>
@@ -108,7 +108,7 @@ class AssetEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.note"/></ControlLabel>
                             <FormControl
-                                value={asset.attributes.note}
+                                value={asset.attributes && asset.attributes.note}
                                 onChange={(e) => this.props.onEditAsset(asset.id, "attributes.note", e.target.value)}
                             />
                         </Col>
@@ -122,7 +122,7 @@ class AssetEdit extends React.Component {
                                     calendar={false}
                                     disabled
                                     format={this.props.formatDate}
-                                    defaultValue={new Date(asset.attributes.created)}
+                                    defaultValue={new Date(asset.attributes && asset.attributes.created)}
                                 />
                             </Col>
                         </FormGroup>
@@ -136,7 +136,7 @@ class AssetEdit extends React.Component {
                                     calendar={false}
                                     disabled
                                     format={this.props.formatDate}
-                                    defaultValue={new Date(asset.attributes.modified)}
+                                    defaultValue={new Date(asset.attributes && asset.attributes.modified)}
                                 />
                             </Col>
                         </FormGroup>
