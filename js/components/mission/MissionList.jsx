@@ -17,13 +17,13 @@ import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 import Message from '@mapstore/components/I18N/Message';
-
+import LoadingWithText from '@js/components/LoadingWithText';
 const SideGridEnhanced = compose(
-    loadingState(({loading} ) => loading),
+    loadingState(({loading} ) => loading, {text: "Loading Missions"}, LoadingWithText),
     emptyState( // TODO verify if we want this empty state enhancer
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
-            title: <Message msgId="sciadro.no-matches" />
+            title: <Message msgId="sciadro.no-missions" />
         })
 )(SideGrid);
 /**
@@ -87,6 +87,8 @@ class MissionList extends React.Component {
                                     {
                                         tooltipId: "sciadro.missions.detail",
                                         glyph: 'arrow-right',
+                                        loading: item.loadingFeature,
+                                        disabled: item.loadingFeature,
                                         onClick: (e) => {
                                             e.stopPropagation();
                                             this.props.onChangeCurrentMission(item.id);

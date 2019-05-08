@@ -20,7 +20,7 @@ require('react-widgets/lib/less/react-widgets.less');
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import {DateTimePicker} from 'react-widgets';
 import {getValidationState} from '@js/utils/sciadro';
-import LoadingWithText from '@js/components/asset/LoadingWithText';
+import LoadingWithText from '@js/components/LoadingWithText';
 
 /**
  * Asset Edit
@@ -77,7 +77,7 @@ class AssetEdit extends React.Component {
                             <FormControl
                                 componentClass="select"
                                 placeholder="..."
-                                onChange={(e) => this.props.onEditAsset(asset.id, "type", e.target.value)}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "attributes.type", e.target.value)}
                                 value={asset.attributes.type}
                                 >
                                     {this.props.typeList.map((t, i) => (
@@ -108,8 +108,8 @@ class AssetEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.note"/></ControlLabel>
                             <FormControl
-                                value={asset.note}
-                                onChange={(e) => this.props.onEditAsset(asset.id, "note", e.target.value)}
+                                value={asset.attributes.note}
+                                onChange={(e) => this.props.onEditAsset(asset.id, "attributes.note", e.target.value)}
                             />
                         </Col>
                     </FormGroup>
@@ -122,8 +122,7 @@ class AssetEdit extends React.Component {
                                     calendar={false}
                                     disabled
                                     format={this.props.formatDate}
-                                    value={new Date(asset.attributes.created)}
-                                    onChange={(date) => this.props.onEditAsset(asset.id, "created", date)}
+                                    defaultValue={new Date(asset.attributes.created)}
                                 />
                             </Col>
                         </FormGroup>
@@ -132,14 +131,13 @@ class AssetEdit extends React.Component {
                         asset && !asset.isNew && <FormGroup>
                             <Col xs={12} sm={12} md={12}>
                                 <ControlLabel><Message msgId="sciadro.assets.modified"/></ControlLabel>
-                                    <DateTimePicker
-                                        time={false}
-                                        calendar={false}
-                                        disabled
-                                        format={this.props.formatDate}
-                                        value={new Date(asset.attributes.modified)}
-                                        onChange={(date) => this.props.onEditAsset(asset.id, "modified", date)}
-                                    />
+                                <DateTimePicker
+                                    time={false}
+                                    calendar={false}
+                                    disabled
+                                    format={this.props.formatDate}
+                                    defaultValue={new Date(asset.attributes.modified)}
+                                />
                             </Col>
                         </FormGroup>
                     }

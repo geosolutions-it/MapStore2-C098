@@ -19,8 +19,8 @@ require('react-widgets/lib/less/react-widgets.less');
 
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import {DateTimePicker} from 'react-widgets';
-import {getValidationState} from '@js/utils/sciadro';
-import LoadingWithText from '@js/components/asset/LoadingWithText';
+import { getValidationState, getValidationFiles} from '@js/utils/sciadro';
+import LoadingWithText from '@js/components/LoadingWithText';
 
 /**
  * MissionEdit
@@ -35,6 +35,7 @@ class MissionEdit extends React.Component {
         formatDate: PropTypes.string,
         savingMission: PropTypes.bool,
         renderDropZone: PropTypes.func,
+        renderToolbarDropzone: PropTypes.func,
         onEditMission: PropTypes.func
     };
     static contextTypes = {
@@ -49,11 +50,13 @@ class MissionEdit extends React.Component {
         savingMission: false,
         className: "",
         renderDropZone: () => null,
+        renderToolbarDropzone: () => null,
         onEditMission: () => {}
     };
     render() {
         const mission = this.props.missionEdited;
         const DropZone = this.props.renderDropZone;
+        const ToolbarDropzone = this.props.renderToolbarDropzone;
 
         return (
             <BorderLayout
@@ -68,11 +71,11 @@ class MissionEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.mandatory"/></ControlLabel>
                         </Col>
                     </FormGroup>
-                    <FormGroup validationState={getValidationState(mission.attributes && mission.attributes.name)}>
+                    <FormGroup validationState={getValidationState(mission && mission.name)}>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.name"/> *</ControlLabel>
                             <FormControl
-                                value={mission.attributes && mission.attributes.name}
+                                value={mission && mission.name}
                                 onChange={(e) => this.props.onEditMission(mission.id, "name", e.target.value)}
                             />
                         </Col>
@@ -81,7 +84,7 @@ class MissionEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.description"/></ControlLabel>
                             <FormControl
-                                value={mission.attributes && mission.attributes.description}
+                                value={mission && mission.description}
                                 onChange={(e) => this.props.onEditMission(mission.id, "description", e.target.value)}
                             />
                         </Col>
@@ -91,27 +94,29 @@ class MissionEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.missions.note"/></ControlLabel>
                             <FormControl
                                 value={mission.attributes && mission.attributes.note}
-                                onChange={(e) => this.props.onEditMission(mission.id, "note", e.target.value)}
+                                onChange={(e) => this.props.onEditMission(mission.id, "attributes.note", e.target.value)}
                             />
                         </Col>
                     </FormGroup>
-                    {mission && !mission.isNew && <FormGroup validationState={getValidationState(mission.created)}>
+                    {mission && !mission.isNew && <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.created"/> *</ControlLabel>
                             <DateTimePicker
-                                time
-                                value={mission.attributes && mission.attributes.created}
-                                calendar
+                                calendar={false}
+                                disabled
                                 format={this.props.formatDate}
-                                onChange={(date) => this.props.onEditMission(mission.id, "created", date)}
+                                time={false}
+                                defaultValue={new Date(mission.attributes && mission.attributes.created)}
                             />
                         </Col>
                     </FormGroup>}
-                    <FormGroup>
+                    {/* not working when editing*/}
+                    <FormGroup validationState={getValidationFiles(mission)}>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.data"/></ControlLabel>
                             <br/>
-                            <DropZone wrap={false} uploadMessage="shapefile.placeholderMissionFiles"/>
+                            <ToolbarDropzone/>
+                            <DropZone/>
                         </Col>
                     </FormGroup>
                 </Form>

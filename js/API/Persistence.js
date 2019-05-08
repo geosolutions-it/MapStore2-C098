@@ -75,8 +75,12 @@ export const createResourceSciadroServer = ({path = "assets", backendUrl = "http
     headers: {'Accept': 'application/json'}
 }} = {}) => {
     let mockAxios = new MockAdapter(axios);
-    mockAxios.onPost(/assets/).reply(201, DATA.POST_ASSET);
-    mockAxios.onPost(/assets\/[\w]*\/missions/).reply(201, DATA.POST_MISSION);
+    if (path === "assets") {
+        mockAxios.onPost(/assets/).reply(201, DATA.POST_ASSET);
+    } else {
+        // mockAxios.onPost(/assets\/[\w-]*\/missions/).reply(201, DATA.POST_MISSION);
+        mockAxios.onPost(/missions/).reply(201, DATA.POST_MISSION);
+    }
 
     if (!fileUrl) {
         return postResourceSciadro({mockAxios, path, backendUrl, resource, options});
@@ -125,22 +129,24 @@ const manageCreationResourceGeostore = (metadata, category, configuredPermission
  * @param {string} category of the resource (ASSET || MISSION)
  * @param {object} resourcePermissions for the geostore resource
  * @param {function} postProcessActions actions to dispatch after the whole process is succesfull
+ * @param {boolean} updateAssetAttribute if a request must be sent to update asset attribute with updated mission list
  * @param {function} errorsActions actions to dispatch in case of error
  * @param {string} fileUrl optional file to upload. Required only for MISSION resources
  * @return observable actions
 */
-export const saveResource = ({resource = {}, category, resourcePermissions = {}, postProcessActions = [], errorsActions = [], fileUrl} = {}) =>
+export const saveResource = ({resource = {}, category, resourcePermissions = {}, postProcessActions = [], errorsActions = [], fileUrl, path, updateAssetAttribute = false} = {}) =>
     Rx.Observable.defer( () =>
-        createResourceSciadroServer({resource, fileUrl, category})
+        createResourceSciadroServer({resource, fileUrl, category, path})
             .then(res => {
                 if (res === null) {
-                    return Rx.Observable.from([...(errorsActions(resource.id)), saveSciadroServerError()]); // error on sciadro backend
-                    // TODO use this return Rx.Observable.from([...errorsActions, saveFileSciadroServerError(e)]); // error on sciadro backend
+                    // TEST THIS
+                    return {status: 500};
                 }
                 return res;
             })
-            .catch((e) => {
-                return Rx.Observable.from([...(errorsActions(resource.id, e.message)), saveSciadroServerError()]); // error on sciadro backend
+            .catch(() => {
+                // TEST THIS
+                return {status: 500};
             })
     )
     .switchMap(({status, data: sciadroData} = {}) => {
@@ -168,21 +174,24 @@ export const saveResource = ({resource = {}, category, resourcePermissions = {},
                     ...otherAttributes
                 }
             };
-            /*let mockAxios = new MockAdapter(axios);
-            mockAxios.onPost(/resources/).reply(409, metadata.name + " - 2");*/
             return Rx.Observable.defer( () => manageCreationResourceGeostore(metadata, category, resourcePermissions))
                 .switchMap((idResourceGeostore) => {
-                    /*mockAxios.reset();
-                    mockAxios.restore();*/
                     if (!idResourceGeostore) {
                         // fall back, delete resource already created on sciadro backend
-                        return Rx.Observable.defer( () => deleteResourceSciadroServer({id: sciadroResourceId}))
+                        // TEST DELETE OF MISSION
+                        return Rx.Observable.defer( () => deleteResourceSciadroServer({id: sciadroResourceId, path: `${path}/${sciadroResourceId}`}))
                             .switchMap(() => {
                                 return Rx.Observable.from([
                                         saveError(resource.id, "sciadro.rest.saveError"),
                                         saveGeostoreError({message: "sciadro.rest.saveError"})
                                     ]);
                             });
+                    }
+                    if (updateAssetAttribute) {
+                        return Rx.Observable.defer( () => Persistence.updateResourceAttribute({id: resource.assetId, name: "missionsId", value: resource.missionsId ? `${resource.missionsId},${idResourceGeostore}` : `${idResourceGeostore}`}))
+                        .switchMap(() => {
+                            return Rx.Observable.from(postProcessActions(sciadroData, idResourceGeostore));
+                        });
                     }
                     return Rx.Observable.from(postProcessActions(sciadroData, idResourceGeostore));
                 });
@@ -191,37 +200,54 @@ export const saveResource = ({resource = {}, category, resourcePermissions = {},
     });
 
 
-export const getAssetResourceSciadroServer = ({path = "assets", backendUrl = "http://localhost:8000", id, options = {
+export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://localhost:8000", options = {
     timeout: 3000,
     headers: {'Accept': 'application/json', 'Content-Type': 'application/json' }
 }} = {}) => {
-    let mockAxios = new MockAdapter(axios, {delayResponse: 1000});
-    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);
-    mockAxios.onGet(/assets\/[\w-]*/).reply(200, DATA.GET_ASSET);
-    mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);
-    const url = `${backendUrl}/${path}/${id}`;
+    // let mockAxios = new MockAdapter(axios, {delayResponse: 1500});
+    /*mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);
+    mockAxios.onGet(/assets\/[\w-]).reply(200, DATA.GET_ASSET);
+    // mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);
+    mockAxios.onGet(/missions/).reply(200, DATA.GET_MISSION);*/
+    const url = `${backendUrl}/${path}`;
     return axios.get(url, options)
         .then(res => {
-            mockAxios.reset();
-            mockAxios.restore();
+            // mockAxios.reset();
+            // mockAxios.restore();
             return res;
         });
 };
 
 /**
-* it fetches the feature geojson from sciadro backend
+* it fetches the feature geojson from sciadro backend from asset
 * @param {string} id of the resource to fetch
 * @param {function} postProcessActions actions to dispatch after the whole process is succesfull
 * @param {function} errorsActions actions to dispatch in case of error
 * @return
 */
 export const getAssetResource = ({id, postProcessActions, errorsActions}) => {
-    return Rx.Observable.defer( () => getAssetResourceSciadroServer({id}))
+    return Rx.Observable.defer( () => getResourceSciadroServer({path: `/assets/${id}`}))
         .switchMap((result) => {
             return Rx.Observable.from(postProcessActions(result.data));
         })
-        .catch((e) => {
-            console.log(e);
+        .catch(() => {
+            return Rx.Observable.from([...(errorsActions())]); // error on sciadro backend
+        });
+};
+
+/**
+* it fetches the feature geojson from sciadro backend from mission
+* @param {string} id of the resource to fetch
+* @param {function} postProcessActions actions to dispatch after the whole process is succesfull
+* @param {function} errorsActions actions to dispatch in case of error
+* @return
+*/
+export const getMissionResource = ({id, assetId, postProcessActions, errorsActions}) => {
+    return Rx.Observable.defer( () => getResourceSciadroServer({id, path: `/assets/${assetId}/missions/${id}`}))
+        .switchMap((result) => {
+            return Rx.Observable.from(postProcessActions(result.data));
+        })
+        .catch(() => {
             return Rx.Observable.from([...(errorsActions())]); // error on sciadro backend
         });
 };

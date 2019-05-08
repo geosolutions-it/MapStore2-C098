@@ -1,21 +1,22 @@
 {
     "id": "e4b678f6-ffff-4aa7-86a4-f43f6697691d",
     "type": "PIP",
-    "name": "pipeline 3",
+    "name": "ass1",
     "created": "2019-04-18T14:45:07.261967Z",
     "modified": "2019-04-18T14:45:07.261991Z",
-    "description": "this ia a description attribute",
-    "note": "this is a note attribute",
+    "description": "ass1",
+    "note": "ass1",
     "feature": {
       "type": "Feature",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[0.20, 40], [28, 49]]
+        "coordinates": [[10.39985, 43.71064], [10.40483, 43.71041]]
       },
       "style": {
-        "color": "#FF0000",
-        "weight": 5
-      }
+        "color": "#00FF00",
+        "weight": 2
+      },
+      "id": "12345678-1234-1234-1234-123456789012"
     },
     "missions": []
 }

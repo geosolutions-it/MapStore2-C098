@@ -9,12 +9,13 @@
       "type": "Feature",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[0.20, 40], [28, 49]]
+        "coordinates": [[10.39985, 43.71024], [10.40483, 43.71001]]
       },
       "style": {
         "color": "#FF0000",
         "weight": 5
       }
     },
-    "missions": []
+    "telemetries": [],
+    "anomalies": []
 }

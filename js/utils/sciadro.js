@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import {updateAdditionalLayer, removeAdditionalLayer} from "@mapstore/actions/additionallayers";
+import { updateAdditionalLayer, removeAdditionalLayer } from "@mapstore/actions/additionallayers";
 import { findIndex } from "lodash";
 import { set } from "@mapstore/utils/ImmutableUtils";
 
@@ -23,14 +23,6 @@ export const getAdditionalLayerAction = ({feature, id, name, style = { color: "#
         features: [feature]
     };
     return updateAdditionalLayer(id, "sciadro", "overlay", layerOptions);
-};
-
-export const removeAdditionalLayerById = (id) => {
-    return removeAdditionalLayer({id});
-};
-
-export const getValidationState = (val) => {
-    return !!val ? "success" : "warning";
 };
 
 export const getStyleFromType = (type = "LineString") => {
@@ -53,40 +45,32 @@ export const getStyleFromType = (type = "LineString") => {
     return styles[type];
 };
 
-
-/**
- used to mock some axios req/res for sciadro backend
-*/
-const MockAdapter = require("axios-mock-adapter");
-const axios = require("@mapstore/libs/ajax");
-
-const DATA = {
-    POST_ASSET: require("json-loader!@js/test-resources/postAsset.json"),
-    GET_ALL_ASSETS: require("json-loader!@js/test-resources/getAllAssets.json")
+export const getValidationState = (val) => {
+    return !!val ? "success" : "warning";
 };
 
-
-export const postAssetResource = ({backendUrl = "http://localhost:8000", resource = {}, options = {
-    timeout: 3000,
-    headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}
-}} = {}) => {
-    let mockAxios = new MockAdapter(axios);
-    mockAxios.onPost(/assets/).reply(201, DATA.POST_ASSET);
-    return axios.post(`${backendUrl}/assets`, resource, options)
-        .then(data => {
-            mockAxios.reset();
-            mockAxios.restore();
-            return data;
-        });
-};
-
-export const updateItemById = (items = [], id, props = {}) => {
-    let newItems = [...items];
-    const itemIndex = findIndex(items, item => item.id === id);
-    if (itemIndex !== -1) {
-        newItems[itemIndex] = {...newItems[itemIndex], ...props};
+export const getValidationFiles = (mission = {}) => {
+    if (mission.isNew) {
+        return mission.files ? "success" : "warning";
     }
-    return newItems;
+    return "success";
+};
+
+export const isEditedItemValid = (type, item) => {
+    switch (type) {
+        case "asset": return !!item.name && !!item.attributes && !!item.attributes.type;
+        case "mission": return !!item.name && !!item.files;
+        default: return false;
+    }
+};
+
+export const removeAdditionalLayerById = (id) => {
+    return removeAdditionalLayer({id});
+};
+
+export const resetProps = (items = [], propsToReset = ["selected", "current"]) => {
+    const props = propsToReset.reduce((p, c) => ({...p, [c]: false}), {});
+    return items.map( item => ({...item, ...props}));
 };
 
 // reset prop passed for all items but toggle provided one
@@ -98,6 +82,7 @@ export const toggleItemsProp = (items = [], id, prop = "selected") => {
     }
     return newItems;
 };
+
 export const updateDroneProps = (items = [], id, props = {}) => {
     let newItems = [...items];
     const selectedItemIndex = findIndex(items, item => item.id === id);
@@ -108,9 +93,13 @@ export const updateDroneProps = (items = [], id, props = {}) => {
     return newItems;
 };
 
-export const resetProps = (items = [], propsToReset = ["selected", "current"]) => {
-    const props = propsToReset.reduce((p, c) => ({...p, [c]: false}), {});
-    return items.map( item => ({...item, ...props}));
+export const updateItemById = (items = [], id, props = {}) => {
+    let newItems = [...items];
+    const itemIndex = findIndex(items, item => item.id === id);
+    if (itemIndex !== -1) {
+        newItems[itemIndex] = {...newItems[itemIndex], ...props};
+    }
+    return newItems;
 };
 
 export const updateItemAndResetOthers = ({items = "assets", id, state, propsToUpdate = {selected: true, current: true }, propsToReset = ["selected", "current"]}) => {
@@ -118,12 +107,4 @@ export const updateItemAndResetOthers = ({items = "assets", id, state, propsToUp
         ...state,
         [items]: updateItemById(resetProps(state[items], propsToReset), id, propsToUpdate)
     };
-};
-
-export const isEditedItemValid = (type, item) => {
-    switch (type) {
-        case "asset": return !!item.name && !!item.type;
-        case "mission": return !!item.name;
-        default: return false;
-    }
 };

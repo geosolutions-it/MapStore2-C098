@@ -13,17 +13,17 @@ import {compose} from 'recompose';
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
-import Filter from '@mapstore/components/misc/Filter';
+// import Filter from '@mapstore/components/misc/Filter';
 import Message from '@mapstore/components/I18N/Message';
-import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import emptyState from '@mapstore/components/misc/enhancers/emptyState';
-import LoadingWithText from '@js/components/asset/LoadingWithText';
+import loadingState from '@mapstore/components/misc/enhancers/loadingState';
+import LoadingWithText from '@js/components/LoadingWithText';
 const SideGridWithLoadingState = compose(
     loadingState(({loading}) => loading, {text: "Loading Assets"}, LoadingWithText),
     emptyState( // TODO verify if we want this empty state enhancer
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
-            title: <Message msgId="sciadro.no-matches" />
+            title: <Message msgId="sciadro.no-assets" />
         })
 )(SideGrid);
 
@@ -69,8 +69,8 @@ class AssetList extends React.Component {
         return (
             <BorderLayout
                 header={
-                    <div style={{ padding: 8 }}>
-                        <Filter filterPlaceholder="Filter assets..."/>
+                    <div style={{ padding: 8, textAlign: "center" }}>
+                        Filter assets {/*<Filter filterPlaceholder="Filter assets..."/>*/}
                     </div>
                 }>
                 <SideGridWithLoadingState

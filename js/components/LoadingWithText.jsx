@@ -9,7 +9,7 @@
 const React = require('react');
 
 const ContainerDimensions = require('react-container-dimensions').default;
-const Loader = require('@js/components/asset/LoaderWithText');
+const Loader = require('@js/components/LoaderWithText');
 /**
  * Default Loading View component
  * @param  {number} width  fixed width
