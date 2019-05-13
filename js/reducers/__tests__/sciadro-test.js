@@ -13,6 +13,8 @@ import {
     changeCurrentMission,
     changeMode,
     deleteAssetFeature,
+    downloadFrame,
+    downloadingFrame,
     drawAsset,
     dropFiles,
     dropError,
@@ -34,6 +36,7 @@ import {
     saveError,
     selectAsset,
     selectMission,
+    showOnMap,
     startSavingAsset,
     startSavingMission,
     updateAsset,
@@ -125,6 +128,39 @@ describe('testing sciadro reducers', () => {
                 expect(a.feature).toBe(null);
             }
         });
+    });
+    it('DOWNLOAD_FRAME', () => {
+        const idFrame = "frame-id";
+        const missions = [
+            {id: 2, name: "mission2"},
+            {id: 3, name: "mission 3", current: true, selected: true, anomalies: [{
+                frame: idFrame,
+                id: "anomaly-1"
+            }], frames: [{
+                location: {},
+                id: idFrame
+            }]}
+        ];
+        const state = sciadro({missions}, downloadFrame(idFrame));
+        const missionCurrent = state.missions[1];
+        expect(missionCurrent.anomalies[0].downloading).toBe(true);
+    });
+    it('DOWNLOADING_FRAME', () => {
+        const idFrame = "frame-id";
+        const downloading = false;
+        const missions = [
+            {id: 2, name: "mission2"},
+            {id: 3, name: "mission 3", current: true, selected: true, anomalies: [{
+                frame: idFrame,
+                id: "anomaly-1"
+            }], frames: [{
+                location: {},
+                id: idFrame
+            }]}
+        ];
+        const state = sciadro({missions}, downloadingFrame(downloading, idFrame));
+        const missionCurrent = state.missions[1];
+        expect(missionCurrent.anomalies[0].downloading).toBe(false);
     });
     it('DRAW_ASSET', () => {
         const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", edit: true, selected: true, feature: {}}];
@@ -515,6 +551,37 @@ describe('testing sciadro reducers', () => {
         const missionPreviouslySelected = find(state.missions, item => item.id === 2);
         expect(mission.selected).toEqual(true);
         expect(missionPreviouslySelected.selected).toEqual(false);
+    });
+    it('SHOW_ON_MAP', () => {
+        const idFrame = "id.frame";
+        const missions = [
+            {
+                id: 2, name: "mission2"
+            },
+            {
+                id: 3,
+                selected: true,
+                current: true,
+                name: "mission3",
+                type: "powerline",
+                frames: [{
+                    location: {
+                        type: "Point",
+                        coordinates: [2, 3]
+                    },
+                    id: idFrame
+                }]
+            }
+        ];
+        const id = 3;
+        const state = sciadro({missions}, showOnMap(idFrame));
+        const mission = find(state.missions, item => item.id === id);
+
+        expect(mission.drone).toExist();
+        expect(mission.drone.geometry).toEqual({
+            type: "Point",
+            coordinates: [2, 3]
+        });
     });
     it('START_SAVING_ASSET', () => {
         const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline"}];

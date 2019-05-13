@@ -9,17 +9,17 @@
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
-import MissionFileUpload from '@js/components/mission/MissionFileUpload';
-import Toolbar from '@js/components/Toolbar';
-import ToolbarGeometry from '@js/components/asset/ToolbarGeometry';
+import AnomaliesList from '@js/components/mission/AnomaliesList';
 import AssetList from '@js/components/asset/AssetList';
 import AssetEdit from '@js/components/asset/AssetEdit';
 import AssetPermission from '@js/components/asset/AssetPermission';
-import MissionList from '@js/components/mission/MissionList';
-import AnomaliesList from '@js/components/mission/AnomaliesList';
-import ToolbarDropzone from '@js/components/mission/ToolbarDropzone';
 import MissionDetail from '@js/components/mission/MissionDetail';
 import MissionEdit from '@js/components/mission/MissionEdit';
+import MissionFileUpload from '@js/components/mission/MissionFileUpload';
+import MissionList from '@js/components/mission/MissionList';
+import Toolbar from '@js/components/Toolbar';
+import ToolbarGeometry from '@js/components/asset/ToolbarGeometry';
+import ToolbarDropzone from '@js/components/mission/ToolbarDropzone';
 
 import {
     addFeatureAsset,
@@ -28,6 +28,7 @@ import {
     changeMode,
     deleteAssetFeature,
     drawAsset,
+    downloadFrame,
     dropError,
     dropFiles,
     editAsset,
@@ -41,6 +42,7 @@ import {
     resetCurrentMission,
     selectAsset,
     selectMission,
+    showOnMap,
     startLoadingAssets,
     startSavingAsset,
     startSavingMission,
@@ -57,6 +59,7 @@ import {
     loadingAssetsSelector,
     loadingMissionsSelector,
     missionsListSelector,
+    missionCurrentSelector,
     missionSelectedSelector,
     missionEditedSelector,
     missionEditedFilesSelector,
@@ -196,23 +199,25 @@ export const MissionEditConnected = connect(createSelector([
 })(MissionEdit);
 
 export const AnomaliesListConnected = connect(createSelector([
-    anomaliesListSelector
-], (anomalies) => ({
-    anomalies
+    anomaliesListSelector,
+    missionCurrentSelector
+], (anomalies, missionCurrent) => ({
+    anomalies, missionCurrent
 })), {
+    onShowOnMap: showOnMap,
+    onDownloadFrame: downloadFrame
     // action: actionCreator
 })(AnomaliesList);
 
 export const MissionDetailConnected = connect(createSelector([
     modeSelector,
-    missionsListSelector
-], (mode, missions) => ({
-    mode, missions,
+    missionsListSelector,
+    missionSelectedSelector
+], (mode, missions, missionSelected) => ({
+    mode, missions, missionSelected,
     renderAnomaliesList: AnomaliesListConnected
 })), {
-    // action: actionCreator
 })(MissionDetail);
-
 
 export const ToolbarConnected = connect(createSelector([
     assetsListSelector,

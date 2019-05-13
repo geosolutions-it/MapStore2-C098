@@ -10,31 +10,31 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import ReactPlayer from 'react-player';
-import {pick} from 'lodash';
 
 
 /**
- * Mission List
+ * MissionDetail
  * @class
  * @memberof components.List
 */
 class MissionDetail extends React.Component {
     static propTypes = {
+        anomalies: PropTypes.array,
         missions: PropTypes.array,
-        renderAnomaliesList: PropTypes.func,
-        anomalies: PropTypes.array
+        missionSelected: PropTypes.object,
+        renderAnomaliesList: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
+        anomalies: [],
         missions: [],
-        anomalies: []
+        missionSelected: {}
     };
 
     render() {
         const mission = find(this.props.missions, a => a.selected);
-        const anomaliesProps = pick(this.props, ["anomalies"]);
         const AnomaliesList = this.props.renderAnomaliesList;
         return (
             <BorderLayout
@@ -46,24 +46,62 @@ class MissionDetail extends React.Component {
                             Video
                             <br/>
                             <ReactPlayer
+                                ref={this.ref}
+                                onReady= {() => {
+                                    console.log('onReady');
+                                }}
+                                onStart= {() => {
+                                    console.log('onStart');
+                                }}
+                                onPlay= {() => {
+                                    console.log('onPlay');
+                                }}
+                                onPause= {() => {
+                                    console.log('onPause');
+                                }}
+                                onSeek= {(s) => {
+                                    console.log('onSeek ', s);
+                                    // call seekTo and change drone location
+                                }}
+
+                                config={{
+                                    file: {
+                                        attributes: {
+                                            preload: "auto",
+                                            autoPlay: false
+                                        }
+                                    }
+                                }}
+
+                                onDuration={(duration) => {
+                                    console.log('onDuration', duration, "s");
+                                }}
                                 style={{/*display: "-webkit-inline-box"*/}}
                                 width="100%"
                                 controls
                                 height={260}
-                                url="https://www.youtube.com/watch?v=ysz5S6PUM-U" />
+                                url={[
+                                        {src: "http://localhost:8081/assets/video/colibri.mp4", type: "video/mp4"}
+                                    ]}/>
                         </div>
                     </div>
                 }>
                 <div className="mission-detail-anomalies">
                     Detected Anomalies
-                    <AnomaliesList
-                        {...anomaliesProps}
-                        />
+                    <AnomaliesList onShowFrame={this.seekToFrame}/>
                     <br/>
                 </div>
             </BorderLayout>
         );
     }
+    ref = player => {
+        this.player = player;
+    }
+
+    seekToFrame = (fraction = 0.5) => {
+        this.player.seekTo(fraction);
+    }
+
 }
 
 export default MissionDetail;

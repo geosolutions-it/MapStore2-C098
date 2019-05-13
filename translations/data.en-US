@@ -23,6 +23,9 @@
                 "mission-detail": "Mission",
                 "mission-edit": "Edit Mission"
             },
+            "anomalies": {
+                "ins": "Insulator"
+            },
             "assets": {
                 "geom-trash": "Delete geometry",
                 "powerline": "Powerline",
@@ -55,26 +58,31 @@
                 "add": "Create Mission",
                 "zoom": "Zoom to Mission",
                 "edit": "Edit Mission",
-                "data": "Telemetry (.telem), Anomalies (.xml) and Video (.avi) *",
+                "data": "Telemetry (.telem), Anomalies (.xml) and Video (.mp4) *",
                 "upload": "Upload data",
                 "name": "Name",
                 "description": "Description",
                 "note": "Note",
                 "created": "Created",
-                "file-trash": "Clear files",
+                "fileTrash": "Clear files",
+                "showMap": "Show on map",
+                "downloadFrame": "Download frame",
+                "showFrame": "Show frame",
                 "rest": {
                     "saveSuccess": "The mission '{name}' has been correctly saved",
-                    "saveError": "An error occured when saving the mission"
+                    "saveError": "An error occured when saving the mission",
+                    "downloadingFrameError": "An error occured when downloadin the frame",
+                    "downloadingFrameSuccess": "The download has completed succesfully"
                 },
                 "files" : {
                     "valid": "Files dropped are valid",
-                    "invalid": "Files dropped are invalid, Please drop a .zip file containing the .avi, .telem and .xml files"
+                    "invalid": "Files dropped are invalid, Please drop a .zip file containing the .mp4, .telem and .xml files"
                 }
             }
         },
         "shapefile": {
             "placeholder": "Drop your file here or click to select the Vector File to import. (supported files: file.json with a LineString or Point only, must be contained in a zip archive)",
-            "placeholderMissionFiles": "Drop your file here or click to select the file to import (supported formats: .zip file containing the .avi, .telem and .xml files)",
+            "placeholderMissionFiles": "Drop your file here or click to select the file to import (supported formats: .zip file containing the .mp4, .telem and .xml files)",
             "error": {
                 "select": "Select only one geoJSON.json file contained in a zip archive"
             }

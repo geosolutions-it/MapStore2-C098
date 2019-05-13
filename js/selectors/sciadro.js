@@ -9,15 +9,13 @@
 import {get, find, includes} from 'lodash';
 
 export const assetsListSelector = state => get(state, "sciadro.assets", []);
-export const anomaliesListSelector = state => get(state, "sciadro.anomalies", []);
 export const assetEditedSelector = state => find(assetsListSelector(state), a => a.edit) || null;
 export const assetSelectedSelector = state => find(assetsListSelector(state), a => a.selected) || null;
 export const assetSelectedFeatureSelector = state => get(assetSelectedSelector(state), "feature");
-/*export const assetSelectedSciadroResourceIdSelector = state => {
-    const assetSelected = assetSelectedSelector(state);
-    return get(assetSelected, "attributes.sciadroResourceId");
-};*/
+export const assetZoomLevelSelector = state => get(state, "sciadro.assetZoomLevel", 10);
+
 export const drawMethodSelector = state => get(state, "sciadro.drawMethod", "");
+export const droneZoomLevelSelector = state => get(state, "sciadro.droneZoomLevel", 18);
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
 export const loadingAssetsSelector = state => state && get(state, "sciadro.loadingAssets", false);
 export const loadingMissionsSelector = state => state && get(state, "sciadro.loadingMissions", false);
@@ -31,16 +29,18 @@ export const missionsListSelector = state => {
     const missions = get(state, "sciadro.missions", []);
     return missions.filter(m => includes(missionsIds, m.id) || m.isNew);
 };
-
 export const missionLoadedSelector = state => {
     const asset = assetSelectedSelector(state);
     return asset ? asset.missionLoaded : false;
 };
+export const missionCurrentSelector = state => find(missionsListSelector(state), a => a.current) || null;
 export const missionSelectedSelector = state => find(missionsListSelector(state), a => a.selected) || null;
 export const missionSelectedFeatureSelector = state => get(missionSelectedSelector(state), "feature");
+export const anomaliesListSelector = state => get(missionSelectedSelector(state), "anomalies", []);
 export const missionEditedSelector = state => find(missionsListSelector(state), a => a.edit) || null;
 export const missionEditedFilesSelector = state => get(missionEditedSelector(state), "files", null);
-export const missionSelectedDroneFeatureSelector = state => get(missionSelectedSelector(state), "drone.properties.isVisible", null) && get(missionSelectedSelector(state), "drone", null); // TODO verify this needs to be undefined instead of null
+export const missionSelectedDroneFeatureSelector = state => get(missionSelectedSelector(state), "drone.properties.isVisible") ? get(missionSelectedSelector(state), "drone", null) : undefined;
+export const missionZoomLevelSelector = state => get(state, "sciadro.missionZoomLevel", 10);
 export const modeSelector = state => get(state, "sciadro.mode", "asset-list");
 export const isAssetEditSelector = state => modeSelector(state) === "asset-edit";
 export const restartLoadingAssetSelector = state => state && get(state, "sciadro.reloadAsset", true);
@@ -64,7 +64,7 @@ export const toolbarButtonsStatusSelector = state => {
             message: saveErrorSelector(state)
         },
         edit: (mode === "mission-list" && !!missionSelected || mode === "asset-list" && !!assetSelected),
-        zoom: (missionSelected && mode === "mission-list" || assetSelected && mode === "asset-list"),
+        zoom: (missionSelected && (mode === "mission-list" || mode === "mission-detail") || assetSelected && mode === "asset-list"),
         zoomDisabled: ((missionSelected && !missionSelected.feature) || (assetSelected && !assetSelected.feature)),
         draw: isAssetEditSelector(state)
     };

@@ -11,16 +11,19 @@ import {includes} from 'lodash';
 import {
     addFeatureAsset,
     changeCurrentAsset,
+    downloadFrame,
     drawAsset,
     hideAdditionalLayer,
     resetCurrentAsset,
     resetCurrentMission,
     selectMission,
     selectAsset,
+    showOnMap,
     startLoadingAssets,
     startSavingAsset,
     zoomToItem,
     CHANGE_MODE,
+    DOWNLOADING_FRAME,
     LOADING_ASSETS,
     LOADING_ASSET_FEATURE,
     LOADED_ASSETS,
@@ -28,7 +31,8 @@ import {
     LOADING_MISSION_FEATURE,
     LOADED_MISSIONS,
     UPDATE_ASSET,
-    UPDATE_MISSION
+    UPDATE_MISSION,
+    ZOOM_TO_ITEM
 } from "@js/actions/sciadro";
 import { UPDATE_MAP_LAYOUT, updateMapLayout } from '@mapstore/actions/maplayout';
 import { SHOW_NOTIFICATION } from "@mapstore/actions/notifications";
@@ -37,9 +41,9 @@ import { ZOOM_TO_POINT, ZOOM_TO_EXTENT } from "@mapstore/actions/map";
 import { ON_SHAPE_SUCCESS } from "@mapstore/actions/shapefile";
 import { UPDATE_ADDITIONAL_LAYER, REMOVE_ADDITIONAL_LAYER } from "@mapstore/actions/additionallayers";
 import {createEpicMiddleware, combineEpics } from 'redux-observable';
-import {addFeatureAssetEpic, drawAssetFeatureEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, zoomToItemEpic
+import {addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, zoomToItemEpic
 /*,  hideAssetsLayerEpic, saveAssetEpic*/} from '@js/epics/sciadro';
-const rootEpic = combineEpics(addFeatureAssetEpic, drawAssetFeatureEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, zoomToItemEpic);
+const rootEpic = combineEpics(addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, zoomToItemEpic);
 const epicMiddleware = createEpicMiddleware(rootEpic);
 import MockAdapter from "axios-mock-adapter";
 import configureMockStore from 'redux-mock-store';
@@ -137,6 +141,64 @@ describe('testing sciadro epics', () => {
             sciadro: {
                 assets: [
                     { id: 1, isNew: true, edit: true, name: "name 1" }
+                ]
+            }
+        });
+    });
+    it('downloadFrameEpic, downloading a specific frame DOWNLOAD_FRAME', (done) => {
+        mockAxios.onGet(/assets/).reply(200, "");
+        testEpic(downloadFrameEpic, 2, downloadFrame("frame-1"), actions => {
+            expect(actions.length).toBe(2);
+            actions.map(action => {
+                switch (action.type) {
+                    case DOWNLOADING_FRAME: {
+                        expect(action.downloading).toBe(false);
+                        break;
+                    }
+                    case SHOW_NOTIFICATION:
+                        expect(action.message).toBe("sciadro.missions.rest.downloadingFrameSuccess");
+                        break;
+                    default:
+                        expect(true).toBe(false);
+                }
+            });
+            done();
+        }, {
+            sciadro: {
+                assets: [
+                    { id: 1, selected: true, current: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                ],
+                missions: [
+                    { id: 1, selected: true, current: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission"} }
+                ]
+            }
+        });
+    });
+    it('downloadFrameEpic, downloading a specific frame with error DOWNLOAD_FRAME', (done) => {
+        mockAxios.onGet(/assets/).reply(404, "");
+        testEpic(downloadFrameEpic, 2, downloadFrame("frame-1"), actions => {
+            expect(actions.length).toBe(2);
+            actions.map(action => {
+                switch (action.type) {
+                    case DOWNLOADING_FRAME: {
+                        expect(action.downloading).toBe(false);
+                        break;
+                    }
+                    case SHOW_NOTIFICATION:
+                        expect(action.message).toBe("sciadro.missions.rest.downloadingFrameError");
+                        break;
+                    default:
+                        expect(true).toBe(false);
+                }
+            });
+            done();
+        }, {
+            sciadro: {
+                assets: [
+                    { id: 1, selected: true, current: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                ],
+                missions: [
+                    { id: 1, selected: true, current: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission"} }
                 ]
             }
         });
@@ -570,6 +632,52 @@ describe('testing sciadro epics', () => {
             sciadro: {
                 assets: [
                     { id: 1, selected: true, name: "name 1", feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} }
+                ]
+            }
+        });
+    });
+    it('updateAdditionalLayerEpic, updating drone feature SHOW_ON_MAP', (done) => {
+        store = mockStore();
+        const id = 1;
+        const numActions = 4;
+        testEpic(updateAdditionalLayerEpic, numActions, showOnMap(id), actions => {
+            expect(actions.length).toBe(numActions);
+            actions.map(action => {
+                switch (action.type) {
+                    case ZOOM_TO_ITEM: {
+                        expect(action.zoomTo).toBe("drone");
+                        break;
+                    }
+                    case UPDATE_ADDITIONAL_LAYER:
+                        expect(includes(["missions", "drone", "assets"], action.id)).toBe(true);
+                        // expect(includes(["missions"], action.id)).toBe(true);
+                        break;
+                    default:
+                        expect(true).toBe(false);
+                }
+            });
+            done();
+        }, {
+            sciadro: {
+                assets: [
+                    {
+                        id: 1,
+                        selected: true,
+                        current: true,
+                        name: "name 1",
+                        feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
+                        attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                ],
+                missions: [
+                    {
+                        id: 1,
+                        selected: true,
+                        current: true,
+                        name: "mission 1",
+                        feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
+                        drone: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}, properties: {isVisible: true}},
+                        attributes: { sciadroResourceId: "sha5-mission"}
+                    }
                 ]
             }
         });

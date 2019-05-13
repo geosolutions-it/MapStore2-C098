@@ -6,24 +6,29 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import {sortBy, isArray} from 'lodash';
-// import uuidv1 from 'uuid/v1';
+import { sortBy, isArray } from 'lodash';
+import { saveAs } from 'file-saver';
 import * as Rx from 'rxjs';
 import {
     ADD_FEATURE_ASSET,
     CHANGE_CURRENT_ASSET,
     DRAW_ASSET,
+    DOWNLOAD_FRAME,
     ENTER_CREATE_ITEM,
     HIDE_ADDITIONAL_LAYER,
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
     SELECT_ASSET,
     SELECT_MISSION,
+    SHOW_ON_MAP,
     START_LOADING_ASSETS,
     START_SAVING_ASSET,
     START_SAVING_MISSION,
     ZOOM_TO_ITEM,
     changeMode,
+    downloadingFrame,
+    downloadingFrameError,
+    downloadingFrameSuccess,
     endSaveAsset,
     endSaveMission,
     fetchFeatureSciadroServerError,
@@ -39,19 +44,23 @@ import {
     saveMissionSuccess,
     saveError,
     updateAsset,
-    updateMission
+    updateMission,
+    zoomToItem
 } from '@js/actions/sciadro';
 import {getStyleFromType} from "@js/utils/sciadro";
-import {saveResource, getAssetResource, getMissionResource} from "@js/API/Persistence";
+import {saveResource, getAssetResource, getMissionResource, getFrameImage} from "@js/API/Persistence";
 import {
-    assetSelectedFeatureSelector,
     assetEditedSelector,
+    assetSelectedFeatureSelector,
     assetSelectedSelector,
+    assetZoomLevelSelector,
+    droneZoomLevelSelector,
+    missionEditedSelector,
+    missionLoadedSelector,
     missionSelectedFeatureSelector,
     missionSelectedDroneFeatureSelector,
     missionSelectedSelector,
-    missionEditedSelector,
-    missionLoadedSelector,
+    missionZoomLevelSelector,
     missionsIdSelector
 } from '@js/selectors/sciadro';
 import {getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
@@ -81,46 +90,212 @@ const ADDITIONAL_LAYERS = {
         id: "missions"
     }
 };
+/**
+ * it adds to the additinalAssetlayer the feature dropped in the dropzone
+ * @param {external:Observable} action$ manages `ADD_FEATURE_ASSET`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+**/
+export const addFeatureAssetEpic = (action$, store) =>
+    action$.ofType(ADD_FEATURE_ASSET)
+        .switchMap((a) => {
+            const state = store.getState();
+            const assetEdit = assetEditedSelector(state);
 
-/*const mockAssetsGeojson = [{
-    type: "Feature",
-    geometry: {
-        type: "Point",
-        coordinates: [9, 45]
-    },
-    style: {
-        iconColor: "orange",
-        iconShape: "circle",
-        iconGlyph: "comment"
-    },
-    id: 36
-},
-{
-    type: "Feature",
-    geometry: {
-        type: "LineString",
-        coordinates: [[9, 44], [4, 44]]
-    },
-    style: {
-        color: "#FF0000",
-        weight: 3
-    },
-    id: 10
-},
-{
-    type: "Feature",
-    geometry: {
-        type: "Point",
-        coordinates: [9, 42]
-    },
-    style: {
-        iconColor: "orange",
-        iconShape: "circle",
-        iconGlyph: "comment"
-    },
-    id: 28
-}];
-*/
+            const feature = a.layer.features && a.layer.features.length && a.layer.features[0];
+            const featureWithStyle = {...feature, style: a.layer.style };
+            return Rx.Observable.from([
+                getAdditionalLayerAction({feature: featureWithStyle, id: "assets", name: "assets", style: a.layer.style}),
+                updateAsset({feature: featureWithStyle}, assetEdit.id)
+            ]);
+        });
+
+/**
+ * download the frame retrieved on the server
+ * @param {external:Observable} action$ manages `DOWNLOAD_FRAME`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ **/
+export const downloadFrameEpic = (action$, store) =>
+    action$.ofType(DOWNLOAD_FRAME)
+        .switchMap((a) => {
+            const state = store.getState();
+            const asset = assetSelectedSelector(state);
+            const mission = missionSelectedSelector(state);
+            return getFrameImage({
+                missionId: mission.attributes && mission.attributes.sciadroResourceId,
+                frameId: a.frame,
+                assetId: asset.attributes && asset.attributes.sciadroResourceId
+            })
+            .switchMap(({data}) => {
+                fetch(data)
+                .then(res => res.blob())
+                .then( (image) => {
+                    saveAs(new Blob([(image)], {type: "image/png"}), `${a.frame}.png`); // TODO ASK this must be configurable?
+                });
+                return Rx.Observable.from([downloadingFrameSuccess(), downloadingFrame(false, a.frame)]);
+            })
+            .catch(() => {
+                return Rx.Observable.from([downloadingFrameError(), downloadingFrame(false, a.frame)]); // error on sciadro backend
+            });
+        });
+
+/**
+ * trigger draw of the asset feature
+ * @param {external:Observable} action$ manages `DRAW_ASSET`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ **/
+export const drawAssetFeatureEpic = (action$) =>
+    action$.ofType(DRAW_ASSET)
+        .switchMap((a) => {
+            const drawOptions = {
+                stopAfterDrawing: true,
+                editEnabled: false,
+                selectEnabled: false,
+                drawEnabled: true,
+                translateEnabled: false,
+                transformToFeatureCollection: false
+            };
+            return Rx.Observable.of(
+                removeAdditionalLayerById(ADDITIONAL_LAYERS.asset.id),
+                changeDrawingStatus("start", a.drawMethod, "sciadro", [], drawOptions, getStyleFromType(a.drawMethod)));
+        });
+
+/**
+ * fetch the asset feature from sciadro backend if it is undefined,
+ * otherwise it returns directly the actions to dispatch
+ * @param {external:Observable} action$ manages `SELECT_ASSET`, `CHANGE_CURRENT_ASSET`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ */
+export const getAssetFeatureEpic = (action$, store) =>
+    action$.ofType(SELECT_ASSET, CHANGE_CURRENT_ASSET)
+    .flatMap((a) => {
+        let actions = [];
+        let state = store.getState();
+        const asset = assetSelectedSelector(state);
+        const featureAsset = assetSelectedFeatureSelector(state);
+        if (asset && featureAsset === undefined) {
+            // go fetch it
+            const errorsActions = () => [fetchFeatureSciadroServerError()];
+            const postProcessActions = (item) => {
+                actions = [updateAsset({ feature: item.feature, loadingFeature: false }, a.id)];
+                state = store.getState();
+                const assetSelected = assetSelectedSelector(state);
+                if (assetSelected.name === item.name) {
+                    actions.push(getAdditionalLayerAction({ feature: {...item.feature, id: a.id}, id: "assets", name: "assets", visibility: !!item.feature }));
+                    if (a.type === CHANGE_CURRENT_ASSET) {
+                        actions.push(changeMode("mission-list"));
+                    }
+                }
+                return actions;
+            };
+            return getAssetResource({ id: asset.attributes.sciadroResourceId, postProcessActions, errorsActions })
+                .startWith(
+                    loadingAssetFeature(true),
+                    getAdditionalLayerAction({feature: null, id: "assets", name: "assets", visibility: false})
+                );
+        }
+        // if null, or object it means we have already fetched it. We just update the assets additional layer
+        const postProcessActions = (item) => {
+            if (a.type === CHANGE_CURRENT_ASSET) {
+                actions.push(changeMode("mission-list"));
+            }
+            actions.push(getAdditionalLayerAction({feature: item.feature, id: "assets", name: "assets", visibility: !!item.feature}));
+            return actions;
+        };
+        return Rx.Observable.from(postProcessActions({feature: featureAsset}));
+    });
+
+/**
+ * fetch the mission feature from sciadro backend
+ * @param {external:Observable} action$ manages `SELECT_MISSION`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ */
+export const getMissionFeatureEpic = (action$, store) =>
+    action$.ofType(SELECT_MISSION)
+        .flatMap((a) => {
+            let actions = [];
+            const state = store.getState();
+            const mission = missionSelectedSelector(state);
+
+            const featureMission = missionSelectedFeatureSelector(state);
+            const asset = assetSelectedSelector(state);
+            const errorsActions = () => [fetchFeatureSciadroServerError()];
+            const postProcessActions = (item) => {
+                if (item.feature) {
+                    actions = [...actions, updateMission({ feature: item.feature, loadingFeature: false, frames: mission.frames || item.frames, anomalies: mission.anomalies || item.objects || item.anomalies }, a.id)];
+                }
+                actions = [...actions, getAdditionalLayerAction({feature: item.feature, id: "missions", name: "missions", visibility: !!item.feature})];
+                return actions;
+            };
+            if (mission && featureMission === undefined) {
+                // go fetch it
+                return getMissionResource({
+                    id: mission.attributes.sciadroResourceId,
+                    assetId: asset.attributes.sciadroResourceId,
+                    postProcessActions,
+                    errorsActions
+                }).startWith(
+                    loadingMissionFeature(true),
+                    getAdditionalLayerAction({feature: null, id: "missions", name: "missions", visibility: false})
+                );
+            }
+            // if null, or object it means we have already fetched it. We just update the missions additional layer
+            return Rx.Observable.from(postProcessActions({feature: featureMission}));
+        });
+
+/**
+ * hide additional layer
+ * @param {external:Observable} action$ manages `HIDE_ADDITIONAL_LAYER`
+ * @memberof epics.sciadrfoldo
+ * @return {external:Observable}
+ **/
+
+export const hideAdditionalLayerEpic = (action$) =>
+    action$.ofType(HIDE_ADDITIONAL_LAYER)
+        .switchMap((a) => {
+            return Rx.Observable.of(removeAdditionalLayerById(a.id));
+        });
+/**
+ * hide assets layer
+ * @param {external:Observable} action$ manages `ENTER_CREATE_ITEM`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ **/
+export const hideAssetsLayerEpic = (action$) =>
+    action$.ofType(ENTER_CREATE_ITEM)
+        .switchMap(() => {
+            // TODO handle mode from action here
+            return Rx.Observable.of(removeAdditionalLayerById("assets"));
+        });
+
+/**
+ * override map layout in order to consider the always opened panel
+ * @param {external:Observable} action$ manages `ZOOM_TO_ITEM`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+**/
+export const overrideMapLayoutEpic = (action$) =>
+    action$.ofType(UPDATE_MAP_LAYOUT)
+        .take(1)
+        .switchMap(() => {
+            return Rx.Observable.of(updateMapLayout({
+                left: 500,
+                right: 0,
+                bottom: 30,
+                transform: 'none',
+                height: 'calc(100% - 30px)',
+                boundingMapRect: {
+                    left: 500,
+                    right: 0,
+                    bottom: 30
+                }
+            }));
+        });
+
 
 /**
  * get assets Resources
@@ -193,251 +368,26 @@ export const startLoadingMissionsEpic = (action$, {getState = () => {} }) =>
                 return Persistence.getResource(id)
                     .catch(() => Rx.Observable.of("loadError"));
             });
-            return Rx.Observable.forkJoin(getResourcesObs);
-        })
-        .switchMap((missions = []) => {
-            if (missions.length === 1 && missions[0] === "loadError") {
-                return Rx.Observable.from([
-                    loadMissionError(),
-                    loadingMissions(false)]);
-            }
-            if (missions.length === 1 && !missions[0]) {
-                return Rx.Observable.of(loadingMissions(false));
-            }
-            const missionsSorted = sortBy(missions, ["id"]);
-            const state = getState();
-            const asset = assetSelectedSelector(state);
-            return Rx.Observable.from([
-                loadedMissions( missionsSorted),
-                updateAsset({missionLoaded: true}, asset.id)
-            ]).startWith(loadingMissions(true));
+            return Rx.Observable.forkJoin(getResourcesObs)
+                .switchMap((missions = []) => {
+                    if (missions.length === 1 && missions[0] === "loadError") {
+                        return Rx.Observable.from([
+                            loadMissionError(),
+                            loadingMissions(false)]);
+                    }
+                    if (missions.length === 1 && !missions[0]) {
+                        return Rx.Observable.of(loadingMissions(false));
+                    }
+                    const missionsSorted = sortBy(missions, ["id"]);
+                    const asset = assetSelectedSelector(state);
+                    return Rx.Observable.from([
+                        loadedMissions( missionsSorted),
+                        updateAsset({missionLoaded: true}, asset.id)
+                    ]);
+                }).startWith(loadingMissions(true));
         })
         .catch(() => Rx.Observable.of(loadMissionError()));
 
-
-/**
- * Shows in the map the asset's and/or mission's features and drone
- * @param {external:Observable} action$ manages `RESET_CURRENT_ASSET`, `RESET_CURRENT_MISSION`, START_SAVING_ASSET`
- * @memberof epics.sciadro
- * @return {external:Observable}
- */
-export const updateAdditionalLayerEpic = (action$, store) =>
-    action$.ofType(RESET_CURRENT_ASSET, RESET_CURRENT_MISSION, START_SAVING_ASSET )
-        .switchMap((a) => {
-            let actions = [];
-            const state = store.getState();
-
-            const featureAsset = assetSelectedFeatureSelector(state);
-            const featureMission = missionSelectedFeatureSelector(state);
-            const featureDrone = missionSelectedDroneFeatureSelector(state);
-            if (a.type === RESET_CURRENT_ASSET || a.type === START_SAVING_ASSET ) {
-                actions.push(changeDrawingStatus("clean", "", "sciadro", [], {}, {}));
-                actions.push(onShapeSuccess(null));
-            }
-
-            // remove or update features for assets, missions and drones
-            actions.push(getAdditionalLayerAction({feature: featureAsset, id: "assets", name: "assets", visibility: !!featureAsset}));
-            actions.push(getAdditionalLayerAction({feature: featureMission, id: "missions", name: "missions", visibility: !!featureMission}));
-            actions.push(getAdditionalLayerAction({feature: featureDrone, id: "drone", name: "drone", visibility: !!featureDrone}));
-
-            return Rx.Observable.from(actions);
-        });
-
-
-/**
- * fetch the asset feature from sciadro backend if it is undefined,
- * otherwise it returns directly the actions to dispatch
- * @param {external:Observable} action$ manages `SELECT_ASSET`, `CHANGE_CURRENT_ASSET`
- * @memberof epics.sciadro
- * @return {external:Observable}
- */
-export const getAssetFeatureEpic = (action$, store) =>
-    action$.ofType(SELECT_ASSET, CHANGE_CURRENT_ASSET)
-    .flatMap((a) => {
-        let actions = [];
-        let state = store.getState();
-        const asset = assetSelectedSelector(state);
-        const featureAsset = assetSelectedFeatureSelector(state);
-        if (asset && featureAsset === undefined) {
-            // go fetch it
-            const errorsActions = () => [fetchFeatureSciadroServerError()];
-            const postProcessActions = (item) => {
-                actions = [updateAsset({ feature: item.feature, loadingFeature: false }, a.id)];
-                state = store.getState();
-                const assetSelected = assetSelectedSelector(state);
-                if (assetSelected.name === item.name) {
-                    actions.push(getAdditionalLayerAction({ feature: {...item.feature, id: a.id}, id: "assets", name: "assets", visibility: !!item.feature }));
-                    if (a.type === CHANGE_CURRENT_ASSET) {
-                        actions.push(changeMode("mission-list"));
-                    }
-                    return actions;
-                }
-                return actions;
-            };
-            return getAssetResource({ id: asset.attributes.sciadroResourceId, postProcessActions, errorsActions })
-                .startWith(
-                    loadingAssetFeature(true),
-                    getAdditionalLayerAction({feature: null, id: "assets", name: "assets", visibility: false})
-                );
-        }
-        // if null, or object it means we have already fetched it. We just update the assets additional layer
-        const postProcessActions = (item) => {
-            if (a.type === CHANGE_CURRENT_ASSET) {
-                actions.push(changeMode("mission-list"));
-            }
-            actions.push(getAdditionalLayerAction({feature: item.feature, id: "assets", name: "assets", visibility: !!item.feature}));
-            return actions;
-        };
-        return Rx.Observable.from(postProcessActions({feature: featureAsset}));
-    });
-
-/**
- * fetch the mission feature from sciadro backend
- * @param {external:Observable} action$ manages `SELECT_MISSION`
- * @memberof epics.sciadro
- * @return {external:Observable}
- */
-export const getMissionFeatureEpic = (action$, store) =>
-    action$.ofType(SELECT_MISSION)
-        .flatMap((a) => {
-            let actions = [];
-            const state = store.getState();
-            const mission = missionSelectedSelector(state);
-
-            const featureMission = missionSelectedFeatureSelector(state);
-            const asset = assetSelectedSelector(state);
-            const errorsActions = () => [fetchFeatureSciadroServerError()];
-            const postProcessActions = (item) => {
-                actions = [...actions, updateMission({ feature: item.feature, loadingFeature: false }, a.id)];
-                actions = [...actions, getAdditionalLayerAction({feature: item.feature, id: "missions", name: "missions", visibility: !!item.feature})];
-                return actions;
-            };
-            if (mission && featureMission === undefined) {
-                // go fetch it
-                return getMissionResource({
-                    id: mission.attributes.sciadroResourceId,
-                    assetId: asset.attributes.sciadroResourceId,
-                    postProcessActions,
-                    errorsActions
-                }).startWith(
-                    loadingMissionFeature(true),
-                    getAdditionalLayerAction({feature: null, id: "missions", name: "missions", visibility: false})
-                );
-            }
-            // if null, or object it means we have already fetched it. We just update the missions additional layer
-            return Rx.Observable.from(postProcessActions({feature: featureMission}));
-        });
-
-/**
- * trigger draw of the asset feature
- * @param {external:Observable} action$ manages `DRAW_ASSET`
- * @memberof epics.sciadro
- * @return {external:Observable}
- **/
-
-export const drawAssetFeatureEpic = (action$) =>
-    action$.ofType(DRAW_ASSET)
-        .switchMap((a) => {
-            const drawOptions = {
-                stopAfterDrawing: true,
-                editEnabled: false,
-                selectEnabled: false,
-                drawEnabled: true,
-                translateEnabled: false,
-                transformToFeatureCollection: false
-            };
-            return Rx.Observable.of(
-                removeAdditionalLayerById(ADDITIONAL_LAYERS.asset.id),
-                changeDrawingStatus("start", a.drawMethod, "sciadro", [], drawOptions, getStyleFromType(a.drawMethod)));
-        });
-/**
- * hide additional layer
- * @param {external:Observable} action$ manages `HIDE_ADDITIONAL_LAYER`
- * @memberof epics.sciadro
- * @return {external:Observable}
- **/
-
-export const hideAdditionalLayerEpic = (action$) =>
-    action$.ofType(HIDE_ADDITIONAL_LAYER)
-        .switchMap((a) => {
-            return Rx.Observable.of(removeAdditionalLayerById(a.id));
-        });
-/**
- * hide assets layer
- * @param {external:Observable} action$ manages `ENTER_CREATE_ITEM`
- * @memberof epics.sciadro
- * @return {external:Observable}
- **/
-export const hideAssetsLayerEpic = (action$) =>
-    action$.ofType(ENTER_CREATE_ITEM)
-        .switchMap(() => {
-            // TODO handle mode from action here
-            return Rx.Observable.of(removeAdditionalLayerById("assets"));
-        });
-
-/**
- * hide assets layer
- * @param {external:Observable} action$ manages `ZOOM_TO_ITEM`
- * @memberof epics.sciadro
- * @return {external:Observable}
- **/
-export const zoomToItemEpic = (action$, store) =>
-    action$.ofType(ZOOM_TO_ITEM)
-        .switchMap((a) => {
-            const state = store.getState();
-            const featureMission = missionSelectedFeatureSelector(state);
-            const featureAsset = assetSelectedFeatureSelector(state);
-            const feature = featureMission || featureAsset;
-            if (feature) {
-                if (feature.geometry.type === "Point") {
-                    return Rx.Observable.of(zoomToPoint(feature.geometry.coordinates, a.zoom, "EPSG:4326"));
-                }
-                return Rx.Observable.of(zoomToExtent(getGeoJSONExtent(feature), "EPSG:4326"));
-            }
-            return Rx.Observable.empty();
-        });
-
-/**
- * override map layout in order to consider the always opened panel
- * @param {external:Observable} action$ manages `ZOOM_TO_ITEM`
- * @memberof epics.sciadro
- * @return {external:Observable}
-**/
-export const overrideMapLayoutEpic = (action$) =>
-    action$.ofType(UPDATE_MAP_LAYOUT).take(1)
-        .switchMap(() => {
-            return Rx.Observable.of(updateMapLayout({
-                left: 500,
-                right: 0,
-                bottom: 30,
-                transform: 'none',
-                height: 'calc(100% - 30px)',
-                boundingMapRect: {
-                    left: 500,
-                    right: 0,
-                    bottom: 30
-                }
-            }));
-        });
-/**
- * it adds to the additinalAssetlayer the feature dropped in the dropzone
- * @param {external:Observable} action$ manages `ADD_FEATURE_ASSET`
- * @memberof epics.sciadro
- * @return {external:Observable}
-**/
-export const addFeatureAssetEpic = (action$, store) =>
-    action$.ofType(ADD_FEATURE_ASSET)
-        .switchMap((a) => {
-            const state = store.getState();
-            const assetEdit = assetEditedSelector(state);
-
-            const feature = a.layer.features && a.layer.features.length && a.layer.features[0];
-            const featureWithStyle = {...feature, style: a.layer.style };
-            return Rx.Observable.from([
-                getAdditionalLayerAction({feature: featureWithStyle, id: "assets", name: "assets", style: a.layer.style}),
-                updateAsset({feature: featureWithStyle}, assetEdit.id)
-            ]);
-        });
 /**
  * it sends request to save the asset metadata and geom in the backend servers
  * @param {external:Observable} action$ manages `START_SAVING_ASSET`
@@ -532,3 +482,66 @@ export const saveMissionEpic = (action$, store) =>
             postProcessActions,
             errorsActions });
     });
+
+/**
+ * Shows in the map the asset's and/or mission's features and drone
+ * @param {external:Observable} action$ manages `RESET_CURRENT_ASSET`, `RESET_CURRENT_MISSION`, START_SAVING_ASSET`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ */
+export const updateAdditionalLayerEpic = (action$, store) =>
+    action$.ofType(RESET_CURRENT_ASSET, RESET_CURRENT_MISSION, START_SAVING_ASSET, SHOW_ON_MAP )
+        .switchMap((a) => {
+            let actions = [];
+            const state = store.getState();
+
+            const featureAsset = assetSelectedFeatureSelector(state);
+            const featureMission = missionSelectedFeatureSelector(state);
+            const featureDrone = missionSelectedDroneFeatureSelector(state);
+
+            if (a.type === SHOW_ON_MAP) {
+                actions.push(zoomToItem("drone"));
+            }
+            if (a.type === RESET_CURRENT_ASSET || a.type === START_SAVING_ASSET ) {
+                actions.push(changeDrawingStatus("clean", "", "sciadro", [], {}, {}));
+                actions.push(onShapeSuccess(null));
+            }
+
+            // remove or update features for assets, missions and drones
+            actions.push(getAdditionalLayerAction({feature: featureAsset, id: "assets", name: "assets", visibility: !!featureAsset}));
+            actions.push(getAdditionalLayerAction({feature: featureMission, id: "missions", name: "missions", visibility: !!featureMission}));
+            actions.push(getAdditionalLayerAction({feature: featureDrone, id: "drone", name: "drone", visibility: !!featureDrone}));
+
+            return Rx.Observable.from(actions);
+        });
+
+/**
+ * hide assets layer
+ * @param {external:Observable} action$ manages `ZOOM_TO_ITEM`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ **/
+export const zoomToItemEpic = (action$, store) =>
+    action$.ofType(ZOOM_TO_ITEM)
+        .switchMap((a) => {
+            let feature;
+            let zoom;
+            const state = store.getState();
+            const featureMission = missionSelectedFeatureSelector(state);
+            const featureAsset = assetSelectedFeatureSelector(state);
+            const featureDrone = missionSelectedDroneFeatureSelector(state);
+            if (a.zoomTo === "drone") {
+                feature = featureDrone;
+                zoom = droneZoomLevelSelector(state);
+            } else {
+                zoom = featureMission ? missionZoomLevelSelector(state) : assetZoomLevelSelector(state);
+                feature = featureMission || featureAsset;
+            }
+            if (feature) {
+                if (feature.geometry.type === "Point") {
+                    return Rx.Observable.of(zoomToPoint(feature.geometry.coordinates, zoom, "EPSG:4326"));
+                }
+                return Rx.Observable.of(zoomToExtent(getGeoJSONExtent(feature), "EPSG:4326"));
+            }
+            return Rx.Observable.empty();
+        });

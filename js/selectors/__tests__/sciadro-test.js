@@ -13,7 +13,9 @@ import {
     assetEditedSelector,
     assetSelectedSelector,
     assetSelectedFeatureSelector,
+    assetZoomLevelSelector,
     drawMethodSelector,
+    droneZoomLevelSelector,
     enabledSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
@@ -21,11 +23,13 @@ import {
     // assetSelectedSciadroResourceIdSelector,
     missionsListSelector,
     missionLoadedSelector,
+    missionCurrentSelector,
     missionSelectedSelector,
     missionSelectedFeatureSelector,
     missionEditedSelector,
     missionEditedFilesSelector,
     missionSelectedDroneFeatureSelector,
+    missionZoomLevelSelector,
     modeSelector,
     isAssetEditSelector,
     restartLoadingAssetSelector,
@@ -46,13 +50,19 @@ describe('testing sciadro selectors', () => {
         expect(assetsListSelector({sciadro: {assets: [{id: 1}]}})).toEqual([{id: 1}]);
     });
     it('anomaliesListSelector', () => {
+        const mission = { id: 1, selected: true, anomalies: [{
+            id: "anomaly-1",
+            otherProps: {}
+        }] };
         expect(anomaliesListSelector({})).toEqual([]);
         expect(anomaliesListSelector({
             sciadro: {
-                anomalies: [{
-                    id: "anomaly-1",
-                    otherProps: {}
-                }]
+                assets: [{
+                    id: 1,
+                    selected: true,
+                    attributes: { missionsId: "1" }
+                }],
+                missions: [mission, { id: 4, selected: false }]
             }})).toEqual([{
                 id: "anomaly-1",
                 otherProps: {}
@@ -90,6 +100,14 @@ describe('testing sciadro selectors', () => {
                 assets: [asset, { id: 4, selected: false }]
             }})).toEqual(feature);
     });
+    it('assetZoomLevelSelector', () => {
+        expect(assetZoomLevelSelector({})).toBe(10);
+        expect(assetZoomLevelSelector({
+            sciadro: {
+                assetZoomLevel: 18
+            }
+        })).toEqual(18);
+    });
     it('drawMethodSelector', () => {
         const drawMethod = "Marker";
         expect(drawMethodSelector({})).toBe("");
@@ -97,6 +115,14 @@ describe('testing sciadro selectors', () => {
             sciadro: {
                 drawMethod
             }})).toEqual(drawMethod);
+    });
+    it('droneZoomLevelSelector', () => {
+        expect(droneZoomLevelSelector({})).toBe(18);
+        expect(droneZoomLevelSelector({
+            sciadro: {
+                droneZoomLevel: 20
+            }
+        })).toEqual(20);
     });
     it('enabledSelector', () => {
         expect(enabledSelector({})).toBe(false);
@@ -151,6 +177,20 @@ describe('testing sciadro selectors', () => {
             }],
             missions: [{id: 1}]
         }})).toEqual(true);
+    });
+    it('missionCurrentSelector', () => {
+        const mission = { id: 1, selected: true, current: true };
+        expect(missionCurrentSelector({})).toEqual(null);
+        expect(missionCurrentSelector({
+            sciadro: {
+                assets: [{
+                    id: 1,
+                    current: true,
+                    selected: true,
+                    attributes: { missionsId: "1" }
+                }],
+                missions: [mission, { id: 4, current: false }]
+            }})).toEqual(mission);
     });
     it('missionSelectedSelector', () => {
         const mission = { id: 1, selected: true };
@@ -225,8 +265,8 @@ describe('testing sciadro selectors', () => {
             },
             "id": "drone-feature-id"
         };
-        const mission = { id: 1, selected: true, drone };
-        expect(missionSelectedDroneFeatureSelector({})).toBe(null);
+        const mission = { id: 1, selected: true, current: true, drone };
+        expect(missionSelectedDroneFeatureSelector({})).toBe(undefined);
         expect(missionSelectedDroneFeatureSelector({
             sciadro: {
                 assets: [{
@@ -236,6 +276,13 @@ describe('testing sciadro selectors', () => {
             }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(drone);
+    });
+    it('missionZoomLevelSelector', () => {
+        expect(missionZoomLevelSelector({})).toEqual(10);
+        expect(missionZoomLevelSelector({
+            sciadro: {
+                missionZoomLevel: 6
+            }})).toEqual(6);
     });
     it('modeSelector', () => {
         expect(modeSelector({})).toEqual("asset-list");
@@ -367,7 +414,7 @@ describe('testing sciadro selectors', () => {
                     selected: true,
                     attributes: { missionsId: "1" }
                 }],
-                missions: [mission, { id: 4, selected: true }],
+                missions: [mission, { id: 4, selected: false }],
                 mode: "mission-list"
             }}).edit).toEqual(true);
         const asset = { id: 1, selected: true };
@@ -382,6 +429,38 @@ describe('testing sciadro selectors', () => {
             sciadro: {
                 mode: "asset-edit"
             }}).draw).toEqual(true);
+    });
+    it('toolbarButtonsStatusSelector zoom', () => {
+        const missions = [{ id: 1, selected: true }, { id: 4, selected: false }];
+        const assets = [{
+            id: 1,
+            selected: true,
+            attributes: { missionsId: "1" }
+        }];
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                assets,
+                missions,
+                mode: "asset-edit"
+            }}).zoom).toEqual(false);
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                missions,
+                assets,
+                mode: "asset-list"
+            }}).zoom).toEqual(true);
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                missions,
+                assets,
+                mode: "mission-list"
+            }}).zoom).toEqual(true);
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                missions,
+                assets,
+                mode: "mission-detail"
+            }}).zoom).toEqual(true);
     });
 
 });

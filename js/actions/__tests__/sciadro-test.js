@@ -12,17 +12,19 @@ import {
     changeCurrentAsset, CHANGE_CURRENT_ASSET,
     changeCurrentMission, CHANGE_CURRENT_MISSION,
     changeMode, CHANGE_MODE,
-    enterCreateItem, ENTER_CREATE_ITEM,
     deleteAssetFeature, DELETE_FEATURE_ASSET,
+    downloadFrame, DOWNLOAD_FRAME,
+    downloadingFrame, DOWNLOADING_FRAME,
     drawAsset, DRAW_ASSET,
     dropFiles, DROP_MISSION_FILES,
     dropError, DROP_MISSION_FILES_ERROR,
     editAsset, EDIT_ASSET,
-    editMission, EDIT_MISSION,
     editAssetPermission, EDIT_ASSET_PERMISSION,
-    enterEditItem, ENTER_EDIT_ITEM,
+    editMission, EDIT_MISSION,
     endSaveAsset, END_SAVE_ASSET,
     endSaveMission, END_SAVE_MISSION,
+    enterCreateItem, ENTER_CREATE_ITEM,
+    enterEditItem, ENTER_EDIT_ITEM,
     hideAdditionalLayer, HIDE_ADDITIONAL_LAYER,
     fileLoading, FILE_LOADING,
     loadedAssets, LOADED_ASSETS,
@@ -33,7 +35,9 @@ import {
     loadingMissions, LOADING_MISSIONS,
     resetCurrentAsset, RESET_CURRENT_ASSET,
     resetCurrentMission, RESET_CURRENT_MISSION,
+    saveError, SAVE_ERROR,
     selectAsset, SELECT_ASSET,
+    showOnMap, SHOW_ON_MAP,
     startLoadingAssets, START_LOADING_ASSETS,
     startSavingAsset, START_SAVING_ASSET,
     startSavingMission, START_SAVING_MISSION,
@@ -41,14 +45,15 @@ import {
     updateAsset, UPDATE_ASSET,
     updateMission, UPDATE_MISSION,
     zoomToItem, ZOOM_TO_ITEM,
+    downloadingFrameError,
+    downloadingFrameSuccess,
     loadAssetError,
     loadMissionError,
     saveAssetSuccess,
     saveMissionSuccess,
     saveSciadroServerError,
     saveGeostoreError,
-    fetchFeatureSciadroServerError,
-    saveError, SAVE_ERROR
+    fetchFeatureSciadroServerError
 } from "@js/actions/sciadro";
 import {SHOW_NOTIFICATION} from "@mapstore/actions/notifications";
 
@@ -78,17 +83,25 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(CHANGE_MODE);
         expect(action.mode).toEqual(mode);
     });
-    it('enterCreateItem', () => {
-        const mode = "asset-edit";
-        const action = enterCreateItem(mode);
-        expect(action.type).toEqual(ENTER_CREATE_ITEM);
-        expect(action.mode).toEqual(mode);
-    });
     it('deleteAssetFeature', () => {
         const id = 1;
         const action = deleteAssetFeature(id);
         expect(action.type).toEqual(DELETE_FEATURE_ASSET);
         expect(action.id).toEqual(id);
+    });
+    it('downloadFrame', () => {
+        const frame = "frame-id";
+        const action = downloadFrame(frame);
+        expect(action.type).toEqual(DOWNLOAD_FRAME);
+        expect(action.frame).toEqual(frame);
+    });
+    it('downloadingFrame', () => {
+        const frame = "frame-id";
+        const downloading = true;
+        const action = downloadingFrame(downloading, frame);
+        expect(action.type).toEqual(DOWNLOADING_FRAME);
+        expect(action.downloading).toEqual(downloading);
+        expect(action.frame).toEqual(frame);
     });
     it('drawAsset', () => {
         const id = 1;
@@ -136,14 +149,6 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(EDIT_ASSET_PERMISSION);
         expect(action.id).toEqual(id);
     });
-    it('enterEditItem', () => {
-        const id = 1;
-        const mode = "asset-edit";
-        const action = enterEditItem(mode, id);
-        expect(action.type).toEqual(ENTER_EDIT_ITEM);
-        expect(action.mode).toEqual(mode);
-        expect(action.id).toEqual(id);
-    });
     it('endSaveAsset', () => {
         const id = 1;
         const action = endSaveAsset(id);
@@ -154,6 +159,20 @@ describe('testing sciadro actions', () => {
         const id = 1;
         const action = endSaveMission(id);
         expect(action.type).toEqual(END_SAVE_MISSION);
+        expect(action.id).toEqual(id);
+    });
+    it('enterCreateItem', () => {
+        const mode = "asset-edit";
+        const action = enterCreateItem(mode);
+        expect(action.type).toEqual(ENTER_CREATE_ITEM);
+        expect(action.mode).toEqual(mode);
+    });
+    it('enterEditItem', () => {
+        const id = 1;
+        const mode = "asset-edit";
+        const action = enterEditItem(mode, id);
+        expect(action.type).toEqual(ENTER_EDIT_ITEM);
+        expect(action.mode).toEqual(mode);
         expect(action.id).toEqual(id);
     });
     it('hideAdditionalLayer', () => {
@@ -218,6 +237,18 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(SELECT_ASSET);
         expect(action.id).toEqual(id);
     });
+    it('selectMission', () => {
+        const id = 1;
+        const action = selectMission(id);
+        expect(action.type).toEqual(SELECT_MISSION);
+        expect(action.id).toEqual(id);
+    });
+    it('showOnMap', () => {
+        const frame = 1;
+        const action = showOnMap(frame);
+        expect(action.type).toEqual(SHOW_ON_MAP);
+        expect(action.frame).toEqual(frame);
+    });
     it('startLoadingAssets', () => {
         const action = startLoadingAssets();
         expect(action.type).toEqual(START_LOADING_ASSETS);
@@ -232,12 +263,6 @@ describe('testing sciadro actions', () => {
         const id = 1;
         const action = startSavingMission(id);
         expect(action.type).toEqual(START_SAVING_MISSION);
-        expect(action.id).toEqual(id);
-    });
-    it('selectMission', () => {
-        const id = 1;
-        const action = selectMission(id);
-        expect(action.type).toEqual(SELECT_MISSION);
         expect(action.id).toEqual(id);
     });
     it('updateAsset', () => {
@@ -257,10 +282,24 @@ describe('testing sciadro actions', () => {
         expect(action.props).toEqual(props);
     });
     it('zoomToItem', () => {
-        const zoom = 1;
-        const action = zoomToItem(zoom);
+        const zoomTo = "drone";
+        const action = zoomToItem(zoomTo);
         expect(action.type).toEqual(ZOOM_TO_ITEM);
-        expect(action.zoom).toEqual(zoom);
+        expect(action.zoomTo).toEqual(zoomTo);
+    });
+    it('downloadingFrameError', () => {
+        const name = "name";
+        const action = downloadingFrameError(name);
+        expect(action.type).toEqual(SHOW_NOTIFICATION);
+        expect(action.values.name).toEqual(name);
+        expect(action.message).toEqual("sciadro.missions.rest.downloadingFrameError");
+    });
+    it('downloadingFrameSuccess', () => {
+        const name = "name";
+        const action = downloadingFrameSuccess(name);
+        expect(action.type).toEqual(SHOW_NOTIFICATION);
+        expect(action.values.name).toEqual(name);
+        expect(action.message).toEqual("sciadro.missions.rest.downloadingFrameSuccess");
     });
     it('loadAssetError', () => {
         const name = "name";
