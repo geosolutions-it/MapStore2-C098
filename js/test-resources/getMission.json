@@ -17,5 +17,43 @@
       }
     },
     "telemetries": [],
-    "anomalies": []
+    "frames": [{
+      "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+      "id": "562a9ae4-2ed8-4cd9-91f1-66608dbd7edc",
+      "index": 0,
+      "location": {
+          "type": "Point",
+          "coordinates": [10.39985, 43.71024]
+      }
+  },
+  {
+    "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+    "id": "562a9ae4-2ed8-4cd9-91f1-666087897edc",
+    "index": 0,
+    "location": {
+        "type": "Point",
+        "coordinates": [10.40483, 43.71001]
+    }
+  }],
+  "objects": [{
+      "frame": "562a9ae4-2ed8-4cd9-91f1-66608dbd7edc",
+      "id": "3c696564-20ae-4512-811c-5eb9a60af2e6",
+      "type": "INS",
+      "status": "UNK",
+      "confidence": 0,
+      "x_min": 0,
+      "x_max": 1024,
+      "y_min": 0,
+      "y_max": 720
+  }, {
+      "frame": "562a9ae4-2ed8-4cd9-91f1-666087897edc",
+      "id": "12696564-20ae-4512-811c-5eb9a60af2e8",
+      "type": "INS",
+      "status": "UNK",
+      "confidence": 0,
+      "x_min": 0,
+      "x_max": 1024,
+      "y_min": 0,
+      "y_max": 720
+  }]
 }

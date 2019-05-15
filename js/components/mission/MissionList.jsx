@@ -18,9 +18,9 @@ import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 import Message from '@mapstore/components/I18N/Message';
 import LoadingWithText from '@js/components/LoadingWithText';
-const SideGridEnhanced = compose(
+const SideGridWithLoadingState = compose(
     loadingState(({loading} ) => loading, {text: "Loading Missions"}, LoadingWithText),
-    emptyState( // TODO verify if we want this empty state enhancer
+    emptyState(
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
             title: <Message msgId="sciadro.no-missions" />
@@ -65,7 +65,7 @@ class MissionList extends React.Component {
                         </div>
                     </div>
                 }>
-            <SideGridEnhanced
+            <SideGridWithLoadingState
                 loading={this.props.loadingMissions}
                 className="mission-list-container"
                 size="sm"

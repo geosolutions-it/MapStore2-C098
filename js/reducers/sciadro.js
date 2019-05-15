@@ -12,6 +12,8 @@ import {
     CHANGE_MODE,
     DELETE_FEATURE_ASSET,
     DRAW_ASSET,
+    DOWNLOAD_FRAME,
+    DOWNLOADING_FRAME,
     DROP_MISSION_FILES,
     DROP_MISSION_FILES_ERROR,
     EDIT_ASSET,
@@ -32,6 +34,7 @@ import {
     SAVE_ERROR,
     SELECT_ASSET,
     SELECT_MISSION,
+    SHOW_ON_MAP,
     START_SAVING_ASSET,
     START_SAVING_MISSION,
     UPDATE_ASSET,
@@ -46,8 +49,8 @@ import {
     getStyleFromType,
     updateItemAndResetOthers,
     toggleItemsProp,
-    updateItemById,
-    updateDroneProps,
+    updateItem,
+    updateDrone,
     resetProps,
     isEditedItemValid
 } from "@js/utils/sciadro";
@@ -56,71 +59,14 @@ import { findIndex, find } from "lodash";
 import uuidv1 from 'uuid/v1';
 
 export default function sciadro(state = {
+    defaultDroneStyle: {
+        iconUrl: "/assets/images/drone-nord.svg",
+        size: [24, 24],
+        iconAnchor: [0.5, 0.5]
+    },
     assets: [],
-    anomalies: [] || [{
-        id: 1,
-        name: "insulator 1"
-    },
-    {
-        id: 2,
-        name: "insulator 2"
-    }],
-    missions: [] || [{
-        id: 1,
-        name: "Anomalies detection",
-        description: "",
-        attributes: [{
-            note: "",
-            created: "2019-01-12T16:30:00.000Z"
-        }],
-        feature: {
-            type: "Feature",
-            geometry: {
-                type: "LineString",
-                coordinates: [[0.20, 40], [28, 49]]
-            },
-            style: {
-                color: "#FF0000",
-                weight: 5
-            }
-        },
-        drone: {
-            type: "Feature",
-            geometry: {
-                type: "Point",
-                coordinates: [0.20, 40]
-            },
-            style: {
-                iconAnchor: [0.5, 1.1],
-                iconUrl: "assets/images/pointing-up-arrow.svg",
-                rotation: 0
-            },
-            properties: {
-                rotation: 0,
-                isVisible: false
-            }
-        }
-    },
-    {
-        id: 2,
-        name: "Others Anomalies detection",
-        description: "",
-        attributes: [{
-            note: "note for this mission",
-            created: "2018-01-12T16:30:00.000Z"
-        }],
-        feature: {
-            type: "Feature",
-            geometry: {
-                type: "LineString",
-                coordinates: [[0, 35], [10, 36], [20, 35]]
-            },
-            style: {
-                color: "#FF0000",
-                weight: 2
-            }
-        }
-    }]
+    anomalies: [],
+    missions: []
 }, action) {
     switch (action.type) {
         case CHANGE_CURRENT_ASSET: {
@@ -137,9 +83,10 @@ export default function sciadro(state = {
                 items: "missions",
                 state
             });
+
             return {
                 ...newState,
-                missions: updateDroneProps(newState.missions, action.id, { isVisible: true }),
+                missions: updateDrone(newState.missions, action.id, { isVisible: true }),
                 mode: "mission-detail"
             };
         }
@@ -152,20 +99,36 @@ export default function sciadro(state = {
         case DELETE_FEATURE_ASSET: {
             return {
                 ...state,
-                assets: updateItemById(state.assets, action.id, { feature: null })
+                assets: updateItem(state.assets, {id: action.id}, { feature: null })
+            };
+        }
+        case DOWNLOAD_FRAME: {
+            const mission = find(state.missions, item => item.current);
+            const anomalies = updateItem(mission.anomalies, {frame: action.frame}, {downloading: true});
+            return {
+                ...state,
+                missions: updateItem(state.missions, {id: mission.id}, {anomalies})
+            };
+        }
+        case DOWNLOADING_FRAME: {
+            const mission = find(state.missions, item => item.current);
+            const anomalies = updateItem(mission.anomalies, {frame: action.frame}, {downloading: action.downloading});
+            return {
+                ...state,
+                missions: updateItem(state.missions, {id: mission.id}, {anomalies})
             };
         }
         case DRAW_ASSET: {
             return {
                 ...state,
                 drawMethod: action.drawMethod,
-                assets: updateItemById(state.assets, action.id, { draw: true })
+                assets: updateItem(state.assets, {id: action.id}, { draw: true })
                 // potentially useless, see edit property
             };
         }
         case DROP_MISSION_FILES: {
             const itemIndex = findIndex(state.missions, item => item.edit);
-            const missions = updateItemById(state.missions, state.missions[itemIndex].id, { files: action.files });
+            const missions = updateItem(state.missions, {id: state.missions[itemIndex].id}, { files: action.files });
             return {
                 ...state,
                 showSuccessMessage: true,
@@ -232,7 +195,7 @@ export default function sciadro(state = {
                 return {
                     ...state,
                     drawMethod: "",
-                    assets: updateItemById(state.assets, idAsset, {feature, draw: false})
+                    assets: updateItem(state.assets, {id: idAsset}, {feature, draw: false})
                 };
             }
             return state;
@@ -298,10 +261,10 @@ export default function sciadro(state = {
             const selectedAsset = assetSelectedSelector({sciadro: state});
             const selectedMission = missionSelectedSelector({sciadro: state});
             if (action.mode === "asset-edit") {
-                assets = updateItemById(assets, selectedAsset.id, {edit: true});
+                assets = updateItem(assets, {id: selectedAsset.id}, {edit: true});
             }
             if (action.mode === "mission-edit") {
-                missions = updateItemById(missions, selectedMission.id, {edit: true});
+                missions = updateItem(missions, {id: selectedMission.id}, {edit: true});
             }
             return {
                 ...state,
@@ -399,7 +362,7 @@ export default function sciadro(state = {
             }
             const currentMissionIndex = findIndex(missions, item => item.current);
             if (currentMissionIndex !== -1) {
-                missions = updateDroneProps(missions, missions[currentMissionIndex].id, { isVisible: false });
+                missions = updateDrone(missions, missions[currentMissionIndex].id, { isVisible: false }, null);
                 missions = toggleItemsProp(missions, missions[currentMissionIndex].id, "current");
             }
             return {
@@ -429,6 +392,24 @@ export default function sciadro(state = {
                 missions: toggleItemsProp(state.missions, action.id, "selected")
             };
         }
+        case SHOW_ON_MAP: {
+            const mission = find(state.missions, m => m.current);
+            const frame = find(mission.frames, {id: action.frame});
+            const drone = {
+                type: "Feature",
+                properties: { isVisible: true },
+                geometry: frame.location,
+                style: state.defaultDroneStyle || {
+                    iconUrl: "/assets/images/drone-nord.svg",
+                    size: [24, 24],
+                    iconAnchor: [0.5, 0.5]
+                }
+            };
+            return {
+                ...state,
+                missions: updateItem(state.missions, {id: mission.id}, {drone})
+            };
+        }
         case START_SAVING_ASSET: {
             return {
                 ...state,
@@ -446,13 +427,13 @@ export default function sciadro(state = {
         case UPDATE_ASSET: {
             return {
                 ...state,
-                assets: updateItemById(state.assets, action.id, action.props)
+                assets: updateItem(state.assets, {id: action.id}, action.props)
             };
         }
         case UPDATE_MISSION: {
             return {
                 ...state,
-                missions: updateItemById(state.missions, action.id, action.props)
+                missions: updateItem(state.missions, {id: action.id}, action.props)
             };
         }
         default:

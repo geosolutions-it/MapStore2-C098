@@ -58,7 +58,14 @@
 						"description": "English"
 					}
 				}
-			}
+			},
+      "sciadro": {
+        "assets": [],
+        "missions": [],
+        "assetZoomLevel": 10,
+        "droneZoomLevel": 18,
+        "missionZoomLevel": 10
+      }
     }
 	},
 	"plugins": {
@@ -92,8 +99,6 @@
         "name": "Sciadro",
         "cfg": {
           "toolbarCfg": {
-            "assetZoomLevel": 10,
-            "missionZoomLevel": 10,
             "backend_url": "http://backendUrl:8000/"
           },
           "componentsCfg": {

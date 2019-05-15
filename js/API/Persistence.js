@@ -24,6 +24,7 @@ import * as Persistence from "@mapstore/api/persistence/index";
 
 const DATA = {
     DELETE_ASSET: require("json-loader!@js/test-resources/deleteAsset.json"),
+    GET_FRAME_IMAGE: require("@js/test-resources/frame16.png"),
     POST_ASSET: require("json-loader!@js/test-resources/postAsset.json"),
     GET_ASSET: require("json-loader!@js/test-resources/getAsset.json"),
     POST_MISSION: require("json-loader!@js/test-resources/postMission.json"),
@@ -202,18 +203,20 @@ export const saveResource = ({resource = {}, category, resourcePermissions = {},
 
 export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://localhost:8000", options = {
     timeout: 3000,
-    headers: {'Accept': 'application/json', 'Content-Type': 'application/json' }
+    headers: {'Accept': 'application/json,image/png', 'Content-Type': 'application/json' }
 }} = {}) => {
-    // let mockAxios = new MockAdapter(axios, {delayResponse: 1500});
-    /*mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);
-    mockAxios.onGet(/assets\/[\w-]).reply(200, DATA.GET_ASSET);
+    // COMMENT THIS MOCK BEFORE TESTING
+    /*let mockAxios = new MockAdapter(axios, {delayResponse: 100});
+    mockAxios.onGet(/objects/).reply(200, DATA.GET_FRAME_IMAGE);
+    mockAxios.onGet(/missions/).reply(200, DATA.GET_MISSION);
+    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);*/
+    // mockAxios.onGet(/assets\/[\w-]).reply(200, DATA.GET_ASSET);
     // mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);
-    mockAxios.onGet(/missions/).reply(200, DATA.GET_MISSION);*/
     const url = `${backendUrl}/${path}`;
     return axios.get(url, options)
         .then(res => {
-            // mockAxios.reset();
-            // mockAxios.restore();
+            /*mockAxios.reset();
+            mockAxios.restore();*/
             return res;
         });
 };
@@ -243,11 +246,27 @@ export const getAssetResource = ({id, postProcessActions = () => [], errorsActio
 * @return
 */
 export const getMissionResource = ({id, assetId, postProcessActions = () => [], errorsActions = () => []}) => {
-    return Rx.Observable.defer( () => getResourceSciadroServer({id, path: `/assets/${assetId}/missions/${id}`}))
+    return Rx.Observable.defer( () => getResourceSciadroServer({path: `/assets/${assetId}/missions/${id}`}))
         .switchMap((result) => {
             return Rx.Observable.from(postProcessActions(result.data));
         })
         .catch(() => {
-            return Rx.Observable.from([...(errorsActions())]); // error on sciadro backend
+            return Rx.Observable.from(errorsActions()); // error on sciadro backend
+        });
+};
+
+/**
+* it fetches the frame specified
+* @param {string} frame id of the resource to fetch
+* @return file retrieved
+*/
+export const getFrameImage = ({missionId, assetId, frameId}) => {
+    return Rx.Observable.defer( () => getResourceSciadroServer({
+        path: `/assets/${assetId}/missions/${missionId}/objects/${frameId}`,
+        options: {
+            headers: {'Accept': 'image/png', 'Content-Type': 'image/png' }
+        }}))
+        .switchMap((res) => {
+            return Rx.Observable.of(res);
         });
 };

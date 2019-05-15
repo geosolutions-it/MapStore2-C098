@@ -17,9 +17,9 @@ import {
     removeAdditionalLayerById,
     resetProps,
     toggleItemsProp,
-    updateDroneProps,
+    updateDrone,
     updateItemAndResetOthers,
-    updateItemById
+    updateItem
 } from "@js/utils/sciadro";
 
 describe('testing sciadro utils', () => {
@@ -28,7 +28,7 @@ describe('testing sciadro utils', () => {
         const name = "name3";
         const feature = {type: "Feature", geometry: {type: "Point", coordinates: [0, 9]}};
         const action = getAdditionalLayerAction({id, name, feature});
-        expect(action).toEqual( { type: 'ADDITIONALLAYER:UPDATE_ADDITIONAL_LAYER', id: 3, owner: 'sciadro', actionType: 'overlay', options: { id: 3, name: 'name3', style: { color: '#FF0000', weight: 3 }, type: 'vector', visibility: true, features: [ { type: 'Feature', geometry: { type: 'Point', coordinates: [0, 9] } } ] } });
+        expect(action).toEqual( { type: 'ADDITIONALLAYER:UPDATE_ADDITIONAL_LAYER', id: 3, owner: 'sciadro', actionType: 'overlay', options: { id: 3, name: 'name3', style: null, type: 'vector', visibility: true, features: [ { type: 'Feature', geometry: { type: 'Point', coordinates: [0, 9] } } ] } });
     });
     it('getAdditionalLayerAction', () => {
         const id = 3;
@@ -108,21 +108,38 @@ describe('testing sciadro utils', () => {
         expect(asset4.selected).toEqual(false);
         expect(asset4.current).toEqual(false);
     });
-    it('updateDroneProps', () => {
+    it('updateDrone', () => {
         const id = 3;
         const name = "name3";
         const missions = [{id, name}];
-        const newMissions = updateDroneProps(missions, id, {isVisible: false});
+        const newMissions = updateDrone(missions, id, {isVisible: false});
         const mission = find(newMissions, {id: 3});
         expect(mission.drone.properties.isVisible).toBe(false);
     });
-    it('updateItemById', () => {
+    it('updateDrone geometry', () => {
+        const id = 3;
+        const geometry = {type: "Point", coordinates: [0, 9]};
+        const name = "name3";
+        const missions = [{id, name}];
+        const newMissions = updateDrone(missions, id, {}, geometry);
+        const mission = find(newMissions, {id: 3});
+        expect(mission.drone.geometry).toEqual(geometry);
+    });
+    it('updateItem', () => {
         const id = 3;
         const name = "name3";
         const props = {feature: {type: "Feature"}};
         const missions = [{id, name, selected: false}, {id: 4, name: "name 4", selected: true}];
-        const newMissions = updateItemById(missions, id, props);
+        const newMissions = updateItem(missions, {id}, props);
         const mission3 = find(newMissions, {id: 3});
         expect(mission3.feature.type).toBe("Feature");
+    });
+    it('updateItem wrong id', () => {
+        const id = 3;
+        const name = "name3";
+        const props = {feature: {type: "Feature"}};
+        const missions = [{id, name, selected: false}, {id: 4, name: "name 4", selected: true}];
+        const newMissions = updateItem(missions, {id: 99}, props);
+        expect(newMissions).toEqual(missions);
     });
 });

@@ -10,14 +10,14 @@ import { updateAdditionalLayer, removeAdditionalLayer } from "@mapstore/actions/
 import { findIndex } from "lodash";
 import { set } from "@mapstore/utils/ImmutableUtils";
 
-export const getAdditionalLayerAction = ({feature, id, name, style = { color: "#FF0000", weight: 3 }}) => {
+export const getAdditionalLayerAction = ({feature, id, name, style = null}) => {
     if (!feature) {
         return removeAdditionalLayer({id});
     }
     const layerOptions = {
         id,
         name,
-        style,
+        style: style,
         type: "vector",
         visibility: true,
         features: [feature]
@@ -83,19 +83,20 @@ export const toggleItemsProp = (items = [], id, prop = "selected") => {
     return newItems;
 };
 
-export const updateDroneProps = (items = [], id, props = {}) => {
+export const updateDrone = (items = [], id, props = {}, geometry = {}) => {
     let newItems = [...items];
     const selectedItemIndex = findIndex(items, item => item.id === id);
     if (selectedItemIndex !== -1) {
         const currentItem = newItems[selectedItemIndex];
         newItems = set(`[${selectedItemIndex}].drone.properties`, {...(currentItem.drone && currentItem.drone.properties || {}), ...props}, newItems);
+        newItems = set(`[${selectedItemIndex}].drone.geometry`, {...(currentItem.drone && currentItem.drone.geometry || {}), ...geometry}, newItems);
     }
     return newItems;
 };
 
-export const updateItemById = (items = [], id, props = {}) => {
+export const updateItem = (items = [], condition, props = {}) => {
     let newItems = [...items];
-    const itemIndex = findIndex(items, item => item.id === id);
+    const itemIndex = findIndex(items, condition);
     if (itemIndex !== -1) {
         newItems[itemIndex] = {...newItems[itemIndex], ...props};
     }
@@ -105,6 +106,6 @@ export const updateItemById = (items = [], id, props = {}) => {
 export const updateItemAndResetOthers = ({items = "assets", id, state, propsToUpdate = {selected: true, current: true }, propsToReset = ["selected", "current"]}) => {
     return {
         ...state,
-        [items]: updateItemById(resetProps(state[items], propsToReset), id, propsToUpdate)
+        [items]: updateItem(resetProps(state[items], propsToReset), {id}, propsToUpdate)
     };
 };

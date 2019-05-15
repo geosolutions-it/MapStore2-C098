@@ -25,8 +25,6 @@ export default class MainToolbar extends React.Component {
         missionEdited: PropTypes.object,
         missionSelected: PropTypes.object,
         buttonsStatus: PropTypes.object,
-        assetZoomLevel: PropTypes.number,
-        missionZoomLevel: PropTypes.number,
 
         onResetCurrentAsset: PropTypes.func,
         onResetCurrentMission: PropTypes.func,
@@ -141,17 +139,12 @@ export default class MainToolbar extends React.Component {
                             visible: this.props.buttonsStatus.edit
                         },
                         {
-                            tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.zoom" : "sciadro.assets.zoom",
+                            tooltipId: this.props.mode.indexOf("mission") !== -1 ? "sciadro.missions.zoom" : "sciadro.assets.zoom",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                if (missionSelected && missionSelected.selected && missionSelected.feature) {
-                                    this.props.onZoomToItem(this.props.missionZoomLevel);
-                                }
-                                if (assetSelected && assetSelected.selected && assetSelected.feature) {
-                                    this.props.onZoomToItem(this.props.assetZoomLevel);
-                                }
+                                this.props.onZoomToItem();
                             },
                             glyph: "zoom-to",
                             visible: this.props.buttonsStatus.zoom,

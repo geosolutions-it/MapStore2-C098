@@ -96,7 +96,7 @@ class FileUpload extends React.Component {
         );
     }
 
-    checkMandatoryFiles = (zipFiles, mandatoryFiles = [".avi", ".telem", ".xml"]) => {
+    checkMandatoryFiles = (zipFiles, mandatoryFiles = [".mp4", ".telem", ".xml"]) => {
         const isValidFormat = (fileName) => mandatoryFiles.reduce((p, c) => {
             return p || fileName.indexOf(c) !== -1;
         }, false);
