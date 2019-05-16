@@ -7,7 +7,7 @@
 */
 
 import { updateAdditionalLayer, removeAdditionalLayer } from "@mapstore/actions/additionallayers";
-import { findIndex, head, last, find } from "lodash";
+import { findIndex, head, find } from "lodash";
 import { set } from "@mapstore/utils/ImmutableUtils";
 
 export const addStartingOffset = (telemetries = []) => {
@@ -18,6 +18,12 @@ export const addStartingOffset = (telemetries = []) => {
             return {...t, startingOffset: new Date(t.time).getTime() - firstTime};
         });
     } return [];
+};
+export const addTelemInterval = (telemetries = []) => {
+    if (telemetries.length >= 2) {
+        return new Date(telemetries[1].time).getTime() - new Date(telemetries[0].time).getTime();
+    }
+    return 500;
 };
 
 export const getAdditionalLayerAction = ({feature, id, name, style = null}) => {
@@ -65,9 +71,6 @@ export const getTelemetryByTimePlayed = (telemetries = [], timePlayedMS = 0, int
     const closestTelem = telemetries.filter(t => {
         return (Math.abs(t.startingOffset - timePlayedMS) / interval) < 1;
     }) || {};
-    if (closestTelem.length === 0) {
-        return last(telemetries);
-    }
     return head(closestTelem);
 };
 

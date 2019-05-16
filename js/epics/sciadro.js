@@ -48,7 +48,6 @@ import {
     updateMission,
     zoomToItem
 } from '@js/actions/sciadro';
-import {getStyleFromType, addStartingOffset} from "@js/utils/sciadro";
 import {saveResource, getAssetResource, getMissionResource, getFrameImage} from "@js/API/Persistence";
 import {
     assetEditedSelector,
@@ -64,7 +63,7 @@ import {
     missionZoomLevelSelector,
     missionsIdSelector
 } from '@js/selectors/sciadro';
-import {getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
+import {getStyleFromType, addStartingOffset, addTelemInterval, getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
 // mapstore
 import {
     zoomToPoint, zoomToExtent
@@ -227,7 +226,16 @@ export const getMissionFeatureEpic = (action$, store) =>
             const errorsActions = () => [fetchFeatureSciadroServerError()];
             const postProcessActions = (item) => {
                 if (item.feature) {
-                    actions = [...actions, updateMission({ feature: item.feature, loadingFeature: false, frames: mission.frames || item.frames, anomalies: mission.anomalies || item.objects || item.anomalies, telemetries: mission.telemetries || addStartingOffset(item.telemetries || []) }, a.id)];
+                    let telemetries = mission.telemetries || addStartingOffset(item.telemetries || []);
+                    actions = [...actions, updateMission({
+                        feature: item.feature,
+                        loadingFeature: false,
+                        frames: mission.frames || item.frames,
+                        anomalies: mission.anomalies || item.objects || item.anomalies,
+                        telemetries: telemetries,
+                        telemInterval: addTelemInterval(telemetries)
+                    },
+                    a.id)];
                 }
                 actions = [...actions, getAdditionalLayerAction({feature: item.feature, id: "missions", name: "missions", visibility: !!item.feature})];
                 return actions;

@@ -10,6 +10,7 @@ import expect from "expect";
 import { find } from "lodash";
 import {
     addStartingOffset,
+    addTelemInterval,
     getAdditionalLayerAction,
     getTelemetryByTimePlayed,
     getStyleFromType,
@@ -104,6 +105,10 @@ describe('testing sciadro utils', () => {
         // 4400 is the time passed between the previous telem object
         expect(telemetries[1].startingOffset).toBe(4400);
     });
+    it('addTelemInterval', () => {
+        const interval = addTelemInterval(telemetriesTest);
+        expect(interval).toBe(4400);
+    });
     it('getAdditionalLayerAction', () => {
         const id = 3;
         const name = "name3";
@@ -128,9 +133,6 @@ describe('testing sciadro utils', () => {
         telem = getTelemetryByTimePlayed(telemetriesTest, 9000, interval);
         expect(telem).toExist();
         expect(telem.id).toBe(telemetriesTest[2].id);
-        telem = getTelemetryByTimePlayed(telemetriesTest, 19000, interval);
-        expect(telem).toExist();
-        expect(telem.id).toBe(telemetriesTest[3].id);
     });
     it('getStyleFromType', () => {
         const defaultStyle = getStyleFromType();

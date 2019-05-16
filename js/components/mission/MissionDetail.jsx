@@ -39,6 +39,14 @@ class MissionDetail extends React.Component {
     };
     static defaultProps = {
         anomalies: [],
+        config: {
+            file: {
+                attributes: {
+                    preload: "auto",
+                    autoPlay: false
+                }
+            }
+        },
         controls: [],
         missions: [],
         missionSelected: {
@@ -46,7 +54,8 @@ class MissionDetail extends React.Component {
         },
         onUpdateDroneGeometry: () => {},
         onStartPlaying: () => {},
-        progressInterval: 1000,
+        progressInterval: 500,
+        renderAnomaliesList: () => null,
         videoHeight: 260,
         videoFormat: "video/mp4",
         videoWidth: "100%"
@@ -65,14 +74,7 @@ class MissionDetail extends React.Component {
                             <br/>
                             <ReactPlayer
                                 progressInterval={this.props.progressInterval}
-                                config={this.props.config || {
-                                    file: {
-                                        attributes: {
-                                            preload: "auto",
-                                            autoPlay: false
-                                        }
-                                    }
-                                }}
+                                config={this.props.config}
                                 style={{/*display: "-webkit-inline-box"*/}}
                                 width={this.props.videoWidth}
                                 controls={this.props.controls}
@@ -82,8 +84,12 @@ class MissionDetail extends React.Component {
                                     ]}
                                 ref={this.ref}
                                 onProgress= {(state) => {
-                                    const t = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000);
-                                    this.props.onUpdateDroneGeometry(t.id, t.yaw, t.location, this.props.missionSelected.id);
+                                    const t = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval);
+                                    if (this.t !== t ) {
+                                        // optimized update process of drone position when telem has not changed
+                                        this.t = t;
+                                        this.props.onUpdateDroneGeometry(t.id, t.yaw, t.location, this.props.missionSelected.id);
+                                    }
                                 }}
                                 />
                         </div>
