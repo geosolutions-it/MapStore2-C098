@@ -54,7 +54,7 @@ export default class ToolbarGeometry extends React.Component {
                     btnDefaultProps = {{ className: 'square-button-md', bsStyle: 'primary' }}
                     buttons = {[
                         {
-                            tooltipId: "sciadro.assets.geom-trash",
+                            tooltipId: "sciadro.assets.geomTrash",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,

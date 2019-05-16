@@ -10,6 +10,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import ReactPlayer from 'react-player';
+import {getTelemetryByTimePlayed} from '@js/utils/sciadro';
+import Message from '@mapstore/components/I18N/Message';
 
 
 /**
@@ -20,51 +22,50 @@ import ReactPlayer from 'react-player';
 class MissionDetail extends React.Component {
     static propTypes = {
         anomalies: PropTypes.array,
+        config: PropTypes.object,
+        controls: PropTypes.bool,
         missions: PropTypes.array,
         missionSelected: PropTypes.object,
-        renderAnomaliesList: PropTypes.func
+        onUpdateDroneGeometry: PropTypes.func,
+        onStartPlaying: PropTypes.func,
+        progressInterval: PropTypes.number,
+        renderAnomaliesList: PropTypes.func,
+        videoHeight: PropTypes.string,
+        videoFormat: PropTypes.func,
+        videoWidth: PropTypes.string
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
         anomalies: [],
+        controls: [],
         missions: [],
-        missionSelected: {}
+        missionSelected: {
+            videoUrl: "/assets/video/colibri.mp4"
+        },
+        onUpdateDroneGeometry: () => {},
+        onStartPlaying: () => {},
+        progressInterval: 1000,
+        videoHeight: 260,
+        videoFormat: "video/mp4",
+        videoWidth: "100%"
     };
 
     render() {
-        const mission = find(this.props.missions, a => a.selected);
         const AnomaliesList = this.props.renderAnomaliesList;
         return (
             <BorderLayout
                 header={
                     <div>
                         <div className="mission-detail-header">
-                            {mission.name}
+                            {this.props.missionSelected.name}
                             <br/>
-                            Video
+                            <Message msgId="sciadro.video"/>
                             <br/>
                             <ReactPlayer
-                                ref={this.ref}
-                                onReady= {() => {
-                                    console.log('onReady');
-                                }}
-                                onStart= {() => {
-                                    console.log('onStart');
-                                }}
-                                onPlay= {() => {
-                                    console.log('onPlay');
-                                }}
-                                onPause= {() => {
-                                    console.log('onPause');
-                                }}
-                                onSeek= {(s) => {
-                                    console.log('onSeek ', s);
-                                    // call seekTo and change drone location
-                                }}
-
-                                config={{
+                                progressInterval={this.props.progressInterval}
+                                config={this.props.config || {
                                     file: {
                                         attributes: {
                                             preload: "auto",
@@ -72,23 +73,25 @@ class MissionDetail extends React.Component {
                                         }
                                     }
                                 }}
-
-                                onDuration={(duration) => {
-                                    console.log('onDuration', duration, "s");
-                                }}
                                 style={{/*display: "-webkit-inline-box"*/}}
-                                width="100%"
-                                controls
-                                height={260}
+                                width={this.props.videoWidth}
+                                controls={this.props.controls}
+                                height={this.props.videoHeight}
                                 url={[
-                                        {src: "http://localhost:8081/assets/video/colibri.mp4", type: "video/mp4"}
-                                    ]}/>
+                                        {src: this.props.missionSelected.videoUrl || "/assets/video/colibri.mp4", type: this.props.videoFormat || "video/mp4" }
+                                    ]}
+                                ref={this.ref}
+                                onProgress= {(state) => {
+                                    const t = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000);
+                                    this.props.onUpdateDroneGeometry(t.id, t.yaw, t.location, this.props.missionSelected.id);
+                                }}
+                                />
                         </div>
                     </div>
                 }>
                 <div className="mission-detail-anomalies">
-                    Detected Anomalies
-                    <AnomaliesList onShowFrame={this.seekToFrame}/>
+                    <Message msgId="sciadro.anomalies.detected"/>
+                    <AnomaliesList onShowFrame={this.seekToFrame} videoDurationSec={this.player && this.player.getDuration()}/>
                     <br/>
                 </div>
             </BorderLayout>

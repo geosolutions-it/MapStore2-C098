@@ -43,6 +43,7 @@ import {
     startSavingMission, START_SAVING_MISSION,
     selectMission, SELECT_MISSION,
     updateAsset, UPDATE_ASSET,
+    updateDroneGeometry, UPDATE_DRONE_GEOMETRY,
     updateMission, UPDATE_MISSION,
     zoomToItem, ZOOM_TO_ITEM,
     downloadingFrameError,
@@ -272,6 +273,18 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(UPDATE_ASSET);
         expect(action.id).toEqual(id);
         expect(action.props).toEqual(props);
+    });
+    it('updateDroneGeometry', () => {
+        const telemetryId = 1;
+        const yaw = 3.14;
+        const geometry = {type: "Point", coordinates: [1, 3]};
+        const missionId = 3;
+        const action = updateDroneGeometry(telemetryId, yaw, geometry, missionId);
+        expect(action.type).toEqual(UPDATE_DRONE_GEOMETRY);
+        expect(action.telemetryId).toEqual(telemetryId);
+        expect(action.yaw).toEqual(yaw);
+        expect(action.geometry).toEqual(geometry);
+        expect(action.missionId).toEqual(missionId);
     });
     it('updateMission', () => {
         const id = 1;

@@ -38,6 +38,7 @@ import {
     START_SAVING_ASSET,
     START_SAVING_MISSION,
     UPDATE_ASSET,
+    UPDATE_DRONE_GEOMETRY,
     UPDATE_MISSION
 } from '@js/actions/sciadro';
 
@@ -403,6 +404,7 @@ export default function sciadro(state = {
                     iconUrl: "/assets/images/drone-nord.svg",
                     size: [24, 24],
                     iconAnchor: [0.5, 0.5]
+                    // rotation: missing telemetry yaw associated to this frame
                 }
             };
             return {
@@ -428,6 +430,12 @@ export default function sciadro(state = {
             return {
                 ...state,
                 assets: updateItem(state.assets, {id: action.id}, action.props)
+            };
+        }
+        case UPDATE_DRONE_GEOMETRY: {
+            return {
+                ...state,
+                missions: updateDrone(state.missions, action.missionId, {}, action.geometry, { rotation: action.yaw })
             };
         }
         case UPDATE_MISSION: {

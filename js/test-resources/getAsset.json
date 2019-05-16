@@ -10,7 +10,7 @@
       "type": "Feature",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[10.39985, 43.71064], [10.40483, 43.71041]]
+        "coordinates": [[10.39985, 43.71074], [10.40483, 43.71074]]
       },
       "style": {
         "color": "#00FF00",

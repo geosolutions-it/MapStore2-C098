@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 import {find} from 'lodash';
 import {Form, FormGroup, Col} from 'react-bootstrap';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
-// import Message from '@mapstore/components/I18N/Message';
+import Message from '@mapstore/components/I18N/Message';
 
 /**
  * Asset Edit
@@ -42,7 +42,7 @@ class AssetEdit extends React.Component {
                 <Form horizontal>
                     <FormGroup>
                         <Col xs={12} sm={12} md={12}>
-                            Permission options for asset: {asset.name || "no name"}
+                            <Message msgId="sciadro.assets.permissionsOptions" />{asset.name || "no name"}
                             <img src="assets/images/permissions.png"/>
                         </Col>
                     </FormGroup>
