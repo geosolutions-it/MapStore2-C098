@@ -21,6 +21,7 @@ import {
     showOnMap,
     startLoadingAssets,
     startSavingAsset,
+    updateDroneGeometry,
     zoomToItem,
     CHANGE_MODE,
     DOWNLOADING_FRAME,
@@ -41,9 +42,9 @@ import { ZOOM_TO_POINT, ZOOM_TO_EXTENT } from "@mapstore/actions/map";
 import { ON_SHAPE_SUCCESS } from "@mapstore/actions/shapefile";
 import { UPDATE_ADDITIONAL_LAYER, REMOVE_ADDITIONAL_LAYER } from "@mapstore/actions/additionallayers";
 import {createEpicMiddleware, combineEpics } from 'redux-observable';
-import {addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, zoomToItemEpic
+import {addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, updateDroneAdditionalLayerEpic, zoomToItemEpic
 /*,  hideAssetsLayerEpic, saveAssetEpic*/} from '@js/epics/sciadro';
-const rootEpic = combineEpics(addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, zoomToItemEpic);
+const rootEpic = combineEpics(addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, updateDroneAdditionalLayerEpic, zoomToItemEpic);
 const epicMiddleware = createEpicMiddleware(rootEpic);
 import MockAdapter from "axios-mock-adapter";
 import configureMockStore from 'redux-mock-store';
@@ -340,7 +341,7 @@ describe('testing sciadro epics', () => {
     });
     it('getMissionFeatureEpic, retrieving feature when is selected SELECT_MISSION', (done) => {
 
-        mockAxios.onGet(/assets/).reply(200, {feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} });
+        mockAxios.onGet(/missions/).reply(200, {feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} });
         const numActionsExpected = 4;
         testEpic(getMissionFeatureEpic, numActionsExpected, selectMission(1), actions => {
             expect(actions.length).toBe(numActionsExpected);
@@ -636,11 +637,11 @@ describe('testing sciadro epics', () => {
             }
         });
     });
-    it('updateAdditionalLayerEpic, updating drone feature SHOW_ON_MAP', (done) => {
+    it('updateDroneAdditionalLayerEpic, updating drone feature SHOW_ON_MAP', (done) => {
         store = mockStore();
         const id = 1;
-        const numActions = 4;
-        testEpic(updateAdditionalLayerEpic, numActions, showOnMap(id), actions => {
+        const numActions = 2;
+        testEpic(updateDroneAdditionalLayerEpic, numActions, showOnMap(id), actions => {
             expect(actions.length).toBe(numActions);
             actions.map(action => {
                 switch (action.type) {
@@ -649,8 +650,51 @@ describe('testing sciadro epics', () => {
                         break;
                     }
                     case UPDATE_ADDITIONAL_LAYER:
-                        expect(includes(["missions", "drone", "assets"], action.id)).toBe(true);
-                        // expect(includes(["missions"], action.id)).toBe(true);
+                        expect(includes(["drone"], action.id)).toBe(true);
+                        break;
+                    default:
+                        expect(true).toBe(false);
+                }
+            });
+            done();
+        }, {
+            sciadro: {
+                assets: [
+                    {
+                        id: 1,
+                        selected: true,
+                        current: true,
+                        name: "name 1",
+                        feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
+                        attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                ],
+                missions: [
+                    {
+                        id: 1,
+                        selected: true,
+                        current: true,
+                        name: "mission 1",
+                        feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
+                        drone: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}, properties: {isVisible: true}},
+                        attributes: { sciadroResourceId: "sha5-mission"}
+                    }
+                ]
+            }
+        });
+    });
+    it('updateDroneAdditionalLayerEpic, updating drone feature UPDATE_DRONE_GEOMETRY', (done) => {
+        store = mockStore();
+        const numActions = 2;
+        testEpic(updateDroneAdditionalLayerEpic, numActions, updateDroneGeometry(), actions => {
+            expect(actions.length).toBe(numActions);
+            actions.map(action => {
+                switch (action.type) {
+                    case ZOOM_TO_ITEM: {
+                        expect(action.zoomTo).toBe("drone");
+                        break;
+                    }
+                    case UPDATE_ADDITIONAL_LAYER:
+                        expect(includes(["drone"], action.id)).toBe(true);
                         break;
                     default:
                         expect(true).toBe(false);

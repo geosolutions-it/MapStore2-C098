@@ -12,6 +12,7 @@ import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Message from '@mapstore/components/I18N/Message';
+import {find} from 'lodash';
 
 /**
  * Mission AnomaliesList
@@ -22,8 +23,9 @@ export default class AnomaliesList extends React.Component {
     static propTypes = {
         anomalies: PropTypes.array,
         missionCurrent: PropTypes.object,
+        videoDurationSec: PropTypes.number,
         onDownloadFrame: PropTypes.func,
-        updateDronePosition: PropTypes.func,
+        onUpdateDroneGeometry: PropTypes.func,
         onShowFrame: PropTypes.func,
         onShowOnMap: PropTypes.func
     };
@@ -34,7 +36,7 @@ export default class AnomaliesList extends React.Component {
         anomalies: [],
         missionCurrent: {},
         onDownloadFrame: () => {},
-        updateDronePosition: () => {},
+        onUpdateDroneGeometry: () => {},
         onShowFrame: () => {},
         onShowOnMap: () => {}
     };
@@ -45,7 +47,7 @@ export default class AnomaliesList extends React.Component {
                 return <Message msgId="sciadro.anomalies.ins"/>;// "Insulator";
             }
             case "PIP": {
-                return "PIP";
+                return <Message msgId="sciadro.anomalies.pip"/>;
             }
             default: return "N.A.";
         }
@@ -73,7 +75,7 @@ export default class AnomaliesList extends React.Component {
                             y_max: 4
                             y_min: 3
                         */
-                        this.props.anomalies.map((item, i) => ({
+                        this.props.anomalies.map(item => ({
                             id: item.id,
                             title: this.getTitle(item.type),
                             selected: item.selected,
@@ -88,9 +90,9 @@ export default class AnomaliesList extends React.Component {
                                             glyph: 'playback',
                                             tooltipId: "sciadro.missions.showFrame",
                                             onClick: () => {
-                                                const fraction = i === 0 ? 0 : 0.999999;
-                                                this.props.onShowFrame(fraction, "fraction");
-                                                this.props.updateDronePosition(item.frame);
+                                                const frame = find(this.props.missionCurrent.frames, {id: item.frame});
+                                                const frameTime = frame.index * 1000 / 24; // assuming 24 fps for the video
+                                                this.props.onShowFrame(frameTime / (this.props.videoDurationSec * 1000), "fraction");
                                             }
                                         }, {
                                             glyph: 'download',
@@ -104,7 +106,9 @@ export default class AnomaliesList extends React.Component {
                                             glyph: '1-map',
                                             tooltipId: "sciadro.missions.showMap",
                                             onClick: () => {
-                                                this.props.onShowOnMap(item.frame, this.props.missionCurrent.id);
+                                                const frame = find(this.props.missionCurrent.frames, {id: item.frame});
+                                                const frameTime = frame.index * 1000 / 24; // assuming 24 fps for the video
+                                                this.props.onShowFrame(frameTime / (this.props.videoDurationSec * 1000), "fraction");
                                             }
                                         }
                                     ]

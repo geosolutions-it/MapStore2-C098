@@ -40,6 +40,7 @@ import {
     startSavingAsset,
     startSavingMission,
     updateAsset,
+    updateDroneGeometry,
     updateMission
 } from "@js/actions/sciadro";
 import { logout, loginSuccess } from "@mapstore/actions/security";
@@ -604,6 +605,21 @@ describe('testing sciadro reducers', () => {
         const asset = find(state.assets, item => item.id === id);
         expect(asset.feature).toEqual({type: "Feature"});
         expect(asset.name).toEqual("tre");
+    });
+    it('UPDATE_DRONE_GEOMETRY', () => {
+        const missionId = 2;
+        const style = {iconUrl: "/assets/drone.svg"};
+        const missions = [
+            { selected: true, id: missionId, name: "mission2", drone: {type: "Feature", style}},
+            { id: 3, name: "", type: "powerline"}];
+        const telemetryId = 1;
+        const yaw = 3.14;
+        const geometry = {type: "Point", coordinates: [1, 3]};
+        const state = sciadro({ missions }, updateDroneGeometry(telemetryId, yaw, geometry, missionId));
+        const mission = find(state.missions, item => item.id === missionId);
+        expect(mission.drone.style).toEqual({...style, rotation: yaw});
+        expect(mission.drone.geometry).toEqual(geometry);
+
     });
     it('UPDATE_MISSION', () => {
         const missions = [{selected: true, id: 2, name: "mission2"}, {id: 3, name: "", type: "powerline"}];

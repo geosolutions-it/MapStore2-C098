@@ -7,8 +7,24 @@
 */
 
 import { updateAdditionalLayer, removeAdditionalLayer } from "@mapstore/actions/additionallayers";
-import { findIndex } from "lodash";
+import { findIndex, head, find } from "lodash";
 import { set } from "@mapstore/utils/ImmutableUtils";
+
+export const addStartingOffset = (telemetries = []) => {
+    if (find(telemetries, t => t.time)) {
+        let firstTime = head(telemetries).time;
+        firstTime = new Date(firstTime);
+        return telemetries.map(t => {
+            return {...t, startingOffset: new Date(t.time).getTime() - firstTime};
+        });
+    } return [];
+};
+export const addTelemInterval = (telemetries = []) => {
+    if (telemetries.length >= 2) {
+        return new Date(telemetries[1].time).getTime() - new Date(telemetries[0].time).getTime();
+    }
+    return 500;
+};
 
 export const getAdditionalLayerAction = ({feature, id, name, style = null}) => {
     if (!feature) {
@@ -43,6 +59,19 @@ export const getStyleFromType = (type = "LineString") => {
         }
     };
     return styles[type];
+};
+
+/**
+ *  @param {object[]} telemetries record items related to the drone
+ *  @param {number} timePlayedMS ms passed since the start of the video
+ *  @param {number} interval ms time interval beteen the player check for updates on the telemetry
+ *  @return {string} the telemetry object
+*/
+export const getTelemetryByTimePlayed = (telemetries = [], timePlayedMS = 0, interval = 500) => {
+    const closestTelem = telemetries.filter(t => {
+        return (Math.abs(t.startingOffset - timePlayedMS) / interval) < 1;
+    }) || {};
+    return head(closestTelem);
 };
 
 export const getValidationState = (val) => {
@@ -83,13 +112,19 @@ export const toggleItemsProp = (items = [], id, prop = "selected") => {
     return newItems;
 };
 
-export const updateDrone = (items = [], id, props = {}, geometry = {}) => {
+export const updateDrone = (items = [], id, props = {}, geometry = {}, style = {
+    iconUrl: "/assets/images/drone-nord.svg",
+    size: [24, 24],
+    iconAnchor: [0.5, 0.5]
+}) => {
     let newItems = [...items];
     const selectedItemIndex = findIndex(items, item => item.id === id);
     if (selectedItemIndex !== -1) {
         const currentItem = newItems[selectedItemIndex];
         newItems = set(`[${selectedItemIndex}].drone.properties`, {...(currentItem.drone && currentItem.drone.properties || {}), ...props}, newItems);
         newItems = set(`[${selectedItemIndex}].drone.geometry`, {...(currentItem.drone && currentItem.drone.geometry || {}), ...geometry}, newItems);
+        newItems = set(`[${selectedItemIndex}].drone.style`, {...(currentItem.drone && currentItem.drone.style || {}), ...style}, newItems);
+        newItems = set(`[${selectedItemIndex}].drone.type`, "Feature", newItems);
     }
     return newItems;
 };

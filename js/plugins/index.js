@@ -46,6 +46,7 @@ import {
     startLoadingAssets,
     startSavingAsset,
     startSavingMission,
+    updateDroneGeometry,
     zoomToItem
 } from '@js/actions/sciadro';
 
@@ -217,6 +218,7 @@ export const MissionDetailConnected = connect(createSelector([
     mode, missions, missionSelected,
     renderAnomaliesList: AnomaliesListConnected
 })), {
+    onUpdateDroneGeometry: updateDroneGeometry
 })(MissionDetail);
 
 export const ToolbarConnected = connect(createSelector([

@@ -24,6 +24,7 @@ import {
     START_LOADING_ASSETS,
     START_SAVING_ASSET,
     START_SAVING_MISSION,
+    UPDATE_DRONE_GEOMETRY,
     ZOOM_TO_ITEM,
     changeMode,
     downloadingFrame,
@@ -47,7 +48,6 @@ import {
     updateMission,
     zoomToItem
 } from '@js/actions/sciadro';
-import {getStyleFromType} from "@js/utils/sciadro";
 import {saveResource, getAssetResource, getMissionResource, getFrameImage} from "@js/API/Persistence";
 import {
     assetEditedSelector,
@@ -63,7 +63,7 @@ import {
     missionZoomLevelSelector,
     missionsIdSelector
 } from '@js/selectors/sciadro';
-import {getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
+import {getStyleFromType, addStartingOffset, addTelemInterval, getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
 // mapstore
 import {
     zoomToPoint, zoomToExtent
@@ -226,7 +226,16 @@ export const getMissionFeatureEpic = (action$, store) =>
             const errorsActions = () => [fetchFeatureSciadroServerError()];
             const postProcessActions = (item) => {
                 if (item.feature) {
-                    actions = [...actions, updateMission({ feature: item.feature, loadingFeature: false, frames: mission.frames || item.frames, anomalies: mission.anomalies || item.objects || item.anomalies }, a.id)];
+                    let telemetries = mission.telemetries || addStartingOffset(item.telemetries || []);
+                    actions = [...actions, updateMission({
+                        feature: item.feature,
+                        loadingFeature: false,
+                        frames: mission.frames || item.frames,
+                        anomalies: mission.anomalies || item.objects || item.anomalies,
+                        telemetries: telemetries,
+                        telemInterval: addTelemInterval(telemetries)
+                    },
+                    a.id)];
                 }
                 actions = [...actions, getAdditionalLayerAction({feature: item.feature, id: "missions", name: "missions", visibility: !!item.feature})];
                 return actions;
@@ -490,7 +499,7 @@ export const saveMissionEpic = (action$, store) =>
  * @return {external:Observable}
  */
 export const updateAdditionalLayerEpic = (action$, store) =>
-    action$.ofType(RESET_CURRENT_ASSET, RESET_CURRENT_MISSION, START_SAVING_ASSET, SHOW_ON_MAP )
+    action$.ofType(RESET_CURRENT_ASSET, RESET_CURRENT_MISSION, START_SAVING_ASSET )
         .switchMap((a) => {
             let actions = [];
             const state = store.getState();
@@ -499,9 +508,6 @@ export const updateAdditionalLayerEpic = (action$, store) =>
             const featureMission = missionSelectedFeatureSelector(state);
             const featureDrone = missionSelectedDroneFeatureSelector(state);
 
-            if (a.type === SHOW_ON_MAP) {
-                actions.push(zoomToItem("drone"));
-            }
             if (a.type === RESET_CURRENT_ASSET || a.type === START_SAVING_ASSET ) {
                 actions.push(changeDrawingStatus("clean", "", "sciadro", [], {}, {}));
                 actions.push(onShapeSuccess(null));
@@ -512,6 +518,23 @@ export const updateAdditionalLayerEpic = (action$, store) =>
             actions.push(getAdditionalLayerAction({feature: featureMission, id: "missions", name: "missions", visibility: !!featureMission}));
             actions.push(getAdditionalLayerAction({feature: featureDrone, id: "drone", name: "drone", visibility: !!featureDrone}));
 
+            return Rx.Observable.from(actions);
+        });
+
+/**
+ * Shows in the map the asset's and/or mission's features and drone
+ * @param {external:Observable} action$ manages `RESET_CURRENT_ASSET`, `RESET_CURRENT_MISSION`, START_SAVING_ASSET`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ */
+export const updateDroneAdditionalLayerEpic = (action$, store) =>
+    action$.ofType(SHOW_ON_MAP, UPDATE_DRONE_GEOMETRY )
+        .switchMap(() => {
+            let actions = [];
+            const state = store.getState();
+            const featureDrone = missionSelectedDroneFeatureSelector(state);
+            actions.push(zoomToItem("drone"));
+            actions.push(getAdditionalLayerAction({feature: featureDrone, id: "drone", name: "drone", visibility: !!featureDrone}));
             return Rx.Observable.from(actions);
         });
 

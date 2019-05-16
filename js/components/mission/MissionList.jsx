@@ -19,7 +19,7 @@ import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 import Message from '@mapstore/components/I18N/Message';
 import LoadingWithText from '@js/components/LoadingWithText';
 const SideGridWithLoadingState = compose(
-    loadingState(({loading} ) => loading, {text: "Loading Missions"}, LoadingWithText),
+    loadingState(({loading} ) => loading, {text: <Message msgId="sciadro.missions.loading" />}, LoadingWithText),
     emptyState(
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
@@ -61,7 +61,7 @@ class MissionList extends React.Component {
                             {asset.name}
                         </div>
                         <div className="mission-list-header">
-                            Date Filter Section
+                            <Message msgId="sciadro.missions.dateFilter" />
                         </div>
                     </div>
                 }>

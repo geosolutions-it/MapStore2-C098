@@ -9,7 +9,10 @@
 import expect from "expect";
 import { find } from "lodash";
 import {
+    addStartingOffset,
+    addTelemInterval,
     getAdditionalLayerAction,
+    getTelemetryByTimePlayed,
     getStyleFromType,
     getValidationState,
     getValidationFiles,
@@ -21,8 +24,91 @@ import {
     updateItemAndResetOthers,
     updateItem
 } from "@js/utils/sciadro";
+const telemetriesTest = [
+    {
+        "id": "aaaaaaaa-7cde-48f7-b5fd-4e8ba9ec5f88",
+        "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+        "time": "2019-05-14T07:57:00.000Z",
+        "roll": null,
+        "pitch": null,
+        "yaw": 0.52,
+        "roll_speed": null,
+        "pitch_speed": null,
+        "yaw_speed": null,
+        "altitude": null,
+        "startingOffset": 0,
+        "relative_altitude": null,
+        "location": {
+            "type": "Point",
+            "coordinates": [10.39985, 43.71064]
+        }
+    }, {
+        "id": "aaaabbbb-7cde-48f7-b5fd-4e8ba9ec5f88",
+        "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+        "time": "2019-05-14T07:57:04.400Z",
+        "roll": null,
+        "pitch": null,
+        "yaw": 1.04,
+        "roll_speed": null,
+        "pitch_speed": null,
+        "yaw_speed": null,
+        "altitude": null,
+        "startingOffset": 4400,
+        "relative_altitude": null,
+        "location": {
+            "type": "Point",
+            "coordinates": [10.40085, 43.71064]
+        }
+    }, {
+        "id": "aaaacccc-7cde-48f7-b5fd-4e8ba9ec5f88",
+        "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+        "time": "2019-05-14T07:57:08.800Z",
+        "roll": null,
+        "pitch": null,
+        "yaw": 1.57,
+        "roll_speed": null,
+        "pitch_speed": null,
+        "yaw_speed": null,
+        "altitude": null,
+        "startingOffset": 8800,
+        "relative_altitude": null,
+        "location": {
+        "type": "Point",
+        "coordinates": [10.40184, 43.71064]
+        }
+    }, {
+        "id": "aaaadddd-7cde-48f7-b5fd-4e8ba9ec5f88",
+        "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+        "time": "2019-05-14T07:57:13.200Z",
+        "roll": null,
+        "pitch": null,
+        "yaw": 2.09,
+        "roll_speed": null,
+        "pitch_speed": null,
+        "yaw_speed": null,
+        "altitude": null,
+        "startingOffset": 13200,
+        "relative_altitude": null,
+        "location": {
+        "type": "Point",
+        "coordinates": [10.40284, 43.71064]
+        }
+    }];
 
 describe('testing sciadro utils', () => {
+    it('addStartingOffset', () => {
+
+        const telemetries = addStartingOffset(telemetriesTest);
+        expect(telemetries[0].id).toBe("aaaaaaaa-7cde-48f7-b5fd-4e8ba9ec5f88");
+        expect(telemetries[0].startingOffset).toBe(0);
+
+        // 4400 is the time passed between the previous telem object
+        expect(telemetries[1].startingOffset).toBe(4400);
+    });
+    it('addTelemInterval', () => {
+        const interval = addTelemInterval(telemetriesTest);
+        expect(interval).toBe(4400);
+    });
     it('getAdditionalLayerAction', () => {
         const id = 3;
         const name = "name3";
@@ -35,6 +121,18 @@ describe('testing sciadro utils', () => {
         const name = "name3";
         const action = getAdditionalLayerAction({id, name});
         expect(action).toEqual( { type: 'ADDITIONALLAYER:REMOVE_ADDITIONAL_LAYER', id: 3, owner: undefined });
+    });
+    it('getTelemetryByTimePlayed', () => {
+        let interval = 1500;
+        let telem = getTelemetryByTimePlayed(telemetriesTest, 500, interval);
+        expect(telem).toExist();
+        expect(telem.id).toBe(telemetriesTest[0].id);
+        telem = getTelemetryByTimePlayed(telemetriesTest, 5000, interval);
+        expect(telem).toExist();
+        expect(telem.id).toBe(telemetriesTest[1].id);
+        telem = getTelemetryByTimePlayed(telemetriesTest, 9000, interval);
+        expect(telem).toExist();
+        expect(telem.id).toBe(telemetriesTest[2].id);
     });
     it('getStyleFromType', () => {
         const defaultStyle = getStyleFromType();
@@ -58,7 +156,7 @@ describe('testing sciadro utils', () => {
         expect(getValidationState("")).toBe("warning");
         expect(getValidationState("value")).toBe("success");
     });
-    it('ggetValidationFiles', () => {
+    it('getValidationFiles', () => {
         expect(getValidationFiles()).toBe("success");
         expect(getValidationFiles({isNew: true, files: ""})).toBe("warning");
         expect(getValidationFiles({isNew: true, files: "blob::url"})).toBe("success");

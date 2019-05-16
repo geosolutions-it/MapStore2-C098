@@ -43,6 +43,7 @@ export const START_SAVING_MISSION = "SCIADRO:START_SAVING_MISSION";
 export const START_LOADING_ASSETS = "SCIADRO:START_LOADING_ASSETS";
 export const START_LOADING_ASSETS_ERROR = "SCIADRO:START_LOADING_ASSETS_ERROR";
 export const UPDATE_ASSET = "SCIADRO:UPDATE_ASSET";
+export const UPDATE_DRONE_GEOMETRY = "SCIADRO:UPDATE_DRONE_GEOMETRY";
 export const UPDATE_MISSION = "SCIADRO:UPDATE_MISSION";
 export const ZOOM_TO_ITEM = "SCIADRO:ZOOM_TO_ITEM";
 
@@ -86,6 +87,7 @@ export const startLoadingAssets = () => ({ type: START_LOADING_ASSETS });
 export const startSavingAsset = (id) => ({ type: START_SAVING_ASSET, id });
 export const startSavingMission = (id) => ({ type: START_SAVING_MISSION, id });
 export const updateAsset = (props, id) => ({ type: UPDATE_ASSET, props, id });
+export const updateDroneGeometry = (telemetryId, yaw, geometry, missionId) => ({ type: UPDATE_DRONE_GEOMETRY, telemetryId, yaw, geometry, missionId});
 export const updateMission = (props, id) => ({ type: UPDATE_MISSION, props, id });
 export const zoomToItem = (zoomTo) => ({ type: ZOOM_TO_ITEM, zoomTo });
 

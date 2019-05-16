@@ -19,7 +19,7 @@ import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import LoadingWithText from '@js/components/LoadingWithText';
 const SideGridWithLoadingState = compose(
-    loadingState(({loading}) => loading, {text: "Loading Assets"}, LoadingWithText),
+    loadingState(({loading}) => loading, {text: <Message msgId="sciadro.assets.loading" />}, LoadingWithText),
     emptyState(
         ({loading, items = []} ) => items.length === 0 && !loading,
         {

@@ -6,54 +6,189 @@
     "modified": "2019-04-18T14:45:07.261991Z",
     "note": "this ia a note attribute",
     "feature": {
-      "type": "Feature",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[10.39985, 43.71024], [10.40483, 43.71001]]
-      },
-      "style": {
-        "color": "#FF0000",
-        "weight": 5
-      }
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [
+                [ 10.39985, 43.71064 ],
+                [ 10.40483, 43.71064 ]
+            ]
+        },
+        "style": {
+            "color": "#FF0000",
+            "weight": 5
+        }
     },
-    "telemetries": [],
-    "frames": [{
-      "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
-      "id": "562a9ae4-2ed8-4cd9-91f1-66608dbd7edc",
-      "index": 0,
-      "location": {
-          "type": "Point",
-          "coordinates": [10.39985, 43.71024]
-      }
-  },
-  {
-    "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
-    "id": "562a9ae4-2ed8-4cd9-91f1-666087897edc",
-    "index": 0,
-    "location": {
-        "type": "Point",
-        "coordinates": [10.40483, 43.71001]
-    }
-  }],
-  "objects": [{
-      "frame": "562a9ae4-2ed8-4cd9-91f1-66608dbd7edc",
-      "id": "3c696564-20ae-4512-811c-5eb9a60af2e6",
-      "type": "INS",
-      "status": "UNK",
-      "confidence": 0,
-      "x_min": 0,
-      "x_max": 1024,
-      "y_min": 0,
-      "y_max": 720
-  }, {
-      "frame": "562a9ae4-2ed8-4cd9-91f1-666087897edc",
-      "id": "12696564-20ae-4512-811c-5eb9a60af2e8",
-      "type": "INS",
-      "status": "UNK",
-      "confidence": 0,
-      "x_min": 0,
-      "x_max": 1024,
-      "y_min": 0,
-      "y_max": 720
-  }]
+    "telemetries": [
+        {
+            "id": "aaaaaaaa-7cde-48f7-b5fd-4e8ba9ec5f88",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "time": "2019-05-14T07:57:00.000Z",
+            "roll": null,
+            "pitch": null,
+            "yaw": 0.52,
+            "roll_speed": null,
+            "pitch_speed": null,
+            "yaw_speed": null,
+            "altitude": null,
+            "relative_altitude": null,
+            "location": {
+                "type": "Point",
+                "coordinates": [10.39985, 43.71064]
+            }
+        }, {
+            "id": "aaaabbbb-7cde-48f7-b5fd-4e8ba9ec5f88",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "time": "2019-05-14T07:57:04.400Z",
+            "roll": null,
+            "pitch": null,
+            "yaw": 1.04,
+            "roll_speed": null,
+            "pitch_speed": null,
+            "yaw_speed": null,
+            "altitude": null,
+            "relative_altitude": null,
+            "location": {
+                "type": "Point",
+                "coordinates": [10.40085, 43.71064]
+            }
+        }, {
+            "id": "aaaacccc-7cde-48f7-b5fd-4e8ba9ec5f88",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "time": "2019-05-14T07:57:08.800Z",
+            "roll": null,
+            "pitch": null,
+            "yaw": 1.57,
+            "roll_speed": null,
+            "pitch_speed": null,
+            "yaw_speed": null,
+            "altitude": null,
+            "relative_altitude": null,
+            "location": {
+                "type": "Point",
+                "coordinates": [10.40184, 43.71064]
+            }
+        }, {
+            "id": "aaaadddd-7cde-48f7-b5fd-4e8ba9ec5f88",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "time": "2019-05-14T07:57:13.200Z",
+            "roll": null,
+            "pitch": null,
+            "yaw": 2.09,
+            "roll_speed": null,
+            "pitch_speed": null,
+            "yaw_speed": null,
+            "altitude": null,
+            "relative_altitude": null,
+            "location": {
+                "type": "Point",
+                "coordinates": [10.40284, 43.71064]
+            }
+        }, {
+            "id": "aaaaeeee-7cde-48f7-b5fd-4e8ba9ec5f88",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "time": "2019-05-14T07:57:17.600Z",
+            "roll": null,
+            "pitch": null,
+            "yaw": 2.62,
+            "roll_speed": null,
+            "pitch_speed": null,
+            "yaw_speed": null,
+            "altitude": null,
+            "relative_altitude": null,
+            "location": {
+                "type": "Point",
+                "coordinates": [10.40383, 43.71064]
+            }
+        }, {
+            "id": "aaaaffff-7cde-48f7-b5fd-4e8ba9ec5f88",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "time": "2019-05-14T07:57:22.000Z",
+            "roll": null,
+            "pitch": null,
+            "yaw": 3.14,
+            "roll_speed": null,
+            "pitch_speed": null,
+            "yaw_speed": null,
+            "altitude": null,
+            "relative_altitude": null,
+            "location": {
+                "type": "Point",
+                "coordinates": [10.40483, 43.71064]
+            }
+        }
+    ],
+    "frames": [
+        {
+            "id": "562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "index": 20,
+            "location": {
+                "type": "Point",
+                "coordinates": [
+                    10.40109,
+                    43.71064
+                ]
+            }
+        },
+        {
+            "id": "562a9ae4-2ed8-4cd9-91f1-666087897ed3",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "index": 240,
+            "location": {
+                "type": "Point",
+                "coordinates": [
+                    10.40234,
+                    43.71064
+                ]
+            }
+        },
+        {
+            "id": "562a9ae4-2ed8-4cd9-91f1-666087897ed5",
+            "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+            "index": 400,
+            "location": {
+                "type": "Point",
+                "coordinates": [
+                    10.40483,
+                    43.71064
+                ]
+            }
+        }
+    ],
+    "objects": [
+        {
+            "id": "3c696564-20ae-4512-811c-5eb9a60af2e6",
+            "frame": "562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2",
+            "type": "INS",
+            "status": "UNK",
+            "confidence": 0,
+            "x_min": 0,
+            "x_max": 1024,
+            "y_min": 0,
+            "y_max": 720
+        },
+        {
+            "id": "12696564-20ae-4512-811c-5eb9a60af2e7",
+            "frame": "562a9ae4-2ed8-4cd9-91f1-666087897ed3",
+            "type": "INS",
+            "status": "UNK",
+            "confidence": 0,
+            "x_min": 0,
+            "x_max": 1024,
+            "y_min": 0,
+            "y_max": 720
+        },
+        {
+            "id": "12696564-20ae-4512-811c-5eb9a60af2e8",
+            "frame": "562a9ae4-2ed8-4cd9-91f1-666087897ed5",
+            "type": "INS",
+            "status": "UNK",
+            "confidence": 0,
+            "x_min": 0,
+            "x_max": 1024,
+            "y_min": 0,
+            "y_max": 720
+        }
+    ]
 }

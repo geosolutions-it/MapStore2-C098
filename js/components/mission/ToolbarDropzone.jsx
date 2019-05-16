@@ -9,8 +9,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ButtonToolbar } from 'react-bootstrap';
-
-// import Message from '@mapstore/components/I18N/Message';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 
 /**
