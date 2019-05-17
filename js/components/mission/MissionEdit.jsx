@@ -34,8 +34,8 @@ class MissionEdit extends React.Component {
         className: PropTypes.string,
         formatDate: PropTypes.string,
         savingMission: PropTypes.bool,
-        renderDropZone: PropTypes.func,
-        renderToolbarDropzone: PropTypes.func,
+        dropZoneComponent: PropTypes.func,
+        toolbarDropzoneComponent: PropTypes.func,
         onEditMission: PropTypes.func
     };
     static contextTypes = {
@@ -49,14 +49,14 @@ class MissionEdit extends React.Component {
         missions: [],
         savingMission: false,
         className: "",
-        renderDropZone: () => null,
-        renderToolbarDropzone: () => null,
+        dropZoneComponent: () => null,
+        toolbarDropzoneComponent: () => null,
         onEditMission: () => {}
     };
     render() {
         const mission = this.props.missionEdited;
-        const DropZone = this.props.renderDropZone;
-        const ToolbarDropzone = this.props.renderToolbarDropzone;
+        const DropZone = this.props.dropZoneComponent;
+        const ToolbarDropzone = this.props.toolbarDropzoneComponent;
 
         return (
             <BorderLayout

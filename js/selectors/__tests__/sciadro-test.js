@@ -15,13 +15,13 @@ import {
     assetSelectedSelector,
     assetSelectedFeatureSelector,
     assetZoomLevelSelector,
+    getMissiondDateFilter,
     drawMethodSelector,
     droneZoomLevelSelector,
     enabledSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
     missionsIdSelector,
-    // assetSelectedSciadroResourceIdSelector,
     missionsListSelector,
     missionLoadedSelector,
     missionCurrentSelector,
@@ -112,6 +112,26 @@ describe('testing sciadro selectors', () => {
                 assetZoomLevel: 18
             }
         })).toEqual(18);
+    });
+    it('getMissiondDateFilter', () => {
+        const id = 2;
+        const fieldValue = {startDate: "2019-05-17T12:37:16.167Z", endDate: "2029-05-17T12:37:16.167Z"};
+        expect(getMissiondDateFilter({})({id})).toEqual({id});
+        expect(getMissiondDateFilter({
+            dateValueForFilter: fieldValue,
+            fieldValue,
+            operator: ">="
+        })({attributes: {created: "2020-05-17T12:37:16.167Z"} })).toEqual(true);
+        expect(getMissiondDateFilter({
+            dateValueForFilter: fieldValue,
+            fieldValue,
+            operator: "><"
+        })({attributes: {created: "2020-05-17T12:37:16.167Z"} })).toEqual(true);
+        expect(getMissiondDateFilter({
+            dateValueForFilter: fieldValue,
+            fieldValue,
+            operator: "><"
+        })({attributes: {created: "2120-05-17T12:37:16.167Z"} })).toEqual(false);
     });
     it('drawMethodSelector', () => {
         const drawMethod = "Marker";

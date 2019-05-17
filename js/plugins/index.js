@@ -158,8 +158,8 @@ export const AssetEditConnected = connect(createSelector([
     savingAssetSelector
 ], (assets, assetEdited, savingAsset) => ({
     assets, assetEdited, savingAsset,
-    renderDropZone: ShapeFileConnected,
-    renderToolbarGeom: ToolbarGeomConnected
+    dropZoneComponent: ShapeFileConnected,
+    toolbarGeometryComponent: ToolbarGeomConnected
 })), {
     onEditAsset: editAsset
 })(AssetEdit);
@@ -188,7 +188,7 @@ export const MissionListConnected = connect(createSelector([
     loadingMissionsSelector
 ], (assetCurrent, assets, missions, loadingMissions) => ({
     assetCurrent, assets, missions, loadingMissions,
-    renderDateFilter: MissionDateFilterConnected
+    dateFilterComponent: MissionDateFilterConnected
 })), {
     onSelectMission: selectMission,
     onChangeCurrentMission: changeCurrentMission
@@ -210,8 +210,8 @@ export const MissionEditConnected = connect(createSelector([
     missionsListSelector, missionEditedSelector, savingMissionSelector
 ], (missions, missionEdited, savingMission) => ({
     missions, missionEdited, savingMission,
-    renderDropZone: MissionFileUploadConnected,
-    renderToolbarDropzone: ToolbarDropzoneConnected
+    dropZoneComponent: MissionFileUploadConnected,
+    toolbarDropzoneComponent: ToolbarDropzoneConnected
 })), {
     onEditMission: editMission
 })(MissionEdit);
@@ -233,7 +233,7 @@ export const MissionDetailConnected = connect(createSelector([
     missionSelectedSelector
 ], (mode, missions, missionSelected) => ({
     mode, missions, missionSelected,
-    renderAnomaliesList: AnomaliesListConnected
+    anomaliesListComponent: AnomaliesListConnected
 })), {
     onUpdateDroneGeometry: updateDroneGeometry
 })(MissionDetail);

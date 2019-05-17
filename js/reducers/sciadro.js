@@ -84,6 +84,10 @@ export default function sciadro(state = {
                     fieldValue: {
                         startDate: null,
                         endDate: null
+                    },
+                    dateValueForFilter: {
+                        startDate: null,
+                        endDate: null
                     }
                 }
             };
@@ -295,29 +299,13 @@ export default function sciadro(state = {
             };
         }
         case FILTER_MISSION_BY_DATE: {
-            const startDate = new Date(state.dateFilter.fieldValue.startDate);
-            const endDate = new Date(state.dateFilter.fieldValue.endDate);
-            switch (state.dateFilter.operator) {
-                case "><": {
-                    return {
-                        ...state,
-                        missionDateFilter: mission => {
-                            const created = new Date(mission.attributes.created);
-                            return startDate <= created && created <= endDate;
-                        }
-                    };
+            return {
+                ...state,
+                dateFilter: {
+                    ...state.dateFilter,
+                    dateValueForFilter: state.dateFilter.fieldValue
                 }
-                case ">=": {
-                    return {
-                        ...state,
-                        missionDateFilter: mission => {
-                            const created = new Date(mission.attributes.created);
-                            return startDate <= created;
-                        }
-                    };
-                }
-                default: return state;
-            }
+            };
         }
         case LOADED_ASSETS: {
             return {
@@ -481,7 +469,11 @@ export default function sciadro(state = {
             let operator = action.value.endDate ? "><" : ">=";
             return {
                 ...state,
-                dateFilter: {...state.dateFilter, fieldValue: action.value, operator}
+                dateFilter: {
+                    ...state.dateFilter,
+                    fieldValue: action.value,
+                    operator
+                }
             };
         }
         case UPDATE_DRONE_GEOMETRY: {

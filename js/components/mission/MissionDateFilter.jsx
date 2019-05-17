@@ -10,7 +10,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import DateField from '@mapstore/components/data/query/DateField';
-// import Message from '@mapstore/components/I18N/Message';
 import {getDateTimeFormat} from '@mapstore/utils/TimeUtils';
 import {Col} from 'react-bootstrap';
 

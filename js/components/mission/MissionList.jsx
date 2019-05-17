@@ -38,7 +38,7 @@ class MissionList extends React.Component {
         loadingMissions: PropTypes.bool,
         onChangeCurrentMission: PropTypes.func,
         onSelectMission: PropTypes.func,
-        renderDateFilter: PropTypes.func
+        dateFilterComponent: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -49,12 +49,12 @@ class MissionList extends React.Component {
         missions: [],
         onChangeCurrentMission: () => {},
         onSelectMission: () => {},
-        renderDateFilter: () => null
+        dateFilterComponent: () => null
     };
 
     render() {
         const asset = this.props.assetCurrent;
-        const MissionDateFilter = this.props.renderDateFilter;
+        const MissionDateFilter = this.props.dateFilterComponent;
         return (
             <BorderLayout
                 header={

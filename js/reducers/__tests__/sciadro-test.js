@@ -416,7 +416,7 @@ describe('testing sciadro reducers', () => {
         expect(state.saveDisabled).toEqual(false);
         expect(state.mode).toEqual("mission-list");
     });
-    it('FILTER_MISSION_BY_DATE from only, operator ont supported', () => {
+    it('FILTER_MISSION_BY_DATE', () => {
         const missions = [{id: 2, current: true, name: "mission 2", created: "2019-05-17T09:54:33.681Z"}];
         const dateFilter = {
             fieldValue: {
@@ -426,35 +426,7 @@ describe('testing sciadro reducers', () => {
             error: null
         };
         const state = sciadro({missions, dateFilter}, filterMissionByDate());
-        expect(state).toEqual({missions, dateFilter});
-    });
-    it('FILTER_MISSION_BY_DATE from only', () => {
-        const missions = [{id: 2, current: true, name: "mission 2", created: "2019-05-17T09:54:33.681Z"}];
-        const dateFilter = {
-            fieldValue: {
-                startDate: "2019-05-17T09:54:33.681Z"
-            },
-            operator: ">=",
-            error: null
-        };
-        const state = sciadro({missions, dateFilter}, filterMissionByDate());
-        expect(state.missionDateFilter({attributes: {created: "2020-05-17T09:54:33.681Z"}})).toEqual(true);
-        expect(state.missionDateFilter({attributes: {created: "2018-05-17T09:54:33.681Z"}})).toEqual(false);
-    });
-    it('FILTER_MISSION_BY_DATE from and to', () => {
-        const missions = [{id: 2, current: true, name: "mission 2", created: "2019-05-17T09:54:33.681Z"}];
-        const dateFilter = {
-            fieldValue: {
-                startDate: "2019-05-17T09:54:33.681Z",
-                endDate: "2021-05-17T09:54:33.681Z"
-            },
-            operator: "><",
-            error: null
-        };
-        const state = sciadro({missions, dateFilter}, filterMissionByDate());
-        expect(state.missionDateFilter({attributes: {created: "2020-05-17T09:54:33.681Z"}})).toEqual(true);
-        expect(state.missionDateFilter({attributes: {created: "2032-05-17T09:54:33.681Z"}})).toEqual(false);
-        expect(state.missionDateFilter({attributes: {created: "2012-05-17T09:54:33.681Z"}})).toEqual(false);
+        expect(state.dateFilter.dateValueForFilter).toEqual(dateFilter.fieldValue);
     });
     it('LOADED_ASSETS', () => {
         const assets = [];

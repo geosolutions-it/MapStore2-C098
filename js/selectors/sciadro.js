@@ -21,18 +21,43 @@ export const droneZoomLevelSelector = state => get(state, "sciadro.droneZoomLeve
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
 export const loadingAssetsSelector = state => get(state, "sciadro.loadingAssets", false);
 export const loadingMissionsSelector = state => get(state, "sciadro.loadingMissions", false);
-export const missionDateFilterSelector = state => get(state, "sciadro.missionDateFilter", m => m);
 export const missionsIdSelector = state => {
     const assetSelected = assetSelectedSelector(state);
     const missionIds = get(assetSelected, "attributes.missionsId", "");
     return missionIds && `${missionIds}`.split(",").map(v => parseInt(v, 10)) || [];
 };
+
+export const getMissiondDateFilter = (dateFilter = {}) => {
+    if (dateFilter.dateValueForFilter) {
+        switch (dateFilter.operator) {
+            case "><": {
+                return mission => {
+                    const startDate = new Date(dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.startDate);
+                    const endDate = new Date(dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.endDate);
+                    const created = new Date(mission.attributes.created);
+                    return startDate <= created && created <= endDate;
+                };
+            }
+            case ">=": {
+                return mission => {
+                    const startDate = new Date(dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.startDate);
+                    const created = new Date(mission.attributes.created);
+                    return startDate <= created;
+                };
+            }
+            default: return m => m;
+        }
+    }
+    return m => m;
+};
 export const missionsListSelector = state => {
     const missionsIds = missionsIdSelector(state);
     const missions = get(state, "sciadro.missions", []);
+    const dateFilter = dateFilterSelector(state);
+    const missionDateFilter = getMissiondDateFilter(dateFilter);
     return missions
         .filter(m => includes(missionsIds, m.id) || m.isNew) // filter missions of the selected asset
-        .filter(missionDateFilterSelector(state)); // filter missions using date creation
+        .filter(missionDateFilter); // filter missions using date creation
 };
 export const missionLoadedSelector = state => {
     const asset = assetSelectedSelector(state);
