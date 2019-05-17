@@ -20,12 +20,13 @@ import MissionList from '@js/components/mission/MissionList';
 import Toolbar from '@js/components/Toolbar';
 import ToolbarGeometry from '@js/components/asset/ToolbarGeometry';
 import ToolbarDropzone from '@js/components/mission/ToolbarDropzone';
+import MissionDateFilter from '@js/components/mission/MissionDateFilter';
 
 import {
     addFeatureAsset,
+    clearMissionDateFilter,
     changeCurrentAsset,
     changeCurrentMission,
-    changeMode,
     deleteAssetFeature,
     drawAsset,
     downloadFrame,
@@ -37,6 +38,7 @@ import {
     enterCreateItem,
     enterEditItem,
     fileLoading,
+    filterMissionByDate,
     hideAdditionalLayer,
     resetCurrentAsset,
     resetCurrentMission,
@@ -46,6 +48,8 @@ import {
     startLoadingAssets,
     startSavingAsset,
     startSavingMission,
+    updateDateFilterValue,
+    updateDateFilterException,
     updateDroneGeometry,
     zoomToItem
 } from '@js/actions/sciadro';
@@ -53,8 +57,10 @@ import {
 import {
     anomaliesListSelector,
     assetsListSelector,
+    assetCurrentSelector,
     assetEditedSelector,
     assetSelectedSelector,
+    dateFilterSelector,
     drawMethodSelector,
     isAssetEditSelector,
     loadingAssetsSelector,
@@ -166,12 +172,23 @@ export const AssetPermissionConnected = connect(createSelector([
      // action: actionCreator
 })(AssetPermission);
 
+export const MissionDateFilterConnected = connect(createSelector([
+    dateFilterSelector
+], (dateFilter) => ({
+    dateFilter
+})), {
+    onUpdateDateFilterValue: updateDateFilterValue,
+    onUpdateDateFilterException: updateDateFilterException
+})(MissionDateFilter);
+
 export const MissionListConnected = connect(createSelector([
+    assetCurrentSelector,
     assetsListSelector,
     missionsListSelector,
     loadingMissionsSelector
-], (assets, missions, loadingMissions) => ({
-    assets, missions, loadingMissions
+], (assetCurrent, assets, missions, loadingMissions) => ({
+    assetCurrent, assets, missions, loadingMissions,
+    renderDateFilter: MissionDateFilterConnected
 })), {
     onSelectMission: selectMission,
     onChangeCurrentMission: changeCurrentMission
@@ -237,13 +254,14 @@ export const ToolbarConnected = connect(createSelector([
     assets, missions, mode, drawMethod, assetEdited,
     assetSelected, missionSelected, buttonsStatus, missionEdited
 })), {
-    onChangeMode: changeMode,
-    onResetCurrentAsset: resetCurrentAsset,
-    onZoomToItem: zoomToItem,
-    onEnterenterCreateItem: enterCreateItem,
+    onClearMissionDateFilter: clearMissionDateFilter,
+    onEnterCreateItem: enterCreateItem,
     onEnterEditItem: enterEditItem,
+    onFilterMissionByDate: filterMissionByDate,
+    onHideAdditionalLayer: hideAdditionalLayer,
+    onResetCurrentAsset: resetCurrentAsset,
     onResetCurrentMission: resetCurrentMission,
     onStartSavingAsset: startSavingAsset,
     onStartSavingMission: startSavingMission,
-    onHideAdditionalLayer: hideAdditionalLayer
+    onZoomToItem: zoomToItem
 })(Toolbar);

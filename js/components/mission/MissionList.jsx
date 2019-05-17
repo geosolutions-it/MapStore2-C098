@@ -8,7 +8,6 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {find} from 'lodash';
 import {compose} from 'recompose';
 
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
@@ -35,9 +34,11 @@ class MissionList extends React.Component {
     static propTypes = {
         missions: PropTypes.array,
         assets: PropTypes.array,
+        assetCurrent: PropTypes.object,
         loadingMissions: PropTypes.bool,
         onChangeCurrentMission: PropTypes.func,
-        onSelectMission: PropTypes.func
+        onSelectMission: PropTypes.func,
+        renderDateFilter: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -47,12 +48,13 @@ class MissionList extends React.Component {
         loadingMissions: false,
         missions: [],
         onChangeCurrentMission: () => {},
-        onSelectMission: () => {}
+        onSelectMission: () => {},
+        renderDateFilter: () => null
     };
 
     render() {
-        const asset = find(this.props.assets, a => a.current) || {};
-
+        const asset = this.props.assetCurrent;
+        const MissionDateFilter = this.props.renderDateFilter;
         return (
             <BorderLayout
                 header={
@@ -61,7 +63,7 @@ class MissionList extends React.Component {
                             {asset.name}
                         </div>
                         <div className="mission-list-header">
-                            <Message msgId="sciadro.missions.dateFilter" />
+                            <MissionDateFilter/>
                         </div>
                     </div>
                 }>

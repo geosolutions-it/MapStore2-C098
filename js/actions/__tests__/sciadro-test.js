@@ -9,6 +9,7 @@
 import expect from "expect";
 import {
     addFeatureAsset, ADD_FEATURE_ASSET,
+    clearMissionDateFilter, CLEAR_MISSION_DATE_FILTER,
     changeCurrentAsset, CHANGE_CURRENT_ASSET,
     changeCurrentMission, CHANGE_CURRENT_MISSION,
     changeMode, CHANGE_MODE,
@@ -25,8 +26,9 @@ import {
     endSaveMission, END_SAVE_MISSION,
     enterCreateItem, ENTER_CREATE_ITEM,
     enterEditItem, ENTER_EDIT_ITEM,
-    hideAdditionalLayer, HIDE_ADDITIONAL_LAYER,
     fileLoading, FILE_LOADING,
+    filterMissionByDate, FILTER_MISSION_BY_DATE,
+    hideAdditionalLayer, HIDE_ADDITIONAL_LAYER,
     loadedAssets, LOADED_ASSETS,
     loadedMissions, LOADED_MISSIONS,
     loadingAssets, LOADING_ASSETS,
@@ -43,6 +45,8 @@ import {
     startSavingMission, START_SAVING_MISSION,
     selectMission, SELECT_MISSION,
     updateAsset, UPDATE_ASSET,
+    updateDateFilterException, UPDATE_DATE_FILTER_EXCEPTION,
+    updateDateFilterValue, UPDATE_DATE_FILTER_VALUE,
     updateDroneGeometry, UPDATE_DRONE_GEOMETRY,
     updateMission, UPDATE_MISSION,
     zoomToItem, ZOOM_TO_ITEM,
@@ -65,6 +69,10 @@ describe('testing sciadro actions', () => {
         const action = addFeatureAsset(layer);
         expect(action.type).toEqual(ADD_FEATURE_ASSET);
         expect(action.layer).toEqual(layer);
+    });
+    it('clearMissionDateFilter', () => {
+        const action = clearMissionDateFilter();
+        expect(action.type).toEqual(CLEAR_MISSION_DATE_FILTER);
     });
     it('changeCurrentAsset', () => {
         const id = 1;
@@ -176,17 +184,21 @@ describe('testing sciadro actions', () => {
         expect(action.mode).toEqual(mode);
         expect(action.id).toEqual(id);
     });
-    it('hideAdditionalLayer', () => {
-        const id = 1;
-        const action = hideAdditionalLayer(id);
-        expect(action.type).toEqual(HIDE_ADDITIONAL_LAYER);
-        expect(action.id).toEqual(id);
-    });
     it('fileLoading ', () => {
         const loading = true;
         const action = fileLoading(loading);
         expect(action.type).toEqual(FILE_LOADING);
         expect(action.loading).toEqual(loading);
+    });
+    it('filterMissionByDate ', () => {
+        const action = filterMissionByDate();
+        expect(action.type).toEqual(FILTER_MISSION_BY_DATE);
+    });
+    it('hideAdditionalLayer', () => {
+        const id = 1;
+        const action = hideAdditionalLayer(id);
+        expect(action.type).toEqual(HIDE_ADDITIONAL_LAYER);
+        expect(action.id).toEqual(id);
     });
     it('loadedAssets', () => {
         const assets = [];
@@ -273,6 +285,26 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(UPDATE_ASSET);
         expect(action.id).toEqual(id);
         expect(action.props).toEqual(props);
+    });
+    it('updateDateFilterException', () => {
+        const fieldRowId = 1;
+        const error = "error";
+        const action = updateDateFilterException(fieldRowId, error);
+        expect(action.type).toEqual(UPDATE_DATE_FILTER_EXCEPTION);
+        expect(action.fieldRowId).toEqual(fieldRowId);
+        expect(action.error).toEqual(error);
+    });
+    it('updateDateFilterValue', () => {
+        const fieldRowId = 1;
+        const fieldName = "fieldName";
+        const value = {startDate: "2018-03-02T00:00:00Z"};
+        const attType = "date";
+        const action = updateDateFilterValue(fieldRowId, fieldName, value, attType);
+        expect(action.type).toEqual(UPDATE_DATE_FILTER_VALUE);
+        expect(action.fieldRowId).toEqual(fieldRowId);
+        expect(action.fieldName).toEqual(fieldName);
+        expect(action.value).toEqual(value);
+        expect(action.attType).toEqual(attType);
     });
     it('updateDroneGeometry', () => {
         const telemetryId = 1;

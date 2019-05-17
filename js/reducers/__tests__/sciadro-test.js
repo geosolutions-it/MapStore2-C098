@@ -9,6 +9,7 @@
 import expect from "expect";
 import sciadro from "@js/reducers/sciadro";
 import {
+    clearMissionDateFilter,
     changeCurrentAsset,
     changeCurrentMission,
     changeMode,
@@ -25,6 +26,7 @@ import {
     endSaveMission,
     enterCreateItem,
     enterEditItem,
+    filterMissionByDate,
     loadedAssets,
     loadedMissions,
     loadingAssets,
@@ -40,6 +42,8 @@ import {
     startSavingAsset,
     startSavingMission,
     updateAsset,
+    updateDateFilterException,
+    updateDateFilterValue,
     updateDroneGeometry,
     updateMission
 } from "@js/actions/sciadro";
@@ -55,6 +59,20 @@ describe('testing sciadro reducers', () => {
         const stateBefore = {assets};
         const stateAfter = sciadro(stateBefore, {type: 'UNKNOWN'});
         expect(stateBefore).toBe(stateAfter);
+    });
+    it('CLEAR_MISSION_DATE_FILTER', () => {
+        const dateFilter = {
+            fieldValue: {
+                startDate: "2019-05-17T09:54:33.681Z"
+            },
+            operator: ">=",
+            error: null
+        };
+        const state = sciadro({dateFilter}, clearMissionDateFilter(2));
+        expect(state.dateFilter.fieldValue.startDate).toBe(null);
+        expect(state.dateFilter.error).toBe(null);
+        expect(typeof state.missionDateFilter).toEqual("function");
+        expect(state.missionDateFilter({id: 4})).toEqual({id: 4});
     });
     it('CHANGE_CURRENT_ASSET, one is selected then view detail of another one', () => {
         const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", selected: true}];
@@ -398,6 +416,46 @@ describe('testing sciadro reducers', () => {
         expect(state.saveDisabled).toEqual(false);
         expect(state.mode).toEqual("mission-list");
     });
+    it('FILTER_MISSION_BY_DATE from only, operator ont supported', () => {
+        const missions = [{id: 2, current: true, name: "mission 2", created: "2019-05-17T09:54:33.681Z"}];
+        const dateFilter = {
+            fieldValue: {
+                startDate: "2019-05-17T09:54:33.681Z"
+            },
+            operator: ">",
+            error: null
+        };
+        const state = sciadro({missions, dateFilter}, filterMissionByDate());
+        expect(state).toEqual({missions, dateFilter});
+    });
+    it('FILTER_MISSION_BY_DATE from only', () => {
+        const missions = [{id: 2, current: true, name: "mission 2", created: "2019-05-17T09:54:33.681Z"}];
+        const dateFilter = {
+            fieldValue: {
+                startDate: "2019-05-17T09:54:33.681Z"
+            },
+            operator: ">=",
+            error: null
+        };
+        const state = sciadro({missions, dateFilter}, filterMissionByDate());
+        expect(state.missionDateFilter({attributes: {created: "2020-05-17T09:54:33.681Z"}})).toEqual(true);
+        expect(state.missionDateFilter({attributes: {created: "2018-05-17T09:54:33.681Z"}})).toEqual(false);
+    });
+    it('FILTER_MISSION_BY_DATE from and to', () => {
+        const missions = [{id: 2, current: true, name: "mission 2", created: "2019-05-17T09:54:33.681Z"}];
+        const dateFilter = {
+            fieldValue: {
+                startDate: "2019-05-17T09:54:33.681Z",
+                endDate: "2021-05-17T09:54:33.681Z"
+            },
+            operator: "><",
+            error: null
+        };
+        const state = sciadro({missions, dateFilter}, filterMissionByDate());
+        expect(state.missionDateFilter({attributes: {created: "2020-05-17T09:54:33.681Z"}})).toEqual(true);
+        expect(state.missionDateFilter({attributes: {created: "2032-05-17T09:54:33.681Z"}})).toEqual(false);
+        expect(state.missionDateFilter({attributes: {created: "2012-05-17T09:54:33.681Z"}})).toEqual(false);
+    });
     it('LOADED_ASSETS', () => {
         const assets = [];
         const state = sciadro({assets: []}, loadedAssets(assets));
@@ -605,6 +663,21 @@ describe('testing sciadro reducers', () => {
         const asset = find(state.assets, item => item.id === id);
         expect(asset.feature).toEqual({type: "Feature"});
         expect(asset.name).toEqual("tre");
+    });
+    it('UPDATE_DATE_FILTER_EXCEPTION', () => {
+        const fieldRowId = "fieldRowId";
+        const error = "rangError";
+        const state = sciadro({}, updateDateFilterException(fieldRowId, error));
+        expect(state.dateFilter.error).toEqual(error);
+    });
+    it('UPDATE_DATE_FILTER_VALUE', () => {
+        const fieldRowId = 1;
+        const fieldName = "fieldName";
+        const value = {startDate: "2018-03-02T00:00:00Z"};
+        const attType = "date";
+        const state = sciadro({}, updateDateFilterValue(fieldRowId, fieldName, value, attType));
+        expect(state.dateFilter.error).toEqual(undefined);
+        expect(state.dateFilter).toEqual({ fieldValue: { startDate: '2018-03-02T00:00:00Z' }, operator: '>=' });
     });
     it('UPDATE_DRONE_GEOMETRY', () => {
         const missionId = 2;

@@ -10,15 +10,18 @@ import {get, find, includes} from 'lodash';
 
 export const assetsListSelector = state => get(state, "sciadro.assets", []);
 export const assetEditedSelector = state => find(assetsListSelector(state), a => a.edit) || null;
+export const assetCurrentSelector = state => find(assetsListSelector(state), a => a.current) || null;
 export const assetSelectedSelector = state => find(assetsListSelector(state), a => a.selected) || null;
 export const assetSelectedFeatureSelector = state => get(assetSelectedSelector(state), "feature");
 export const assetZoomLevelSelector = state => get(state, "sciadro.assetZoomLevel", 10);
 
+export const dateFilterSelector = state => get(state, "sciadro.dateFilter", {});
 export const drawMethodSelector = state => get(state, "sciadro.drawMethod", "");
 export const droneZoomLevelSelector = state => get(state, "sciadro.droneZoomLevel", 18);
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
-export const loadingAssetsSelector = state => state && get(state, "sciadro.loadingAssets", false);
-export const loadingMissionsSelector = state => state && get(state, "sciadro.loadingMissions", false);
+export const loadingAssetsSelector = state => get(state, "sciadro.loadingAssets", false);
+export const loadingMissionsSelector = state => get(state, "sciadro.loadingMissions", false);
+export const missionDateFilterSelector = state => get(state, "sciadro.missionDateFilter", m => m);
 export const missionsIdSelector = state => {
     const assetSelected = assetSelectedSelector(state);
     const missionIds = get(assetSelected, "attributes.missionsId", "");
@@ -27,7 +30,9 @@ export const missionsIdSelector = state => {
 export const missionsListSelector = state => {
     const missionsIds = missionsIdSelector(state);
     const missions = get(state, "sciadro.missions", []);
-    return missions.filter(m => includes(missionsIds, m.id) || m.isNew);
+    return missions
+        .filter(m => includes(missionsIds, m.id) || m.isNew) // filter missions of the selected asset
+        .filter(missionDateFilterSelector(state)); // filter missions using date creation
 };
 export const missionLoadedSelector = state => {
     const asset = assetSelectedSelector(state);
@@ -54,6 +59,7 @@ export const toolbarButtonsStatusSelector = state => {
     const mode = modeSelector(state);
     const assetSelected = assetSelectedSelector(state);
     const missionSelected = missionSelectedSelector(state);
+    const {error: dateError, fieldValue = {}} = dateFilterSelector(state);
     return {
         back: mode !== "asset-list",
         add: mode.indexOf("list") !== -1,
@@ -62,6 +68,15 @@ export const toolbarButtonsStatusSelector = state => {
         saveError: {
             visible: !!saveErrorSelector(state) && mode.indexOf("edit") !== -1,
             message: saveErrorSelector(state)
+        },
+        searchDate: {
+            disabled: fieldValue && !fieldValue.startDate,
+            error: dateError,
+            visible: mode === "mission-list"
+        },
+        clearFilter: {
+            disabled: fieldValue && !(fieldValue.startDate || fieldValue.endDate),
+            visible: mode === "mission-list"
         },
         edit: (mode === "mission-list" && !!missionSelected || mode === "asset-list" && !!assetSelected),
         zoom: (missionSelected && (mode === "mission-list" || mode === "mission-detail") || assetSelected && mode === "asset-list"),
