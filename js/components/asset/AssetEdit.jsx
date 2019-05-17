@@ -36,8 +36,8 @@ class AssetEdit extends React.Component {
         formatDate: PropTypes.string,
         savingAsset: PropTypes.bool,
         onEditAsset: PropTypes.func,
-        renderDropZone: PropTypes.func,
-        renderToolbarGeom: PropTypes.func
+        dropZoneComponent: PropTypes.func,
+        toolbarGeometryComponent: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -54,14 +54,14 @@ class AssetEdit extends React.Component {
         ],
         className: "",
         onEditAsset: () => {},
-        renderDropZone: () => null,
-        renderToolbarGeom: () => null
+        dropZoneComponent: () => null,
+        toolbarGeometryComponent: () => null
     };
 
     render() {
         const asset = this.props.assetEdited;
-        const DropZone = this.props.renderDropZone;
-        const ToolbarGeom = this.props.renderToolbarGeom;
+        const DropZone = this.props.dropZoneComponent;
+        const ToolbarGeom = this.props.toolbarGeometryComponent;
         return (
             <BorderLayout
                 className="padding15" >

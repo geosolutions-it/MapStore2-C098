@@ -21,6 +21,15 @@ const defaultButtonsStatus = {
         message: "",
         visible: false
     },
+    searchDate: {
+        disaled: true,
+        error: true,
+        visible: false
+    },
+    clearFilter: {
+        disaled: true,
+        visible: false
+    },
     edit: false,
     add: false,
     save: false,

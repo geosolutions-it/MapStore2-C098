@@ -11,7 +11,7 @@ const paths = {
     code: [path.join(__dirname, "js"), path.join(__dirname, "MapStore2", "web", "client")]
 };
 
-module.exports = require('./MapStore2/build/buildConfig')(
+const config = require('./MapStore2/build/buildConfig')(
     {
         'sciadro': path.join(__dirname, "js", "sciadro"),
         'themes-sciadro': path.join(__dirname, "assets", "themes", "sciadro.less") // custom theme for sciadro
@@ -31,3 +31,9 @@ module.exports = require('./MapStore2/build/buildConfig')(
         })
     ]
 );
+config.resolve.alias = {
+    '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
+    '@js': path.resolve(__dirname, 'js')
+};
+
+module.exports = config;

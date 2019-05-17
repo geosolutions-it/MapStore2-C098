@@ -7,8 +7,8 @@
             "mandatory": "* mandatory fields",
             "back": "Back",
             "save": "Save",
-            "no-assets": "No assets found, please add one",
-            "no-missions": "No missions found, please add one",
+            "no-assets": "No assets found, please add one or change filter",
+            "no-missions": "No missions found, please add one or change filter",
             "rest": {
                 "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
                 "loadError": "An error occured while loading the assets resources. Please contact the web admin in order to verify this problem",
@@ -58,6 +58,10 @@
                 }
             },
             "missions": {
+                "clearFilter": "Clear Filter",
+                "selectOperator": "Select",
+                "filterByDate": "Search with this date filter",
+                "filterByDateError": "Date range is wrong",
                 "dateFilter": "Date Filter Section",
                 "loading": "Loading Missions",
                 "detail": "View mission details",

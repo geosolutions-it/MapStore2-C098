@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import {error, success} from "@mapstore/actions/notifications";
 export const ADD_FEATURE_ASSET = "SCIADRO:ADD_FEATURE_ASSET";
+export const CLEAR_MISSION_DATE_FILTER = "SCIADRO:CLEAR_MISSION_DATE_FILTER";
 export const CHANGE_CURRENT_ASSET = "SCIADRO:CHANGE_CURRENT_ASSET";
 export const CHANGE_CURRENT_MISSION = "SCIADRO:CHANGE_CURRENT_MISSION";
 export const CHANGE_MODE = "SCIADRO:CHANGE_MODE";
@@ -26,6 +26,7 @@ export const ENTER_CREATE_ITEM = "SCIADRO:ENTER_CREATE_ITEM";
 export const ENTER_EDIT_ITEM = "SCIADRO:ENTER_EDIT_ITEM";
 export const HIDE_ADDITIONAL_LAYER = "SCIADRO:HIDE_ADDITIONAL_LAYER";
 export const FILE_LOADING = "SCIADRO:FILE_LOADING";
+export const FILTER_MISSION_BY_DATE = "SCIADRO:FILTER_MISSION_BY_DATE";
 export const LOADED_ASSETS = "SCIADRO:LOADED_ASSETS";
 export const LOADED_MISSIONS = "SCIADRO:LOADED_MISSIONS";
 export const LOADING_ASSETS = "SCIADRO:LOADING_ASSETS";
@@ -43,6 +44,8 @@ export const START_SAVING_MISSION = "SCIADRO:START_SAVING_MISSION";
 export const START_LOADING_ASSETS = "SCIADRO:START_LOADING_ASSETS";
 export const START_LOADING_ASSETS_ERROR = "SCIADRO:START_LOADING_ASSETS_ERROR";
 export const UPDATE_ASSET = "SCIADRO:UPDATE_ASSET";
+export const UPDATE_DATE_FILTER_EXCEPTION = "SCIADRO:UPDATE_DATE_FILTER_EXCEPTION";
+export const UPDATE_DATE_FILTER_VALUE = "SCIADRO:UPDATE_DATE_FILTER_VALUE";
 export const UPDATE_DRONE_GEOMETRY = "SCIADRO:UPDATE_DRONE_GEOMETRY";
 export const UPDATE_MISSION = "SCIADRO:UPDATE_MISSION";
 export const ZOOM_TO_ITEM = "SCIADRO:ZOOM_TO_ITEM";
@@ -53,6 +56,7 @@ export const ZOOM_TO_ITEM = "SCIADRO:ZOOM_TO_ITEM";
  * @param {object} layer in mapstore
 */
 export const addFeatureAsset = (layer) => ({ type: ADD_FEATURE_ASSET, layer });
+export const clearMissionDateFilter = () => ({ type: CLEAR_MISSION_DATE_FILTER });
 export const changeCurrentAsset = (id) => ({ type: CHANGE_CURRENT_ASSET, id });
 export const changeCurrentMission = (id) => ({ type: CHANGE_CURRENT_MISSION, id });
 export const changeMode = (mode) => ({ type: CHANGE_MODE, mode });
@@ -69,8 +73,9 @@ export const endSaveAsset = (id) => ({ type: END_SAVE_ASSET, id });
 export const endSaveMission = (id) => ({ type: END_SAVE_MISSION, id });
 export const enterCreateItem = (mode) => ({ type: ENTER_CREATE_ITEM, mode });
 export const enterEditItem = (mode, id) => ({ type: ENTER_EDIT_ITEM, mode, id });
-export const hideAdditionalLayer = (id) => ({ type: HIDE_ADDITIONAL_LAYER, id });
 export const fileLoading = (loading) => ({ type: FILE_LOADING, loading });
+export const filterMissionByDate = () => ({ type: FILTER_MISSION_BY_DATE });
+export const hideAdditionalLayer = (id) => ({ type: HIDE_ADDITIONAL_LAYER, id });
 export const loadedAssets = (assets) => ({ type: LOADED_ASSETS, assets });
 export const loadedMissions = (missions) => ({ type: LOADED_MISSIONS, missions });
 export const loadingAssetFeature = (loading) => ({ type: LOADING_ASSET_FEATURE, loading });
@@ -87,9 +92,13 @@ export const startLoadingAssets = () => ({ type: START_LOADING_ASSETS });
 export const startSavingAsset = (id) => ({ type: START_SAVING_ASSET, id });
 export const startSavingMission = (id) => ({ type: START_SAVING_MISSION, id });
 export const updateAsset = (props, id) => ({ type: UPDATE_ASSET, props, id });
+export const updateDateFilterException = (fieldRowId, error) => ({ type: UPDATE_DATE_FILTER_EXCEPTION, fieldRowId, error });
+export const updateDateFilterValue = (fieldRowId, fieldName, value, attType) => ({ type: UPDATE_DATE_FILTER_VALUE, fieldRowId, fieldName, value, attType });
 export const updateDroneGeometry = (telemetryId, yaw, geometry, missionId) => ({ type: UPDATE_DRONE_GEOMETRY, telemetryId, yaw, geometry, missionId});
 export const updateMission = (props, id) => ({ type: UPDATE_MISSION, props, id });
 export const zoomToItem = (zoomTo) => ({ type: ZOOM_TO_ITEM, zoomTo });
+
+import {error, success} from "@mapstore/actions/notifications";
 
 // feedbacks
 // TODO we need to align the feedbacks to behave the same way

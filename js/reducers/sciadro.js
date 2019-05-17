@@ -7,6 +7,7 @@
 */
 
 import {
+    CLEAR_MISSION_DATE_FILTER,
     CHANGE_CURRENT_ASSET,
     CHANGE_CURRENT_MISSION,
     CHANGE_MODE,
@@ -23,6 +24,7 @@ import {
     END_SAVE_MISSION,
     ENTER_CREATE_ITEM,
     ENTER_EDIT_ITEM,
+    FILTER_MISSION_BY_DATE,
     LOADED_ASSETS,
     LOADED_MISSIONS,
     LOADING_ASSETS,
@@ -38,6 +40,8 @@ import {
     START_SAVING_ASSET,
     START_SAVING_MISSION,
     UPDATE_ASSET,
+    UPDATE_DATE_FILTER_EXCEPTION,
+    UPDATE_DATE_FILTER_VALUE,
     UPDATE_DRONE_GEOMETRY,
     UPDATE_MISSION
 } from '@js/actions/sciadro';
@@ -70,6 +74,24 @@ export default function sciadro(state = {
     missions: []
 }, action) {
     switch (action.type) {
+        case CLEAR_MISSION_DATE_FILTER: {
+            return {
+                ...state,
+                missionDateFilter: m => m,
+                dateFilter: {
+                    ...state.dateFilter,
+                    error: null,
+                    fieldValue: {
+                        startDate: null,
+                        endDate: null
+                    },
+                    dateValueForFilter: {
+                        startDate: null,
+                        endDate: null
+                    }
+                }
+            };
+        }
         case CHANGE_CURRENT_ASSET: {
             return updateItemAndResetOthers({
                 id: action.id,
@@ -276,6 +298,15 @@ export default function sciadro(state = {
                 mode: action.mode
             };
         }
+        case FILTER_MISSION_BY_DATE: {
+            return {
+                ...state,
+                dateFilter: {
+                    ...state.dateFilter,
+                    dateValueForFilter: state.dateFilter.fieldValue
+                }
+            };
+        }
         case LOADED_ASSETS: {
             return {
                 ...state,
@@ -324,7 +355,6 @@ export default function sciadro(state = {
                 missions: resetProps(state.missions), // TODO remove this when backend works
                 mode: "asset-list",
                 // missions: [], TODO restore this when missions are retrieved from geostore
-                // anomalies: [], TODO restore this when missions are retrieved from sciadro backend
                 assets: []
             };
         }
@@ -430,6 +460,20 @@ export default function sciadro(state = {
             return {
                 ...state,
                 assets: updateItem(state.assets, {id: action.id}, action.props)
+            };
+        }
+        case UPDATE_DATE_FILTER_EXCEPTION: {
+            return set("dateFilter.error", action.error, state);
+        }
+        case UPDATE_DATE_FILTER_VALUE: {
+            let operator = action.value.endDate ? "><" : ">=";
+            return {
+                ...state,
+                dateFilter: {
+                    ...state.dateFilter,
+                    fieldValue: action.value,
+                    operator
+                }
             };
         }
         case UPDATE_DRONE_GEOMETRY: {

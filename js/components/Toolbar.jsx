@@ -26,16 +26,16 @@ export default class MainToolbar extends React.Component {
         missionSelected: PropTypes.object,
         buttonsStatus: PropTypes.object,
 
+        onClearMissionDateFilter: PropTypes.func,
+        onEnterCreateItem: PropTypes.func,
+        onEnterEditItem: PropTypes.func,
+        onFilterMissionByDate: PropTypes.func,
+        onHideAdditionalLayer: PropTypes.func,
         onResetCurrentAsset: PropTypes.func,
         onResetCurrentMission: PropTypes.func,
-        onZoomToItem: PropTypes.func,
-        onStartSavingMission: PropTypes.func,
         onStartSavingAsset: PropTypes.func,
-        onDrawAsset: PropTypes.func,
-        // onChangeMode: PropTypes.func,
-        onEnterenterCreateItem: PropTypes.func,
-        onEnterEditItem: PropTypes.func,
-        onHideAdditionalLayer: PropTypes.func
+        onStartSavingMission: PropTypes.func,
+        onZoomToItem: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -53,6 +53,10 @@ export default class MainToolbar extends React.Component {
                 message: "",
                 visible: false
             },
+            searchDate: {
+                visible: true,
+                disabled: true
+            },
             edit: false,
             add: false,
             save: false,
@@ -60,15 +64,16 @@ export default class MainToolbar extends React.Component {
             draw: false
         },
         mode: "asset-list",
+        onClearMissionDateFilter: () => {},
+        onEnterCreateItem: () => {},
+        onEnterEditItem: () => {},
+        onFilterMissionByDate: () => {},
+        onHideAdditionalLayer: () => {},
         onResetCurrentAsset: () => {},
         onResetCurrentMission: () => {},
-        onZoomToItem: () => {},
-        onStartSavingMission: () => {},
         onStartSavingAsset: () => {},
-        onDrawAsset: () => {},
-        // onChangeMode: () => {},
-        onEnterenterCreateItem: () => {},
-        onHideAdditionalLayer: () => {}
+        onStartSavingMission: () => {},
+        onZoomToItem: () => {}
     };
 
     render() {
@@ -103,7 +108,7 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                this.props.onEnterenterCreateItem(this.props.mode.replace("list", "edit"));
+                                this.props.onEnterCreateItem(this.props.mode.replace("list", "edit"));
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "plus",
@@ -158,6 +163,35 @@ export default class MainToolbar extends React.Component {
                             bsStyle: "danger",
                             glyph: "exclamation-mark",
                             visible: this.props.buttonsStatus.saveError.visible
+                        },
+                        {
+                            bsStyle: this.props.buttonsStatus.searchDate.error ? "danger" : "primary",
+                            disabled: this.props.buttonsStatus.searchDate.disabled,
+                            className: "square-button-md no-border",
+                            glyph: "search",
+                            pullRight: true,
+                            onClick: () => {
+                                if (!this.props.buttonsStatus.searchDate.error) {
+                                    this.props.onFilterMissionByDate();
+                                }
+                            },
+                            tooltipId: this.props.buttonsStatus.searchDate.error ? "sciadro.missions.filterByDateError" : "sciadro.missions.filterByDate",
+                            tooltipPosition: "top",
+                            visible: this.props.buttonsStatus.searchDate.visible
+                        },
+                        {
+                            className: "square-button-md no-border",
+                            disabled: this.props.buttonsStatus.clearFilter.disabled,
+                            glyph: "clear-filter",
+                            pullRight: true,
+                            onClick: () => {
+                                if (!this.props.buttonsStatus.clearFilter.enabled) {
+                                    this.props.onClearMissionDateFilter();
+                                }
+                            },
+                            tooltipId: "sciadro.missions.clearFilter",
+                            tooltipPosition: "top",
+                            visible: this.props.buttonsStatus.clearFilter.visible
                         }
                         // TODO add  DELETE BUTTON, FOR ASSETS OR MISSIONS
                     ]}

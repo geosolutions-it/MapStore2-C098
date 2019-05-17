@@ -8,19 +8,20 @@
 
 import expect from "expect";
 import {
+    assetCurrentSelector,
     assetsListSelector,
     anomaliesListSelector,
     assetEditedSelector,
     assetSelectedSelector,
     assetSelectedFeatureSelector,
     assetZoomLevelSelector,
+    getMissiondDateFilter,
     drawMethodSelector,
     droneZoomLevelSelector,
     enabledSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
     missionsIdSelector,
-    // assetSelectedSciadroResourceIdSelector,
     missionsListSelector,
     missionLoadedSelector,
     missionCurrentSelector,
@@ -45,6 +46,10 @@ import {
 
 describe('testing sciadro selectors', () => {
 
+    it('assetCurrentSelector', () => {
+        expect(assetCurrentSelector({})).toEqual(null);
+        expect(assetCurrentSelector({sciadro: {assets: [{id: 1, current: true}]}}).id).toEqual(1);
+    });
     it('assetsListSelector', () => {
         expect(assetsListSelector({})).toEqual([]);
         expect(assetsListSelector({sciadro: {assets: [{id: 1}]}})).toEqual([{id: 1}]);
@@ -107,6 +112,26 @@ describe('testing sciadro selectors', () => {
                 assetZoomLevel: 18
             }
         })).toEqual(18);
+    });
+    it('getMissiondDateFilter', () => {
+        const id = 2;
+        const fieldValue = {startDate: "2019-05-17T12:37:16.167Z", endDate: "2029-05-17T12:37:16.167Z"};
+        expect(getMissiondDateFilter({})({id})).toEqual({id});
+        expect(getMissiondDateFilter({
+            dateValueForFilter: fieldValue,
+            fieldValue,
+            operator: ">="
+        })({attributes: {created: "2020-05-17T12:37:16.167Z"} })).toEqual(true);
+        expect(getMissiondDateFilter({
+            dateValueForFilter: fieldValue,
+            fieldValue,
+            operator: "><"
+        })({attributes: {created: "2020-05-17T12:37:16.167Z"} })).toEqual(true);
+        expect(getMissiondDateFilter({
+            dateValueForFilter: fieldValue,
+            fieldValue,
+            operator: "><"
+        })({attributes: {created: "2120-05-17T12:37:16.167Z"} })).toEqual(false);
     });
     it('drawMethodSelector', () => {
         const drawMethod = "Marker";
@@ -368,6 +393,15 @@ describe('testing sciadro selectors', () => {
                 visible: false,
                 message: undefined
             },
+            searchDate: {
+                disabled: true,
+                error: undefined,
+                visible: false
+            },
+            clearFilter: {
+                disabled: true,
+                visible: false
+            },
             edit: false,
             zoom: null,
             zoomDisabled: null,
@@ -442,25 +476,78 @@ describe('testing sciadro selectors', () => {
                 assets,
                 missions,
                 mode: "asset-edit"
-            }}).zoom).toEqual(false);
+            }}).zoom
+        ).toEqual(false);
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 missions,
                 assets,
                 mode: "asset-list"
-            }}).zoom).toEqual(true);
+            }}).zoom
+        ).toEqual(true);
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 missions,
                 assets,
                 mode: "mission-list"
-            }}).zoom).toEqual(true);
+            }}).zoom
+        ).toEqual(true);
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 missions,
                 assets,
                 mode: "mission-detail"
-            }}).zoom).toEqual(true);
+            }}).zoom
+        ).toEqual(true);
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                missions,
+                assets,
+                mode: "mission-list"
+            }}).clearFilter).toEqual(
+                { disabled: true, visible: true }
+        );
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                dateFilter: {fieldValue: {startDate: "2000"}},
+                missions,
+                assets,
+                mode: "mission-list"
+            }}).clearFilter).toEqual(
+                { disabled: false, visible: true }
+        );
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                missions,
+                assets,
+                mode: "mission-list"
+            }}).searchDate).toEqual(
+                { disabled: true, error: undefined, visible: true }
+        );
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                dateFilter: {fieldValue: {startDate: "2019-05-17T09:50:18.307Z"}},
+                missions,
+                assets,
+                mode: "mission-list"
+            }}).searchDate).toEqual(
+                { disabled: false, error: undefined, visible: true }
+        );
+        expect(toolbarButtonsStatusSelector({
+            sciadro: {
+                dateFilter: {
+                    fieldValue: {
+                        startDate: "2020-05-17T09:50:18.307Z",
+                        endDate: "2019-05-17T09:50:18.307Z"
+                    },
+                    error: "rangeError"
+                },
+                missions,
+                assets,
+                mode: "mission-list"
+            }}).searchDate).toEqual(
+                    { disabled: false, error: "rangeError", visible: true }
+        );
     });
 
 });

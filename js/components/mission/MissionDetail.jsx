@@ -29,7 +29,7 @@ class MissionDetail extends React.Component {
         onUpdateDroneGeometry: PropTypes.func,
         onStartPlaying: PropTypes.func,
         progressInterval: PropTypes.number,
-        renderAnomaliesList: PropTypes.func,
+        anomaliesListComponent: PropTypes.func,
         videoHeight: PropTypes.string,
         videoFormat: PropTypes.func,
         videoWidth: PropTypes.string
@@ -55,14 +55,14 @@ class MissionDetail extends React.Component {
         onUpdateDroneGeometry: () => {},
         onStartPlaying: () => {},
         progressInterval: 500,
-        renderAnomaliesList: () => null,
+        anomaliesListComponent: () => null,
         videoHeight: 260,
         videoFormat: "video/mp4",
         videoWidth: "100%"
     };
 
     render() {
-        const AnomaliesList = this.props.renderAnomaliesList;
+        const AnomaliesList = this.props.anomaliesListComponent;
         return (
             <BorderLayout
                 header={
