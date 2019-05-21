@@ -10,6 +10,7 @@ import expect from "expect";
 import { find } from "lodash";
 import {
     addStartingOffset,
+    addStartingOffsetFrame,
     addTelemInterval,
     getAdditionalLayerAction,
     getTelemetryByTimePlayed,
@@ -19,6 +20,7 @@ import {
     isEditedItemValid,
     removeAdditionalLayerById,
     resetProps,
+    resetPropsAnomalies,
     toggleItemsProp,
     updateDrone,
     updateItemAndResetOthers,
@@ -94,16 +96,59 @@ const telemetriesTest = [
         "coordinates": [10.40284, 43.71064]
         }
     }];
+const frameTest = [
+{
+    "id": "562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2",
+    "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+    "index": 20,
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            10.40109,
+            43.71064
+        ]
+    }
+},
+{
+    "id": "562a9ae4-2ed8-4cd9-91f1-666087897ed3",
+    "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+    "index": 240,
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            10.40234,
+            43.71064
+        ]
+    }
+},
+{
+    "id": "562a9ae4-2ed8-4cd9-91f1-666087897ed5",
+    "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
+    "index": 400,
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            10.40483,
+            43.71064
+        ]
+    }
+}
+];
 
 describe('testing sciadro utils', () => {
     it('addStartingOffset', () => {
-
         const telemetries = addStartingOffset(telemetriesTest);
         expect(telemetries[0].id).toBe("aaaaaaaa-7cde-48f7-b5fd-4e8ba9ec5f88");
         expect(telemetries[0].startingOffset).toBe(0);
-
         // 4400 is the time passed between the previous telem object
         expect(telemetries[1].startingOffset).toBe(4400);
+    });
+    it('addStartingOffsetFrame', () => {
+        const frames = addStartingOffsetFrame(frameTest);
+        expect(frames[0].id).toBe("562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2");
+        expect(frames[0].startingOffset).toBe(833);
+        // 4400 is the time passed between the previous telem object
+        expect(frames[1].startingOffset).toBe(10000);
     });
     it('addTelemInterval', () => {
         const interval = addTelemInterval(telemetriesTest);
@@ -183,6 +228,22 @@ describe('testing sciadro utils', () => {
         const asset = find(assetsReset, {id: 2});
         expect(asset.selected).toEqual(false);
         expect(asset.current).toEqual(false);
+    });
+    it('resetPropsAnomalies', () => {
+        const anomalyId = 4;
+        const frameId = 5;
+        const missionId = 2;
+        const missions = [{
+            id: missionId,
+            current: true,
+            selected: true,
+            name: "mission 2",
+            frames: [{ id: frameId}],
+            anomalies: [{ id: anomalyId, selected: true}]
+        }];
+        const missionsReset = resetPropsAnomalies(missions);
+        const mission = find(missionsReset, {id: 2});
+        expect(mission.anomalies[0].selected).toEqual(false);
     });
     it('toggleItemsProp', () => {
         const id = 3;

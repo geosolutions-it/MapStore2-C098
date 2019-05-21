@@ -9,7 +9,7 @@
 import { updateAdditionalLayer, removeAdditionalLayer } from "@mapstore/actions/additionallayers";
 import { findIndex, head, find } from "lodash";
 import { set } from "@mapstore/utils/ImmutableUtils";
-
+export const FPS_VIDEO = 24;
 export const addStartingOffset = (telemetries = []) => {
     if (find(telemetries, t => t.time)) {
         let firstTime = head(telemetries).time;
@@ -18,6 +18,11 @@ export const addStartingOffset = (telemetries = []) => {
             return {...t, startingOffset: new Date(t.time).getTime() - firstTime};
         });
     } return [];
+};
+export const addStartingOffsetFrame = (frames = []) => {
+    return frames.map(f => {
+        return {...f, startingOffset: new Date(f.index * 1000 / FPS_VIDEO).getTime()};
+    });
 };
 export const addTelemInterval = (telemetries = []) => {
     if (telemetries.length >= 2) {
@@ -143,4 +148,10 @@ export const updateItemAndResetOthers = ({items = "assets", id, state, propsToUp
         ...state,
         [items]: updateItem(resetProps(state[items], propsToReset), {id}, propsToUpdate)
     };
+};
+
+export const resetPropsAnomalies = (missions = []) => {
+    const mission = find(missions, item => item.current);
+    let anomalies = resetProps(mission.anomalies, ["selected"]);
+    return updateItem(missions, {id: mission.id}, {anomalies});
 };

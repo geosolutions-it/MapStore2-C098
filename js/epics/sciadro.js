@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import { sortBy, isArray } from 'lodash';
+import { sortBy, isArray, camelCase } from 'lodash';
 import { saveAs } from 'file-saver';
 import * as Rx from 'rxjs';
 import {
@@ -20,7 +20,6 @@ import {
     RESET_CURRENT_MISSION,
     SELECT_ASSET,
     SELECT_MISSION,
-    SHOW_ON_MAP,
     START_LOADING_ASSETS,
     START_SAVING_ASSET,
     START_SAVING_MISSION,
@@ -63,7 +62,7 @@ import {
     missionZoomLevelSelector,
     missionsIdSelector
 } from '@js/selectors/sciadro';
-import {getStyleFromType, addStartingOffset, addTelemInterval, getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
+import {addStartingOffsetFrame, addStartingOffset, getStyleFromType, addTelemInterval, getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
 // mapstore
 import {
     zoomToPoint, zoomToExtent
@@ -227,11 +226,18 @@ export const getMissionFeatureEpic = (action$, store) =>
             const postProcessActions = (item) => {
                 if (item.feature) {
                     let telemetries = mission.telemetries || addStartingOffset(item.telemetries || []);
+                    let frames = mission.telemetries || addStartingOffsetFrame(item.frames || []);
+                    let anomalies = mission.anomalies || item.anomalies;
                     actions = [...actions, updateMission({
                         feature: item.feature,
                         loadingFeature: false,
-                        frames: mission.frames || item.frames,
-                        anomalies: mission.anomalies || item.objects || item.anomalies,
+                        frames: frames,
+                        size: mission.size || item.size,
+                        anomalies: anomalies.map(anomaly => {
+                            return Object.keys(anomaly).reduce((p, c) => {
+                                return {...p, [camelCase(c)]: anomaly[c]};
+                            }, {});
+                        }),
                         telemetries: telemetries,
                         telemInterval: addTelemInterval(telemetries)
                     },
@@ -528,7 +534,7 @@ export const updateAdditionalLayerEpic = (action$, store) =>
  * @return {external:Observable}
  */
 export const updateDroneAdditionalLayerEpic = (action$, store) =>
-    action$.ofType(SHOW_ON_MAP, UPDATE_DRONE_GEOMETRY )
+    action$.ofType(UPDATE_DRONE_GEOMETRY )
         .switchMap(() => {
             let actions = [];
             const state = store.getState();

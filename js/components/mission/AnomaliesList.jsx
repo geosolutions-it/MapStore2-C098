@@ -25,9 +25,9 @@ export default class AnomaliesList extends React.Component {
         missionCurrent: PropTypes.object,
         videoDurationSec: PropTypes.number,
         onDownloadFrame: PropTypes.func,
-        onUpdateDroneGeometry: PropTypes.func,
-        onShowFrame: PropTypes.func,
-        onShowOnMap: PropTypes.func
+        onHighlightAnomaly: PropTypes.func,
+        onPauseVideo: PropTypes.func,
+        onShowFrame: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -36,9 +36,9 @@ export default class AnomaliesList extends React.Component {
         anomalies: [],
         missionCurrent: {},
         onDownloadFrame: () => {},
-        onUpdateDroneGeometry: () => {},
-        onShowFrame: () => {},
-        onShowOnMap: () => {}
+        onHighlightAnomaly: () => {},
+        onPauseVideo: () => {},
+        onShowFrame: () => {}
     };
 
     getTitle(type) {
@@ -59,9 +59,6 @@ export default class AnomaliesList extends React.Component {
                 <SideGrid
                     className="mission-list-container"
                     size="sm"
-                    onItemClick = {(/*item*/) => {
-                        // do selection of this item
-                    }}
                     items={
                         /*
                         * item *
@@ -93,6 +90,8 @@ export default class AnomaliesList extends React.Component {
                                                 const frame = find(this.props.missionCurrent.frames, {id: item.frame});
                                                 const frameTime = frame.index * 1000 / 24; // assuming 24 fps for the video
                                                 this.props.onShowFrame(frameTime / (this.props.videoDurationSec * 1000), "fraction");
+                                                this.props.onHighlightAnomaly(item.id);
+                                                this.props.onPauseVideo();
                                             }
                                         }, {
                                             glyph: 'download',
@@ -102,7 +101,7 @@ export default class AnomaliesList extends React.Component {
                                             onClick: () => {
                                                 this.props.onDownloadFrame(item.frame);
                                             }
-                                        }, {
+                                        }/*, {
                                             glyph: '1-map',
                                             tooltipId: "sciadro.missions.showMap",
                                             onClick: () => {
@@ -110,7 +109,7 @@ export default class AnomaliesList extends React.Component {
                                                 const frameTime = frame.index * 1000 / 24; // assuming 24 fps for the video
                                                 this.props.onShowFrame(frameTime / (this.props.videoDurationSec * 1000), "fraction");
                                             }
-                                        }
+                                        }*/
                                     ]
                                 }/>
                         }))

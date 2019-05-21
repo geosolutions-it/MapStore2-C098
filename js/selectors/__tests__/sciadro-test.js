@@ -11,6 +11,7 @@ import {
     assetCurrentSelector,
     assetsListSelector,
     anomaliesListSelector,
+    anomalySelectedSelector,
     assetEditedSelector,
     assetSelectedSelector,
     assetSelectedFeatureSelector,
@@ -32,6 +33,7 @@ import {
     missionSelectedDroneFeatureSelector,
     missionZoomLevelSelector,
     modeSelector,
+    playingSelector,
     isAssetEditSelector,
     restartLoadingAssetSelector,
     saveDisabledSelector,
@@ -72,6 +74,25 @@ describe('testing sciadro selectors', () => {
                 id: "anomaly-1",
                 otherProps: {}
             }]);
+    });
+    it('anomalySelectedSelector', () => {
+        const mission = { id: 1, selected: true, current: true, anomalies: [{
+            id: "anomaly-1",
+            selected: true
+        }] };
+        expect(anomalySelectedSelector({})).toEqual(null);
+        expect(anomalySelectedSelector({
+            sciadro: {
+                assets: [{
+                    id: 1,
+                    selected: true,
+                    attributes: { missionsId: "1" }
+                }],
+                missions: [mission, { id: 4, selected: false }]
+            }})).toEqual({
+                id: "anomaly-1",
+                selected: true
+            });
     });
     it('assetEditedSelector', () => {
         const asset = { id: 1, edit: true };
@@ -315,6 +336,13 @@ describe('testing sciadro selectors', () => {
             sciadro: {
                 mode: "mission-list"
             }})).toEqual("mission-list");
+    });
+    it('playingSelector', () => {
+        expect(playingSelector({})).toEqual(false);
+        expect(playingSelector({
+            sciadro: {
+                playing: true
+            }})).toEqual(true);
     });
     it('saveDisabledSelector', () => {
         const saveDisabled = false;
