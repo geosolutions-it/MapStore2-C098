@@ -76,7 +76,7 @@ class MissionDetail extends React.Component {
         return (
             <BorderLayout
                 header={
-                    <div className="flex-1-1-0">
+                    <div className="with-flex" style={{position: "relative"}}>
                         <div className="mission-detail-header">
                             <div className="mission-detail-video-container" style={{position: "relative", width: "100%", height: "100%"}}>
                                 <div className="mission-detail-player" style={{position: "absolute", width: "100%", height: "100%"}}>

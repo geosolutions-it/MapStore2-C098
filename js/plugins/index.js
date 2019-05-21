@@ -65,7 +65,6 @@ import {
     assetSelectedSelector,
     dateFilterSelector,
     drawMethodSelector,
-    frameSelectedSelector,
     isAssetEditSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
@@ -236,10 +235,9 @@ export const MissionDetailConnected = connect(createSelector([
     missionsListSelector,
     missionSelectedSelector,
     playingSelector,
-    frameSelectedSelector,
     anomalySelectedSelector
-], (mode, missions, missionSelected, playing, frameSelected, anomalySelected) => ({
-    mode, missions, missionSelected, playing, frameSelected, anomalySelected,
+], (mode, missions, missionSelected, playing, anomalySelected) => ({
+    mode, missions, missionSelected, playing, anomalySelected,
     anomaliesListComponent: AnomaliesListConnected
 })), {
     onPausePlayer: pausePlayer,
