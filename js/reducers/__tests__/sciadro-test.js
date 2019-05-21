@@ -27,18 +27,20 @@ import {
     enterCreateItem,
     enterEditItem,
     filterMissionByDate,
+    highlightAnomaly,
     loadedAssets,
     loadedMissions,
     loadingAssets,
     loadingAssetFeature,
     loadingMissions,
     loadingMissionFeature,
+    pausePlayer,
     resetCurrentAsset,
     resetCurrentMission,
     saveError,
     selectAsset,
     selectMission,
-    showOnMap,
+    startPlayer,
     startSavingAsset,
     startSavingMission,
     updateAsset,
@@ -136,6 +138,26 @@ describe('testing sciadro reducers', () => {
         const mode = "asset-edit";
         const state = sciadro({assets: []}, changeMode(mode));
         expect(state.mode).toEqual(mode);
+    });
+    it('CHANGE_PLAYING start', () => {
+        const anomalyId = 4;
+        const frameId = 5;
+        const missionId = 2;
+        const missions = [{
+            id: missionId,
+            current: true,
+            selected: true,
+            name: "mission 2",
+            frames: [{ id: frameId}],
+            anomalies: [{ id: anomalyId, selected: true}]
+        }];
+        const state = sciadro({missions}, startPlayer());
+        expect(state.playing).toEqual(true);
+        expect(state.missions[0].anomalies[0].selected).toEqual(false);
+    });
+    it('CHANGE_PLAYING pause', () => {
+        const state = sciadro({}, pausePlayer());
+        expect(state.playing).toEqual(false);
     });
     it('DELETE_FEATURE_ASSET', () => {
         const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", selected: true, feature: {}}];
@@ -417,16 +439,28 @@ describe('testing sciadro reducers', () => {
         expect(state.mode).toEqual("mission-list");
     });
     it('FILTER_MISSION_BY_DATE', () => {
-        const missions = [{id: 2, current: true, name: "mission 2", created: "2019-05-17T09:54:33.681Z"}];
+        const missions = [{id: 2, current: true, name: "mission 2", attributes: {created: "2019-05-17T09:54:33.681Z"}}];
         const dateFilter = {
             fieldValue: {
                 startDate: "2019-05-17T09:54:33.681Z"
             },
-            operator: ">",
+            operator: ">=",
             error: null
         };
         const state = sciadro({missions, dateFilter}, filterMissionByDate());
         expect(state.dateFilter.dateValueForFilter).toEqual(dateFilter.fieldValue);
+    });
+    it('HIGHLIGHT_ANOMALY', () => {
+        const anomalyId = 4;
+        const missionId = 2;
+        const missions = [{
+            id: missionId,
+            current: true,
+            name: "mission 2",
+            anomalies: [{ id: anomalyId}]
+        }];
+        const state = sciadro({missions}, highlightAnomaly(anomalyId));
+        expect(state.missions[0].anomalies[0].selected).toEqual(true);
     });
     it('LOADED_ASSETS', () => {
         const assets = [];
@@ -582,37 +616,6 @@ describe('testing sciadro reducers', () => {
         const missionPreviouslySelected = find(state.missions, item => item.id === 2);
         expect(mission.selected).toEqual(true);
         expect(missionPreviouslySelected.selected).toEqual(false);
-    });
-    it('SHOW_ON_MAP', () => {
-        const idFrame = "id.frame";
-        const missions = [
-            {
-                id: 2, name: "mission2"
-            },
-            {
-                id: 3,
-                selected: true,
-                current: true,
-                name: "mission3",
-                type: "powerline",
-                frames: [{
-                    location: {
-                        type: "Point",
-                        coordinates: [2, 3]
-                    },
-                    id: idFrame
-                }]
-            }
-        ];
-        const id = 3;
-        const state = sciadro({missions}, showOnMap(idFrame));
-        const mission = find(state.missions, item => item.id === id);
-
-        expect(mission.drone).toExist();
-        expect(mission.drone.geometry).toEqual({
-            type: "Point",
-            coordinates: [2, 3]
-        });
     });
     it('START_SAVING_ASSET', () => {
         const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline"}];

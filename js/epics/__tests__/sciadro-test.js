@@ -18,7 +18,6 @@ import {
     resetCurrentMission,
     selectMission,
     selectAsset,
-    showOnMap,
     startLoadingAssets,
     startSavingAsset,
     updateDroneGeometry,
@@ -341,7 +340,7 @@ describe('testing sciadro epics', () => {
     });
     it('getMissionFeatureEpic, retrieving feature when is selected SELECT_MISSION', (done) => {
 
-        mockAxios.onGet(/missions/).reply(200, {feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} });
+        mockAxios.onGet(/missions/).reply(200, {feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}}, anomalies: [] });
         const numActionsExpected = 4;
         testEpic(getMissionFeatureEpic, numActionsExpected, selectMission(1), actions => {
             expect(actions.length).toBe(numActionsExpected);
@@ -633,51 +632,6 @@ describe('testing sciadro epics', () => {
             sciadro: {
                 assets: [
                     { id: 1, selected: true, name: "name 1", feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} }
-                ]
-            }
-        });
-    });
-    it('updateDroneAdditionalLayerEpic, updating drone feature SHOW_ON_MAP', (done) => {
-        store = mockStore();
-        const id = 1;
-        const numActions = 2;
-        testEpic(updateDroneAdditionalLayerEpic, numActions, showOnMap(id), actions => {
-            expect(actions.length).toBe(numActions);
-            actions.map(action => {
-                switch (action.type) {
-                    case ZOOM_TO_ITEM: {
-                        expect(action.zoomTo).toBe("drone");
-                        break;
-                    }
-                    case UPDATE_ADDITIONAL_LAYER:
-                        expect(includes(["drone"], action.id)).toBe(true);
-                        break;
-                    default:
-                        expect(true).toBe(false);
-                }
-            });
-            done();
-        }, {
-            sciadro: {
-                assets: [
-                    {
-                        id: 1,
-                        selected: true,
-                        current: true,
-                        name: "name 1",
-                        feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
-                        attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
-                ],
-                missions: [
-                    {
-                        id: 1,
-                        selected: true,
-                        current: true,
-                        name: "mission 1",
-                        feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
-                        drone: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}, properties: {isVisible: true}},
-                        attributes: { sciadroResourceId: "sha5-mission"}
-                    }
                 ]
             }
         });

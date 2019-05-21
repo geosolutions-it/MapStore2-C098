@@ -13,6 +13,7 @@ import {
     changeCurrentAsset, CHANGE_CURRENT_ASSET,
     changeCurrentMission, CHANGE_CURRENT_MISSION,
     changeMode, CHANGE_MODE,
+    CHANGE_PLAYING,
     deleteAssetFeature, DELETE_FEATURE_ASSET,
     downloadFrame, DOWNLOAD_FRAME,
     downloadingFrame, DOWNLOADING_FRAME,
@@ -29,18 +30,20 @@ import {
     fileLoading, FILE_LOADING,
     filterMissionByDate, FILTER_MISSION_BY_DATE,
     hideAdditionalLayer, HIDE_ADDITIONAL_LAYER,
+    highlightAnomaly, HIGHLIGHT_ANOMALY,
     loadedAssets, LOADED_ASSETS,
     loadedMissions, LOADED_MISSIONS,
     loadingAssets, LOADING_ASSETS,
     loadingAssetFeature, LOADING_ASSET_FEATURE,
     loadingMissionFeature, LOADING_MISSION_FEATURE,
     loadingMissions, LOADING_MISSIONS,
+    pausePlayer,
     resetCurrentAsset, RESET_CURRENT_ASSET,
     resetCurrentMission, RESET_CURRENT_MISSION,
     saveError, SAVE_ERROR,
     selectAsset, SELECT_ASSET,
-    showOnMap, SHOW_ON_MAP,
     startLoadingAssets, START_LOADING_ASSETS,
+    startPlayer,
     startSavingAsset, START_SAVING_ASSET,
     startSavingMission, START_SAVING_MISSION,
     selectMission, SELECT_MISSION,
@@ -200,6 +203,12 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(HIDE_ADDITIONAL_LAYER);
         expect(action.id).toEqual(id);
     });
+    it('highlightAnomaly', () => {
+        const anomalyId = "an-1";
+        const action = highlightAnomaly(anomalyId);
+        expect(action.type).toEqual(HIGHLIGHT_ANOMALY);
+        expect(action.anomalyId).toEqual(anomalyId);
+    });
     it('loadedAssets', () => {
         const assets = [];
         const action = loadedAssets(assets);
@@ -236,6 +245,11 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(LOADING_MISSIONS);
         expect(action.loading).toEqual(loading);
     });
+    it('pausePlayer', () => {
+        const action = pausePlayer();
+        expect(action.type).toEqual(CHANGE_PLAYING);
+        expect(action.playing).toEqual(false);
+    });
     it('resetCurrentAsset', () => {
         const action = resetCurrentAsset();
         expect(action.type).toEqual(RESET_CURRENT_ASSET);
@@ -256,15 +270,14 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(SELECT_MISSION);
         expect(action.id).toEqual(id);
     });
-    it('showOnMap', () => {
-        const frame = 1;
-        const action = showOnMap(frame);
-        expect(action.type).toEqual(SHOW_ON_MAP);
-        expect(action.frame).toEqual(frame);
-    });
     it('startLoadingAssets', () => {
         const action = startLoadingAssets();
         expect(action.type).toEqual(START_LOADING_ASSETS);
+    });
+    it('startPlayer', () => {
+        const action = startPlayer();
+        expect(action.type).toEqual(CHANGE_PLAYING);
+        expect(action.playing).toEqual(true);
     });
     it('startSavingAsset', () => {
         const id = 1;

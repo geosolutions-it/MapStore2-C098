@@ -40,12 +40,14 @@ import {
     fileLoading,
     filterMissionByDate,
     hideAdditionalLayer,
+    highlightAnomaly,
+    pausePlayer,
     resetCurrentAsset,
     resetCurrentMission,
     selectAsset,
     selectMission,
-    showOnMap,
     startLoadingAssets,
+    startPlayer,
     startSavingAsset,
     startSavingMission,
     updateDateFilterValue,
@@ -55,6 +57,7 @@ import {
 } from '@js/actions/sciadro';
 
 import {
+    anomalySelectedSelector,
     anomaliesListSelector,
     assetsListSelector,
     assetCurrentSelector,
@@ -62,6 +65,7 @@ import {
     assetSelectedSelector,
     dateFilterSelector,
     drawMethodSelector,
+    frameSelectedSelector,
     isAssetEditSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
@@ -71,6 +75,7 @@ import {
     missionEditedSelector,
     missionEditedFilesSelector,
     modeSelector,
+    playingSelector,
     restartLoadingAssetSelector,
     savingAssetSelector,
     savingMissionSelector,
@@ -222,19 +227,23 @@ export const AnomaliesListConnected = connect(createSelector([
 ], (anomalies, missionCurrent) => ({
     anomalies, missionCurrent
 })), {
-    onShowOnMap: showOnMap,
-    onDownloadFrame: downloadFrame
-    // action: actionCreator
+    onDownloadFrame: downloadFrame,
+    onHighlightAnomaly: highlightAnomaly
 })(AnomaliesList);
 
 export const MissionDetailConnected = connect(createSelector([
     modeSelector,
     missionsListSelector,
-    missionSelectedSelector
-], (mode, missions, missionSelected) => ({
-    mode, missions, missionSelected,
+    missionSelectedSelector,
+    playingSelector,
+    frameSelectedSelector,
+    anomalySelectedSelector
+], (mode, missions, missionSelected, playing, frameSelected, anomalySelected) => ({
+    mode, missions, missionSelected, playing, frameSelected, anomalySelected,
     anomaliesListComponent: AnomaliesListConnected
 })), {
+    onPausePlayer: pausePlayer,
+    onStartPlayer: startPlayer,
     onUpdateDroneGeometry: updateDroneGeometry
 })(MissionDetail);
 

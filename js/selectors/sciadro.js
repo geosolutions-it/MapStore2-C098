@@ -67,12 +67,17 @@ export const missionCurrentSelector = state => find(missionsListSelector(state),
 export const missionSelectedSelector = state => find(missionsListSelector(state), a => a.selected) || null;
 export const missionSelectedFeatureSelector = state => get(missionSelectedSelector(state), "feature");
 export const anomaliesListSelector = state => get(missionSelectedSelector(state), "anomalies", []);
+export const anomalySelectedSelector = state => {
+    const anomalies = anomaliesListSelector(state);
+    return find(anomalies, a => a.selected) || null;
+};
 export const missionEditedSelector = state => find(missionsListSelector(state), a => a.edit) || null;
 export const missionEditedFilesSelector = state => get(missionEditedSelector(state), "files", null);
 export const missionSelectedDroneFeatureSelector = state => get(missionSelectedSelector(state), "drone.properties.isVisible") ? get(missionSelectedSelector(state), "drone", null) : undefined;
 export const missionZoomLevelSelector = state => get(state, "sciadro.missionZoomLevel", 10);
 export const modeSelector = state => get(state, "sciadro.mode", "asset-list");
 export const isAssetEditSelector = state => modeSelector(state) === "asset-edit";
+export const playingSelector = state => get(state, "sciadro.playing", false);
 export const restartLoadingAssetSelector = state => state && get(state, "sciadro.reloadAsset", true);
 export const saveDisabledSelector = state => state && get(state, "sciadro.saveDisabled", true);
 export const savingAssetSelector = state => state && get(state, "sciadro.savingAsset", false);

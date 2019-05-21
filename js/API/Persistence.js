@@ -209,9 +209,9 @@ export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://
     /*let mockAxios = new MockAdapter(axios, {delayResponse: 100});
     mockAxios.onGet(/objects/).reply(200, DATA.GET_FRAME_IMAGE);
     mockAxios.onGet(/missions/).reply(200, DATA.GET_MISSION);
-    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);*/
+    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);
     // mockAxios.onGet(/assets\/[\w-]).reply(200, DATA.GET_ASSET);
-    // mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);
+    // mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);*/
     const url = `${backendUrl}/${path}`;
     return axios.get(url, options)
         .then(res => {
