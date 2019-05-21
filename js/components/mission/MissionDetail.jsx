@@ -28,7 +28,6 @@ class MissionDetail extends React.Component {
         anomaliesListComponent: PropTypes.func,
         config: PropTypes.object,
         controls: PropTypes.bool,
-        frameSelected: PropTypes.object,
         missions: PropTypes.array,
         missionSelected: PropTypes.object,
         onUpdateDroneGeometry: PropTypes.func,
@@ -56,7 +55,6 @@ class MissionDetail extends React.Component {
             }
         },
         controls: [],
-        frameSelected: null,
         missions: [],
         missionSelected: {
             videoUrl: "/assets/video/colibri.mp4"
@@ -76,45 +74,41 @@ class MissionDetail extends React.Component {
         return (
             <BorderLayout
                 header={
-                    <div className="with-flex" style={{position: "relative"}}>
-                        <div className="mission-detail-header">
-                            <div className="mission-detail-video-container" style={{position: "relative", width: "100%", height: "100%"}}>
-                                <div className="mission-detail-player" style={{position: "absolute", width: "100%", height: "100%"}}>
-                                    <div>
-                                        {this.props.missionSelected.name}
-                                        <br/>
-                                        <Message msgId="sciadro.video"/>
-                                        <br/>
-                                    </div>
-                                    <ReactPlayer
-                                        progressInterval={this.props.progressInterval}
-                                        config={this.props.config}
-                                        style={{/*display: "-webkit-inline-box"*/}}
-                                        width={this.props.videoWidth}
-                                        controls={this.props.controls}
-                                        height={this.props.videoHeight}
-                                        url={[{
-                                            src: this.props.missionSelected.videoUrl || "/assets/video/colibri.mp4", type: this.props.videoFormat || "video/mp4"
-                                        }]}
-                                        ref={this.ref}
-                                        playing={this.props.playing}
-
-                                        onPlay= {() => {
-                                            this.props.onStartPlayer();
-                                        }}
-                                        onSeek={this.pausePlayer}
-                                        onProgress= {(state) => {
-                                            const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval);
-                                            if (!isEqual(this.telem, telem) ) {
-                                                // optimized update process of drone position when telem has not changed
-                                                this.telem = telem;
-                                                this.props.onUpdateDroneGeometry(telem.id, telem.yaw, telem.location, this.props.missionSelected.id);
-                                            }
-                                        }}
-                                    />
-                                    <div className="mission-detail-videoHighlight" style={this.createAnomalyStyle()}/>
-                                </div>
+                    <div className="mission-detail-header">
+                        <div className="mission-detail-player">
+                            <div>
+                                {this.props.missionSelected.name}
+                                <br/>
+                                <Message msgId="sciadro.video"/>
+                                <br/>
                             </div>
+                            <ReactPlayer
+                                progressInterval={this.props.progressInterval}
+                                config={this.props.config}
+                                style={{/*display: "-webkit-inline-box"*/}}
+                                width={this.props.videoWidth}
+                                controls={this.props.controls}
+                                height={this.props.videoHeight}
+                                url={[{
+                                    src: this.props.missionSelected.videoUrl || "/assets/video/colibri.mp4", type: this.props.videoFormat || "video/mp4"
+                                }]}
+                                ref={this.ref}
+                                playing={this.props.playing}
+
+                                onPlay= {() => {
+                                    this.props.onStartPlayer();
+                                }}
+                                onSeek={this.pausePlayer}
+                                onProgress= {(state) => {
+                                    const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval);
+                                    if (!isEqual(this.telem, telem) ) {
+                                        // optimized update process of drone position when telem has not changed
+                                        this.telem = telem;
+                                        this.props.onUpdateDroneGeometry(telem.id, telem.yaw, telem.location, this.props.missionSelected.id);
+                                    }
+                                }}
+                            />
+                            <div className="mission-detail-videoHighlight" style={this.createAnomalyStyle()}/>
                         </div>
                     </div>
                 }>
