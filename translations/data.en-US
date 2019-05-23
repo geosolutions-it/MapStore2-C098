@@ -9,6 +9,7 @@
             "save": "Save",
             "no-assets": "No assets found, please add one or change filter",
             "no-missions": "No missions found, please add one or change filter",
+            "pageInfoInfinite": "{total, plural, =undefined {} =0 {No results} =1 {{total} of {total} matched} other {Loaded {loaded} of {total} matched}}",
             "rest": {
                 "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
                 "loadError": "An error occured while loading the assets resources. Please contact the web admin in order to verify this problem",
@@ -30,6 +31,7 @@
                 "detected": "Detected Anomalies"
             },
             "assets": {
+                "textSearchPlaceholder": "Filter by name",
                 "geomTrash": "Delete geometry",
                 "loading": "Loading Assets",
                 "powerline": "Powerline",

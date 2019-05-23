@@ -164,10 +164,10 @@
             "type": "INS",
             "status": "UNK",
             "confidence": 0,
-            "x_min": 0,
-            "x_max": 1024,
-            "y_min": 0,
-            "y_max": 768
+            "xmin": 0,
+            "xmax": 1024,
+            "ymin": 0,
+            "ymax": 768
         },
         {
             "id": "12696564-20ae-4512-811c-5eb9a60af2e7",
@@ -175,10 +175,10 @@
             "type": "INS",
             "status": "UNK",
             "confidence": 0,
-            "x_min": 0,
-            "x_max": 35,
-            "y_min": 100,
-            "y_max": 172
+            "xmin": 0,
+            "xmax": 35,
+            "ymin": 100,
+            "ymax": 172
         },
         {
             "id": "12696564-20ae-4512-811c-5eb9a60af2e8",
@@ -186,10 +186,10 @@
             "type": "INS",
             "status": "UNK",
             "confidence": 0,
-            "x_min": 0,
-            "x_max": 1024,
-            "y_min": 0,
-            "y_max": 768
+            "xmin": 0,
+            "xmax": 1024,
+            "ymin": 0,
+            "ymax": 768
         }
     ]
 }

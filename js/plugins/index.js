@@ -11,6 +11,7 @@ import { createSelector } from 'reselect';
 
 import AnomaliesList from '@js/components/mission/AnomaliesList';
 import AssetList from '@js/components/asset/AssetList';
+import AssetListVirtualScroll from '@js/components/asset/AssetListVirtualScroll';
 import AssetEdit from '@js/components/asset/AssetEdit';
 import AssetPermission from '@js/components/asset/AssetPermission';
 import MissionDetail from '@js/components/mission/MissionDetail';
@@ -41,6 +42,7 @@ import {
     filterMissionByDate,
     hideAdditionalLayer,
     highlightAnomaly,
+    loadedAssets,
     pausePlayer,
     resetCurrentAsset,
     resetCurrentMission,
@@ -82,6 +84,7 @@ import {
     showSuccessMessageSelector,
     toolbarButtonsStatusSelector
 } from '@js/selectors/sciadro';
+import {userSelector} from '@mapstore/selectors/security';
 import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
 import {zoomToExtent} from '@mapstore/actions/map';
 
@@ -99,6 +102,21 @@ export const AssetListConnected = connect(createSelector([
     onEditAssetPermission: editAssetPermission,
     onChangeCurrentMission: changeCurrentMission
 })(AssetList);
+
+export const AssetListVirtualScrollConnected = connect(createSelector([
+    assetSelectedSelector,
+    assetsListSelector
+], (assetSelected, items ) => ({
+    assetSelected, items
+})), {
+    onStartLoadingAssets: startLoadingAssets,
+    onChangeCurrentAsset: changeCurrentAsset,
+    onSelectAsset: selectAsset,
+    onSetResults: loadedAssets,
+    onHideAdditionalLayer: hideAdditionalLayer,
+    onEditAssetPermission: editAssetPermission,
+    onChangeCurrentMission: changeCurrentMission
+})(AssetListVirtualScroll);
 
 import ShapeFile from '@mapstore/plugins/shapefile/ShapeFile';
 export const ShapeFileConnected = connect((state) => (
@@ -156,6 +174,15 @@ export const ToolbarDropzoneConnected = connect(createSelector([
     onDropFiles: dropFiles
 })(ToolbarDropzone);
 
+export const AssetPermissionConnected = connect(createSelector([
+    assetEditedSelector,
+    userSelector
+], (assetEdited, user) => ({
+    assetEdited, user
+})), {
+    // action: actionCreator
+})(AssetPermission);
+
 export const AssetEditConnected = connect(createSelector([
     assetsListSelector,
     assetEditedSelector,
@@ -163,18 +190,12 @@ export const AssetEditConnected = connect(createSelector([
 ], (assets, assetEdited, savingAsset) => ({
     assets, assetEdited, savingAsset,
     dropZoneComponent: ShapeFileConnected,
+    assetPermissionComponent: AssetPermissionConnected,
     toolbarGeometryComponent: ToolbarGeomConnected
 })), {
     onEditAsset: editAsset
 })(AssetEdit);
 
-export const AssetPermissionConnected = connect(createSelector([
-    assetsListSelector
-], (assets) => ({
-    assets
-})), {
-     // action: actionCreator
-})(AssetPermission);
 
 export const MissionDateFilterConnected = connect(createSelector([
     dateFilterSelector

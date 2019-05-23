@@ -209,9 +209,9 @@ export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://
     /*let mockAxios = new MockAdapter(axios, {delayResponse: 100});
     mockAxios.onGet(/objects/).reply(200, DATA.GET_FRAME_IMAGE);
     mockAxios.onGet(/missions/).reply(200, DATA.GET_MISSION);
-    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);
+    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);*/
     // mockAxios.onGet(/assets\/[\w-]).reply(200, DATA.GET_ASSET);
-    // mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);*/
+    // mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);
     const url = `${backendUrl}/${path}`;
     return axios.get(url, options)
         .then(res => {
@@ -228,8 +228,8 @@ export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://
 * @param {function} errorsActions actions to dispatch in case of error
 * @return
 */
-export const getAssetResource = ({id, postProcessActions = () => [], errorsActions = () => []}) => {
-    return Rx.Observable.defer( () => getResourceSciadroServer({path: `/assets/${id}`}))
+export const getAssetResource = ({id, postProcessActions = () => [], errorsActions = () => [], backendUrl}) => {
+    return Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${id}`}))
         .switchMap((result) => {
             return Rx.Observable.from(postProcessActions(result.data));
         })
@@ -245,8 +245,8 @@ export const getAssetResource = ({id, postProcessActions = () => [], errorsActio
 * @param {function} errorsActions actions to dispatch in case of error
 * @return
 */
-export const getMissionResource = ({id, assetId, postProcessActions = () => [], errorsActions = () => []}) => {
-    return Rx.Observable.defer( () => getResourceSciadroServer({path: `/assets/${assetId}/missions/${id}`}))
+export const getMissionResource = ({id, assetId, postProcessActions = () => [], errorsActions = () => [], backendUrl}) => {
+    return Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${id}`}))
         .switchMap((result) => {
             return Rx.Observable.from(postProcessActions(result.data));
         })
@@ -260,8 +260,9 @@ export const getMissionResource = ({id, assetId, postProcessActions = () => [], 
 * @param {string} frame id of the resource to fetch
 * @return file retrieved
 */
-export const getFrameImage = ({missionId, assetId, frameId}) => {
+export const getFrameImage = ({missionId, assetId, backendUrl, frameId}) => {
     return Rx.Observable.defer( () => getResourceSciadroServer({
+        backendUrl,
         path: `/assets/${assetId}/missions/${missionId}/objects/${frameId}`,
         options: {
             headers: {'Accept': 'image/png', 'Content-Type': 'image/png' }

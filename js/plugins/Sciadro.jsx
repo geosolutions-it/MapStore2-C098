@@ -14,13 +14,14 @@ import Container from '@js/components/Container';
 import {
     ToolbarConnected,
     MissionDetailConnected,
-    // AnomaliesListConnected,
     MissionEditConnected,
     MissionListConnected,
     AssetPermissionConnected,
     AssetEditConnected,
-    AssetListConnected
+    AssetListConnected,
+    AssetListVirtualScrollConnected
 } from './index';
+
 
 import sciadro from '@js/reducers/sciadro';
 import shapefile from '@mapstore/reducers/shapefile';
@@ -43,7 +44,7 @@ export const Sciadro = connect(createSelector([
 ], (show, mode) => ({
     show, mode,
     renderBodyComponents: {
-        "asset-list": AssetListConnected,
+        "asset-list": AssetListVirtualScrollConnected || AssetListConnected,
         "asset-edit": AssetEditConnected,
         "asset-permission": AssetPermissionConnected, // todo remove, and move it in asset-edit
         "mission-edit": MissionEditConnected,

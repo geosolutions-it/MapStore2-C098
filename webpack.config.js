@@ -21,6 +21,9 @@ const config = require('./MapStore2/build/buildConfig')(
 );
 
 config.devServer.proxy = {
+    '/assets': {
+        target: "http://164.132.80.75:8081"
+    },
     '/rest/geostore': {
         target: "http://localhost:8040/mapstore"
     },

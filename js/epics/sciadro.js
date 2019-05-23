@@ -173,24 +173,36 @@ export const getAssetFeatureEpic = (action$, store) =>
     .flatMap((a) => {
         let actions = [];
         let state = store.getState();
+        const backendUrl = state.sciadro && state.sciadro.sciadroBackendUrl;
         const asset = assetSelectedSelector(state);
         const featureAsset = assetSelectedFeatureSelector(state);
         if (asset && featureAsset === undefined) {
             // go fetch it
             const errorsActions = () => [fetchFeatureSciadroServerError()];
             const postProcessActions = (item) => {
-                actions = [updateAsset({ feature: item.feature, loadingFeature: false }, a.id)];
+                const fakeFeature = {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [[10.39985, 43.71074], [10.40483, 43.71074]]
+                    },
+                    "style": {
+                        "color": "#00FF00",
+                        "weight": 2
+                    }
+                };
+                actions = [updateAsset({ feature: item.feature || fakeFeature, loadingFeature: false }, a.id)];
                 state = store.getState();
                 const assetSelected = assetSelectedSelector(state);
                 if (assetSelected.name === item.name) {
-                    actions.push(getAdditionalLayerAction({ feature: {...item.feature, id: a.id}, id: "assets", name: "assets", visibility: !!item.feature }));
+                    actions.push(getAdditionalLayerAction({ feature: {...item.feature, ...fakeFeature, id: a.id}, id: "assets", name: "assets", visibility: !!item.feature }));
                     if (a.type === CHANGE_CURRENT_ASSET) {
                         actions.push(changeMode("mission-list"));
                     }
                 }
                 return actions;
             };
-            return getAssetResource({ id: asset.attributes.sciadroResourceId, postProcessActions, errorsActions })
+            return getAssetResource({ id: asset.sciadroResourceId, postProcessActions, errorsActions, backendUrl })
                 .startWith(
                     loadingAssetFeature(true),
                     getAdditionalLayerAction({feature: null, id: "assets", name: "assets", visibility: false})
@@ -321,7 +333,7 @@ export const overrideMapLayoutEpic = (action$) =>
 export const startLoadingAssetsEpic = (action$) =>
     action$.ofType(START_LOADING_ASSETS, LOGIN_SUCCESS)
         .switchMap(() => {
-            // get all assets
+            // get all assets moved into componens
             return Rx.Observable.defer( () =>
                 GeoStoreApi.getResourcesByCategory("ASSET").then(data => data)
             )
@@ -331,7 +343,7 @@ export const startLoadingAssetsEpic = (action$) =>
                 if (resources.length && results) {
                     // observables object that will retrieve all the info of the reosurces
                     const getResourcesObs = resources.map(({id}) => {
-                        return Persistence.getResource(id)
+                        return Persistence.getResource(id, {withPermissions: true})
                             .catch(() => Rx.Observable.of("loadError"));
                     });
                     return Rx.Observable.forkJoin(getResourcesObs);
@@ -349,7 +361,7 @@ export const startLoadingAssetsEpic = (action$) =>
                     return Rx.Observable.of(loadingAssets(false));
                 }
                 const assetsSorted = sortBy(assets, ["id"]).map(a => {
-                    return {...a, attributes: {...a.attributes, missionsId: `${a.attributes.missionsId || ""}`}};
+                    return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}, attributes: {...a.attributes, missionsId: `${a.attributes.missionsId || ""}`}};
                 });
                 return Rx.Observable.of(loadedAssets( assetsSorted));
                  // if 1 result geostore returns an object

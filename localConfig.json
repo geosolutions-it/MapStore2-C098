@@ -1,7 +1,12 @@
 {
 	"proxyUrl": {
 		"url": "proxy/?url=",
-		"useCORS": ["http://demo.geo-solutions.it/geoserver", "https://demo.geo-solutions.it:443/geoserver", "https://demo.geo-solutions.it/geoserver", "https://nominatim.openstreetmap.org"]
+		"useCORS": [
+      "http://demo.geo-solutions.it/geoserver",
+      "https://demo.geo-solutions.it:443/geoserver",
+      "https://demo.geo-solutions.it/geoserver",
+      "https://nominatim.openstreetmap.org"
+    ]
 	},
 	"geoStoreUrl": "rest/geostore/",
 	"bingApiKey": "AhuXBu7ipR1gNbBfXhtUAyCZ6rkC5PkWpxs2MnMRZ1ZupxQfivjLCch22ozKSCAn",
@@ -60,6 +65,7 @@
 				}
 			},
       "sciadro": {
+        "sciadroBackendUrl": "",
         "assets": [],
         "missions": [],
         "assetZoomLevel": 10,
@@ -98,9 +104,7 @@
 			}, {
         "name": "Sciadro",
         "cfg": {
-          "toolbarCfg": {
-            "backend_url": "http://backendUrl:8000/"
-          },
+          "toolbarCfg": { },
           "componentsCfg": {
             "asset-list": {},
             "asset-edit": {},
