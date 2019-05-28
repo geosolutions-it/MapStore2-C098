@@ -255,6 +255,16 @@ export const getMissionResource = ({id, assetId, postProcessActions = () => [], 
         });
 };
 
+export const getMissionData = ({missionId, assetId, backendUrl} = {}) =>
+    Rx.Observable.forkJoin([
+        Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/frames`}).then(res => res.data && res.data.results || res.data)),
+        Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/telemetry`}).then(res => res.data && res.data.results || res.data)),
+        Rx.Observable.defer( () =>
+            getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/video`}).then(res => res.data).catch(() => ({})))
+    ])
+    .map(([frames, telemetries, video]) => ({ frames, telemetries, video }));
+
+
 /**
 * it fetches the frame specified
 * @param {string} frame id of the resource to fetch
@@ -263,7 +273,7 @@ export const getMissionResource = ({id, assetId, postProcessActions = () => [], 
 export const getFrameImage = ({missionId, assetId, backendUrl, frameId}) => {
     return Rx.Observable.defer( () => getResourceSciadroServer({
         backendUrl,
-        path: `/assets/${assetId}/missions/${missionId}/objects/${frameId}`,
+        path: `assets/${assetId}/missions/${missionId}/objects/${frameId}`,
         options: {
             headers: {'Accept': 'image/png', 'Content-Type': 'image/png' }
         }}))

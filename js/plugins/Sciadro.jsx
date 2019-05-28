@@ -16,10 +16,9 @@ import {
     MissionDetailConnected,
     MissionEditConnected,
     MissionListConnected,
-    AssetPermissionConnected,
     AssetEditConnected,
-    AssetListConnected,
-    AssetListVirtualScrollConnected
+    AssetListConnected/*,
+    AssetListVirtualScrollConnected*/
 } from './index';
 
 
@@ -44,9 +43,8 @@ export const Sciadro = connect(createSelector([
 ], (show, mode) => ({
     show, mode,
     renderBodyComponents: {
-        "asset-list": AssetListVirtualScrollConnected || AssetListConnected,
+        "asset-list": AssetListConnected,// AssetListVirtualScrollConnected // restore after backend integration,
         "asset-edit": AssetEditConnected,
-        "asset-permission": AssetPermissionConnected, // todo remove, and move it in asset-edit
         "mission-edit": MissionEditConnected,
         "mission-list": MissionListConnected,
         "mission-detail": MissionDetailConnected

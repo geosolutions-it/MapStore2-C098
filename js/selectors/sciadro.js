@@ -14,16 +14,18 @@ export const assetCurrentSelector = state => find(assetsListSelector(state), a =
 export const assetSelectedSelector = state => find(assetsListSelector(state), a => a.selected) || null;
 export const assetSelectedFeatureSelector = state => get(assetSelectedSelector(state), "feature");
 export const assetZoomLevelSelector = state => get(state, "sciadro.assetZoomLevel", 10);
+export const backendSelector = state => get(state, "sciadro.sciadroBackendUrl", "");
 
 export const dateFilterSelector = state => get(state, "sciadro.dateFilter", {});
 export const drawMethodSelector = state => get(state, "sciadro.drawMethod", "");
 export const droneZoomLevelSelector = state => get(state, "sciadro.droneZoomLevel", 18);
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
 export const loadingAssetsSelector = state => get(state, "sciadro.loadingAssets", false);
+export const loadingAnomaliesSelector = state => get(state, "sciadro.loadingAnomalies", false);
 export const loadingMissionsSelector = state => get(state, "sciadro.loadingMissions", false);
 export const missionsIdSelector = state => {
     const assetSelected = assetSelectedSelector(state);
-    const missionIds = get(assetSelected, "attributes.missionsId", "");
+    const missionIds = get(assetSelected, "attributes.missions", "");
     return missionIds && `${missionIds}`.split(",").map(v => parseInt(v, 10)) || [];
 };
 

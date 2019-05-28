@@ -7,21 +7,22 @@
 */
 
 import { updateAdditionalLayer, removeAdditionalLayer } from "@mapstore/actions/additionallayers";
-import { findIndex, head, find } from "lodash";
+import { findIndex, head, find, sortBy} from "lodash";
 import { set } from "@mapstore/utils/ImmutableUtils";
-export const FPS_VIDEO = 24;
-export const addStartingOffset = (telemetries = []) => {
-    if (find(telemetries, t => t.time)) {
-        let firstTime = head(telemetries).time;
+export const FPS_VIDEO = 35;
+export const addStartingOffset = (telemetries = [{}]) => {
+    const firstTelem = head(telemetries).time;
+    if (firstTelem) {
+        let firstTime = firstTelem;
         firstTime = new Date(firstTime);
         return telemetries.map(t => {
-            return {...t, startingOffset: new Date(t.time).getTime() - firstTime};
+            return {...t, startingOffset: t.time - firstTime};
         });
     } return [];
 };
-export const addStartingOffsetFrame = (frames = []) => {
+export const addStartingOffsetFrame = (frames = [], fps = FPS_VIDEO) => {
     return frames.map(f => {
-        return {...f, startingOffset: new Date(f.index * 1000 / FPS_VIDEO).getTime()};
+        return {...f, startingOffset: new Date(f.index * 1000 / fps).getTime()};
     });
 };
 export const addTelemInterval = (telemetries = []) => {
@@ -73,10 +74,14 @@ export const getStyleFromType = (type = "LineString") => {
  *  @return {string} the telemetry object
 */
 export const getTelemetryByTimePlayed = (telemetries = [], timePlayedMS = 0, interval = 500) => {
-    const closestTelem = telemetries.filter(t => {
-        return (Math.abs(t.startingOffset - timePlayedMS) / interval) < 1;
-    }) || {};
-    return head(closestTelem);
+    let times = telemetries.map(t => {
+        return {...t, timeCloseToPlayedSeconds: Math.abs(t.startingOffset - timePlayedMS) / interval};
+    });
+    if ( times.length ) {
+        times = sortBy(times, ["timeCloseToPlayedSeconds"]);
+        return head(times);
+    }
+    return {};
 };
 
 export const getValidationState = (val) => {
@@ -118,7 +123,7 @@ export const toggleItemsProp = (items = [], id, prop = "selected") => {
 };
 
 export const updateDrone = (items = [], id, props = {}, geometry = {}, style = {
-    iconUrl: "/assets/images/drone-nord.svg",
+    iconUrl: "/localAssets/images/drone-nord.svg",
     size: [24, 24],
     iconAnchor: [0.5, 0.5]
 }) => {

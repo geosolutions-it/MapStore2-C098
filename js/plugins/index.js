@@ -69,6 +69,7 @@ import {
     drawMethodSelector,
     isAssetEditSelector,
     loadingAssetsSelector,
+    loadingAnomaliesSelector,
     loadingMissionsSelector,
     missionsListSelector,
     missionCurrentSelector,
@@ -243,9 +244,10 @@ export const MissionEditConnected = connect(createSelector([
 
 export const AnomaliesListConnected = connect(createSelector([
     anomaliesListSelector,
+    loadingAnomaliesSelector,
     missionCurrentSelector
-], (anomalies, missionCurrent) => ({
-    anomalies, missionCurrent
+], (anomalies, loadingAnomalies, missionCurrent) => ({
+    anomalies, loadingAnomalies, missionCurrent
 })), {
     onDownloadFrame: downloadFrame,
     onHighlightAnomaly: highlightAnomaly

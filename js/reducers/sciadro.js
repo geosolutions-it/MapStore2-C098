@@ -29,10 +29,12 @@ import {
     HIGHLIGHT_ANOMALY,
     LOADED_ASSETS,
     LOADED_MISSIONS,
+    LOADING_ANOMALIES,
     LOADING_ASSETS,
     LOADING_ASSET_FEATURE,
     LOADING_MISSIONS,
     LOADING_MISSION_FEATURE,
+    LOADING_MISSION_DATA,
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
     SAVE_ERROR,
@@ -67,7 +69,7 @@ import uuidv1 from 'uuid/v1';
 
 export default function sciadro(state = {
     defaultDroneStyle: {
-        iconUrl: "/assets/images/drone-nord.svg",
+        iconUrl: "/localAssets/images/drone-nord.svg",
         size: [24, 24],
         iconAnchor: [0.5, 0.5]
     },
@@ -111,7 +113,7 @@ export default function sciadro(state = {
 
             return {
                 ...newState,
-                missions: updateDrone(newState.missions, action.id, { isVisible: true }),
+                // missions: updateDrone(newState.missions, action.id, { isVisible: true }),
                 mode: "mission-detail"
             };
         }
@@ -345,6 +347,12 @@ export default function sciadro(state = {
                 missions: state.missions.concat(action.missions)
             };
         }
+        case LOADING_ANOMALIES: {
+            return {
+                ...state,
+                loadingAnomalies: action.loading
+            };
+        }
         case LOADING_ASSETS: {
             return {
                 ...state,
@@ -358,6 +366,10 @@ export default function sciadro(state = {
         case LOADING_MISSION_FEATURE: {
             const item = find(state.missions, i => i.selected);
             return arrayUpdate("missions", {...item, loadingFeature: action.loading}, i => i.selected, state);
+        }
+        case LOADING_MISSION_DATA: {
+            const item = find(state.missions, i => i.selected);
+            return arrayUpdate("missions", {...item, loadingData: action.loading}, i => i.selected, state);
         }
         case LOADING_MISSIONS: {
             return {

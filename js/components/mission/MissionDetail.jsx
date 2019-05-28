@@ -90,7 +90,7 @@ class MissionDetail extends React.Component {
                                 controls={this.props.controls}
                                 height={this.props.videoHeight}
                                 url={[{
-                                    src: this.props.missionSelected.videoUrl || "/assets/video/colibri.mp4", type: this.props.videoFormat || "video/mp4"
+                                    src: "/localAssets/video/colibri.mp4" || this.props.missionSelected.videoUrl, type: this.props.videoFormat || "video/mp4"
                                 }]}
                                 ref={this.ref}
                                 playing={this.props.playing}
@@ -99,12 +99,16 @@ class MissionDetail extends React.Component {
                                     this.props.onStartPlayer();
                                 }}
                                 onSeek={this.pausePlayer}
+                                onPause={this.pausePlayer}
                                 onProgress= {(state) => {
-                                    const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval);
-                                    if (!isEqual(this.telem, telem) ) {
+                                    const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval || 500);
+                                    if (!isEqual(this.telem, telem) && telem) {
                                         // optimized update process of drone position when telem has not changed
                                         this.telem = telem;
-                                        this.props.onUpdateDroneGeometry(telem.id, telem.yaw, telem.location, this.props.missionSelected.id);
+                                        this.props.onUpdateDroneGeometry(telem.id, telem.yaw, {
+                                            "type": "Point",
+                                            "coordinates": [telem.longitude, telem.latitude]
+                                        }, this.props.missionSelected.id);
                                     }
                                 }}
                             />

@@ -8,12 +8,23 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {compose} from 'recompose';
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
 import BorderLayout from '@mapstore/components/layout/BorderLayout';
 import Message from '@mapstore/components/I18N/Message';
 import {find} from 'lodash';
-
+import loadingState from '@mapstore/components/misc/enhancers/loadingState';
+import emptyState from '@mapstore/components/misc/enhancers/emptyState';
+import LoadingWithText from '@js/components/LoadingWithText';
+const SideGridWithLoadingState = compose(
+    loadingState(({loading} ) => loading, {text: <Message msgId="sciadro.anomalies.loading" />}, LoadingWithText),
+    emptyState(
+        ({loading, items = []} ) => items.length === 0 && !loading,
+        {
+            title: <Message msgId="sciadro.no-anomalies" />
+        })
+)(SideGrid);
 /**
  * Mission AnomaliesList
  * @class
@@ -23,11 +34,12 @@ export default class AnomaliesList extends React.Component {
     static propTypes = {
         anomalies: PropTypes.array,
         missionCurrent: PropTypes.object,
-        videoDurationSec: PropTypes.number,
         onDownloadFrame: PropTypes.func,
         onHighlightAnomaly: PropTypes.func,
         onPauseVideo: PropTypes.func,
-        onShowFrame: PropTypes.func
+        onShowFrame: PropTypes.func,
+        loadingAnomalies: PropTypes.bool,
+        videoDurationSec: PropTypes.number
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -56,7 +68,8 @@ export default class AnomaliesList extends React.Component {
 
         return (
             <BorderLayout>
-                <SideGrid
+                <SideGridWithLoadingState
+                    loading={this.props.loadingAnomalies}
                     className="mission-list-container"
                     size="sm"
                     items={

@@ -22,7 +22,7 @@ const SideGridWithLoadingState = compose(
     emptyState(
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
-            title: <Message msgId="sciadro.no-assets" />
+            title: <Message msgId="sciadro.noAssets" />
         })
 )(SideGrid);
 

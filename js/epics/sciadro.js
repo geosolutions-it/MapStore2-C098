@@ -6,12 +6,13 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import { sortBy, isArray, camelCase } from 'lodash';
+import { sortBy, isArray, includes/*, camelCase*/ } from 'lodash';
 import { saveAs } from 'file-saver';
 import * as Rx from 'rxjs';
 import {
     ADD_FEATURE_ASSET,
     CHANGE_CURRENT_ASSET,
+    CHANGE_CURRENT_MISSION,
     DRAW_ASSET,
     DOWNLOAD_FRAME,
     ENTER_CREATE_ITEM,
@@ -35,6 +36,7 @@ import {
     loadAssetError,
     loadedAssets,
     loadedMissions,
+    loadingAnomalies,
     loadingAssetFeature,
     loadingAssets,
     loadingMissionFeature,
@@ -47,12 +49,13 @@ import {
     updateMission,
     zoomToItem
 } from '@js/actions/sciadro';
-import {saveResource, getAssetResource, getMissionResource, getFrameImage} from "@js/API/Persistence";
+import {saveResource, getMissionData, getAssetResource, getMissionResource, getFrameImage} from "@js/API/Persistence";
 import {
     assetEditedSelector,
     assetSelectedFeatureSelector,
     assetSelectedSelector,
     assetZoomLevelSelector,
+    backendSelector,
     droneZoomLevelSelector,
     missionEditedSelector,
     missionLoadedSelector,
@@ -62,8 +65,7 @@ import {
     missionZoomLevelSelector,
     missionsIdSelector
 } from '@js/selectors/sciadro';
-import {addStartingOffsetFrame, addStartingOffset, getStyleFromType, addTelemInterval, getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
-// mapstore
+import {addTelemInterval, addStartingOffset, addStartingOffsetFrame, getStyleFromType, getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
 import {
     zoomToPoint, zoomToExtent
 } from '@mapstore/actions/map';
@@ -173,12 +175,12 @@ export const getAssetFeatureEpic = (action$, store) =>
     .flatMap((a) => {
         let actions = [];
         let state = store.getState();
-        const backendUrl = state.sciadro && state.sciadro.sciadroBackendUrl;
+        const backendUrl = backendSelector(state);
         const asset = assetSelectedSelector(state);
         const featureAsset = assetSelectedFeatureSelector(state);
         if (asset && featureAsset === undefined) {
             // go fetch it
-            const errorsActions = () => [fetchFeatureSciadroServerError()];
+            const errorsActions = () => [fetchFeatureSciadroServerError(), loadingAssetFeature(false)];
             const postProcessActions = (item) => {
                 const fakeFeature = {
                     "type": "Feature",
@@ -202,7 +204,7 @@ export const getAssetFeatureEpic = (action$, store) =>
                 }
                 return actions;
             };
-            return getAssetResource({ id: asset.sciadroResourceId, postProcessActions, errorsActions, backendUrl })
+            return getAssetResource({ id: asset.attributes.sciadroResourceId, postProcessActions, errorsActions, backendUrl })
                 .startWith(
                     loadingAssetFeature(true),
                     getAdditionalLayerAction({feature: null, id: "assets", name: "assets", visibility: false})
@@ -231,40 +233,45 @@ export const getMissionFeatureEpic = (action$, store) =>
             let actions = [];
             const state = store.getState();
             const mission = missionSelectedSelector(state);
+            const backendUrl = backendSelector(state);
 
             const featureMission = missionSelectedFeatureSelector(state);
             const asset = assetSelectedSelector(state);
-            const errorsActions = () => [fetchFeatureSciadroServerError()];
+            const errorsActions = () => [fetchFeatureSciadroServerError(), loadingMissionFeature(false)];
             const postProcessActions = (item) => {
-                if (item.feature) {
-                    let telemetries = mission.telemetries || addStartingOffset(item.telemetries || []);
-                    let frames = mission.telemetries || addStartingOffsetFrame(item.frames || []);
-                    let anomalies = mission.anomalies || item.anomalies;
-                    actions = [...actions, updateMission({
-                        feature: item.feature,
-                        loadingFeature: false,
-                        frames: frames,
-                        size: mission.size || item.size,
-                        anomalies: anomalies.map(anomaly => {
-                            return Object.keys(anomaly).reduce((p, c) => {
-                                return {...p, [camelCase(c)]: anomaly[c]};
-                            }, {});
-                        }),
-                        telemetries: telemetries,
-                        telemInterval: addTelemInterval(telemetries)
+                const fakeFeature = {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [
+                            [ 10.39985, 43.71064 ],
+                            [ 10.40483, 43.71064 ]
+                        ]
                     },
-                    a.id)];
+                    "style": {
+                        "color": "#FF0000",
+                        "weight": 5
+                    }
+                };
+                if (item.feature || fakeFeature) {
+                    actions = [...actions, updateMission({
+                        feature: item.feature || fakeFeature,
+                        videoUrl: item.video_file,
+                        loadingFeature: false
+                    }, a.id)];
                 }
-                actions = [...actions, getAdditionalLayerAction({feature: item.feature, id: "missions", name: "missions", visibility: !!item.feature})];
+                actions = [...actions, getAdditionalLayerAction({feature: item.feature || fakeFeature, id: "missions", name: "missions", visibility: !!item.feature})];
+                actions = [...actions, loadingMissionFeature(false)];
                 return actions;
             };
             if (mission && featureMission === undefined) {
                 // go fetch it
                 return getMissionResource({
-                    id: mission.attributes.sciadroResourceId,
                     assetId: asset.attributes.sciadroResourceId,
-                    postProcessActions,
-                    errorsActions
+                    backendUrl,
+                    id: mission.attributes.sciadroResourceId,
+                    errorsActions,
+                    postProcessActions
                 }).startWith(
                     loadingMissionFeature(true),
                     getAdditionalLayerAction({feature: null, id: "missions", name: "missions", visibility: false})
@@ -350,7 +357,6 @@ export const startLoadingAssetsEpic = (action$) =>
                 }
                 return Rx.Observable.of([null]);
             })
-            // .combineAll()
             .switchMap((assets = []) => {
                 if (assets.length === 1 && assets[0] === "loadError") {
                     return Rx.Observable.from([
@@ -412,6 +418,123 @@ export const startLoadingMissionsEpic = (action$, {getState = () => {} }) =>
                         updateAsset({missionLoaded: true}, asset.id)
                     ]);
                 }).startWith(loadingMissions(true));
+        })
+        .catch(() => Rx.Observable.of(loadMissionError()));
+/**
+ * get missions details
+ * @param {external:Observable} action$ manages `CHANGE_CURRENT_MISSION`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+ */
+export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} }) =>
+    action$.ofType(CHANGE_CURRENT_MISSION)
+        .switchMap((action) => {
+            const state = getState();
+            const mission = missionSelectedSelector(state);
+            const asset = assetSelectedSelector(state);
+            const backendUrl = backendSelector(state);
+
+            return getMissionData({
+                missionId: mission.attributes.sciadroResourceId,
+                assetId: asset.attributes.sciadroResourceId,
+                backendUrl
+            })
+            .switchMap((data = {}) => {
+
+                let frames = addStartingOffsetFrame(data.frames || []);
+                let telemetries;
+                let attUndensified = [];
+                let attUndensifiedTimes = [];
+                data.telemetries.telemetry_attributes.forEach(a => {
+                    if ( !includes(attUndensifiedTimes, Math.floor(a.time / 1000))) {
+                        attUndensified = attUndensified.concat([a]);
+                        attUndensifiedTimes = attUndensifiedTimes.concat([Math.floor(a.time / 1000)]);
+                    }
+                });
+                let posUndensified = [];
+                let posUndensifiedTimes = [];
+                data.telemetries.telemetry_positions.forEach(a => {
+                    if ( !includes(posUndensifiedTimes, Math.floor(a.time / 1000))) {
+                        posUndensifiedTimes = posUndensifiedTimes.concat([Math.floor(a.time / 1000)]);
+                        posUndensified = posUndensified.concat([a]);
+                    }
+                });
+                if (attUndensified.length === posUndensified.length) {
+                    telemetries = attUndensified.map((item, i) => {
+                        let attData = attUndensified[i];
+                        let posData = posUndensified[i];
+                        return {
+                            ...attData,
+                            ...posData
+                        };
+                    });
+                }
+
+                telemetries = addStartingOffset(sortBy(telemetries, ["time"]) || []);
+
+                let anomalies = mission.anomalies || [
+                {
+                    "id": "3c696564-20ae-4512-811c-5eb9a60af2e6",
+                    "frame": "562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2",
+                    "type": "INS",
+                    "status": "UNK",
+                    "confidence": 0,
+                    "xmin": 0,
+                    "xmax": 1024,
+                    "ymin": 0,
+                    "ymax": 768
+                },
+                {
+                    "id": "12696564-20ae-4512-811c-5eb9a60af2e7",
+                    "frame": "562a9ae4-2ed8-4cd9-91f1-666087897ed3",
+                    "type": "INS",
+                    "status": "UNK",
+                    "confidence": 0,
+                    "xmin": 0,
+                    "xmax": 35,
+                    "ymin": 100,
+                    "ymax": 172
+                },
+                {
+                    "id": "12696564-20ae-4512-811c-5eb9a60af2e8",
+                    "frame": "562a9ae4-2ed8-4cd9-91f1-666087897ed5",
+                    "type": "INS",
+                    "status": "UNK",
+                    "confidence": 0,
+                    "xmin": 0,
+                    "xmax": 1024,
+                    "ymin": 0,
+                    "ymax": 768
+                }
+            ];
+
+                let actions = [updateMission({
+                        loadingData: false,
+                        size: data.size || [1024, 768],
+                        frames,
+                        telemetries,
+                        anomalies,
+                        drone: {
+                            type: "Feature",
+                            geometry: {
+                                type: "Point",
+                                coordinates: [ 10.39985, 43.71064 ]
+                            },
+                            style: {
+                                iconUrl: "/localAssets/images/drone-nord.svg",
+                                size: [24, 24],
+                                iconAnchor: [0.5, 0.5]
+                            },
+                            properties: {
+                                isVisible: true
+                            }
+                        },
+                        telemInterval: 200 || addTelemInterval(telemetries)
+                    }, action.id),
+                    loadingAnomalies(false)
+                ];
+                return Rx.Observable.from(actions);
+            }).startWith(loadingAnomalies(true));
         })
         .catch(() => Rx.Observable.of(loadMissionError()));
 

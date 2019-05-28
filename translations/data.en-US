@@ -7,12 +7,14 @@
             "mandatory": "* mandatory fields",
             "back": "Back",
             "save": "Save",
-            "no-assets": "No assets found, please add one or change filter",
-            "no-missions": "No missions found, please add one or change filter",
+            "noAnomalies": "No Anomalies found",
+            "noAssets": "No assets found",
+            "noMissions": "No missions found",
             "pageInfoInfinite": "{total, plural, =undefined {} =0 {No results} =1 {{total} of {total} matched} other {Loaded {loaded} of {total} matched}}",
             "rest": {
-                "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
-                "loadError": "An error occured while loading the assets resources. Please contact the web admin in order to verify this problem",
+                "loadMissionDataError": "An error occured while loading the mission resources",
+                "saveError": "An error occured while saving the resources",
+                "loadError": "An error occured while loading the assets resources",
                 "fetchFeatureError": "Cannot load feature for this resource",
                 "error": "An error occured"
             },
@@ -26,6 +28,7 @@
                 "mission-edit": "Edit Mission"
             },
             "anomalies": {
+                "loading": "Loading Anomalies",
                 "ins": "Insulator",
                 "pip": "Pipeline",
                 "detected": "Detected Anomalies"
