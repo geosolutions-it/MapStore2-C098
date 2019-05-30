@@ -101,7 +101,7 @@ export default class AnomaliesList extends React.Component {
                                             tooltipId: "sciadro.missions.showFrame",
                                             onClick: () => {
                                                 const frame = find(this.props.missionCurrent.frames, {id: item.frame});
-                                                const frameTime = frame.index * 1000 / 24; // assuming 24 fps for the video
+                                                const frameTime = frame.index * 1000 / 35; // assuming 35 fps for the video
                                                 this.props.onShowFrame(frameTime / (this.props.videoDurationSec * 1000), "fraction");
                                                 this.props.onHighlightAnomaly(item.id);
                                                 this.props.onPauseVideo();

@@ -18,7 +18,6 @@ import {
 /**
  used to mock some axios req/res for sciadro backend
 */
-const MockAdapter = require("axios-mock-adapter");
 const axios = require("@mapstore/libs/ajax");
 import * as Persistence from "@mapstore/api/persistence/index";
 
@@ -53,45 +52,55 @@ export const deleteResourceSciadroServer = ({id, path = "assets", backendUrl = "
 /*
  * TODO remove mockaxios
 */
-const postResourceSciadro = ({mockAxios, blob, path, backendUrl, resource, options}) => {
+const postResourceSciadro = ({/*mockAxios, */blob, path, backendUrl, resource, options}) => {
     const fd = new FormData();
     if (blob) {
         fd.append('file', blob);
     }
     Object.keys(resource).forEach(key => {
         if (!isNil(resource[key])) {
-            fd.append(key, resource[key]);
+            if (key === "feature") {
+                fd.append("geometry", JSON.stringify(resource[key].geometry, null, 0));
+            } else if (key === "type") {
+                fd.append("type", "PIP");
+            } else {
+                fd.append(key, resource[key]);
+            }
         }
     });
     return axios.post(`${backendUrl}/${path}`, fd, options)
         .then(data => {
-            mockAxios.reset();
-            mockAxios.restore();
+            /*mockAxios.reset();
+            mockAxios.restore();*/
             return data;
         });
 };
 
-export const createResourceSciadroServer = ({path = "assets", backendUrl = "http://localhost:8000", category, resource = {}, fileUrl, options = {
-    timeout: 3000,
-    headers: {'Accept': 'application/json'}
+export const createResourceSciadroServer = ({path = "assets/", backendUrl = "http://localhost:8000", category, resource = {}, fileUrl, options = {
+    timeout: 30000,
+    headers: {
+        "Accept": "application/json",
+        "Content-Type": 'multipart/form-data'
+    }
 }} = {}) => {
-    let mockAxios = new MockAdapter(axios);
+    /*let mockAxios;
     if (path === "assets") {
-        mockAxios.onPost(/assets/).reply(201, DATA.POST_ASSET);
+        // mockAxios.onPost(/assets/).reply(201, DATA.POST_ASSET);
     } else {
+        mockAxios = new MockAdapter(axios);
         // mockAxios.onPost(/assets\/[\w-]*\/missions/).reply(201, DATA.POST_MISSION);
         mockAxios.onPost(/missions/).reply(201, DATA.POST_MISSION);
     }
-
+*/
     if (!fileUrl) {
-        return postResourceSciadro({mockAxios, path, backendUrl, resource, options});
+        return postResourceSciadro({/*mockAxios, */path, backendUrl, resource, options});
     }
     if (!fileUrl && category === "MISSION") {
         return null;
     }
     return fetch(fileUrl)
     .then(res => res.blob())
-    .then((blob) => postResourceSciadro({mockAxios, blob, path, backendUrl, resource, options}));
+    .then((blob) => postResourceSciadro({/*mockAxios, */blob, path, backendUrl, resource, options}));
 };
 
 // return a defer
@@ -135,9 +144,9 @@ const manageCreationResourceGeostore = (metadata, category, configuredPermission
  * @param {string} fileUrl optional file to upload. Required only for MISSION resources
  * @return observable actions
 */
-export const saveResource = ({resource = {}, category, resourcePermissions = {}, postProcessActions = () => [], errorsActions = () => [], fileUrl, path, updateAssetAttribute = false} = {}) =>
+export const saveResource = ({resource = {}, category, resourcePermissions = {}, postProcessActions = () => [], errorsActions = () => [], fileUrl, path, updateAssetAttribute = false, backendUrl} = {}) =>
     Rx.Observable.defer( () =>
-        createResourceSciadroServer({resource, fileUrl, category, path})
+        createResourceSciadroServer({resource, fileUrl, category, path, backendUrl})
             .then(res => {
                 if (res === null) {
                     // TEST THIS
@@ -201,22 +210,26 @@ export const saveResource = ({resource = {}, category, resourcePermissions = {},
     });
 
 
-export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://localhost:8000", options = {
+export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://localhost:8081", options = {
     timeout: 3000,
     headers: {'Accept': 'application/json,image/png', 'Content-Type': 'application/json' }
 }} = {}) => {
     // COMMENT THIS MOCK BEFORE TESTING
-    /*let mockAxios = new MockAdapter(axios, {delayResponse: 100});
+    /*
+
+    let mockAxios = new MockAdapter(axios, {delayResponse: 100});
     mockAxios.onGet(/objects/).reply(200, DATA.GET_FRAME_IMAGE);
     mockAxios.onGet(/missions/).reply(200, DATA.GET_MISSION);
-    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);*/
-    // mockAxios.onGet(/assets\/[\w-]).reply(200, DATA.GET_ASSET);
-    // mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);
+    mockAxios.onGet(/assets/).reply(200, DATA.GET_ASSET);
+    mockAxios.onGet(/assets\/[\w-]).reply(200, DATA.GET_ASSET);
+    mockAxios.onGet(/assets\/[\w-]*\/missions/).reply(200, DATA.GET_MISSION);*/
     const url = `${backendUrl}/${path}`;
     return axios.get(url, options)
         .then(res => {
-            /*mockAxios.reset();
-            mockAxios.restore();*/
+            /*
+            mockAxios.reset();
+            mockAxios.restore();
+            */
             return res;
         });
 };
@@ -270,7 +283,12 @@ export const getMissionData = ({missionId, assetId, backendUrl} = {}) =>
 * @param {string} frame id of the resource to fetch
 * @return file retrieved
 */
+
 export const getFrameImage = ({missionId, assetId, backendUrl, frameId}) => {
+    const MockAdapter = require("axios-mock-adapter");
+
+    let mockAxios = new MockAdapter(axios, {delayResponse: 100});
+    mockAxios.onGet(/objects/).reply(200, DATA.GET_FRAME_IMAGE);
     return Rx.Observable.defer( () => getResourceSciadroServer({
         backendUrl,
         path: `assets/${assetId}/missions/${missionId}/objects/${frameId}`,
@@ -278,6 +296,8 @@ export const getFrameImage = ({missionId, assetId, backendUrl, frameId}) => {
             headers: {'Accept': 'image/png', 'Content-Type': 'image/png' }
         }}))
         .switchMap((res) => {
+            mockAxios.reset();
+            mockAxios.restore();
             return Rx.Observable.of(res);
         });
 };

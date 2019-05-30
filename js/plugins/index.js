@@ -10,9 +10,9 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import AnomaliesList from '@js/components/mission/AnomaliesList';
+import AssetEdit from '@js/components/asset/AssetEdit';
 import AssetList from '@js/components/asset/AssetList';
 import AssetListVirtualScroll from '@js/components/asset/AssetListVirtualScroll';
-import AssetEdit from '@js/components/asset/AssetEdit';
 import AssetPermission from '@js/components/asset/AssetPermission';
 import MissionDetail from '@js/components/mission/MissionDetail';
 import MissionEdit from '@js/components/mission/MissionEdit';
@@ -46,6 +46,7 @@ import {
     pausePlayer,
     resetCurrentAsset,
     resetCurrentMission,
+    resetHighlightAnomaly,
     selectAsset,
     selectMission,
     startLoadingAssets,
@@ -190,8 +191,8 @@ export const AssetEditConnected = connect(createSelector([
     savingAssetSelector
 ], (assets, assetEdited, savingAsset) => ({
     assets, assetEdited, savingAsset,
+    assetPermissionComponent: undefined, // AssetPermissionConnected restore to complete permission section
     dropZoneComponent: ShapeFileConnected,
-    assetPermissionComponent: AssetPermissionConnected,
     toolbarGeometryComponent: ToolbarGeomConnected
 })), {
     onEditAsset: editAsset
@@ -264,6 +265,7 @@ export const MissionDetailConnected = connect(createSelector([
     anomaliesListComponent: AnomaliesListConnected
 })), {
     onPausePlayer: pausePlayer,
+    onResetHighlightAnomaly: resetHighlightAnomaly,
     onStartPlayer: startPlayer,
     onUpdateDroneGeometry: updateDroneGeometry
 })(MissionDetail);

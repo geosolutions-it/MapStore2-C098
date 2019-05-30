@@ -30,9 +30,10 @@ class MissionDetail extends React.Component {
         controls: PropTypes.bool,
         missions: PropTypes.array,
         missionSelected: PropTypes.object,
-        onUpdateDroneGeometry: PropTypes.func,
         onPausePlayer: PropTypes.func,
+        onResetHighlightAnomaly: PropTypes.func,
         onStartPlayer: PropTypes.func,
+        onUpdateDroneGeometry: PropTypes.func,
         playing: PropTypes.bool,
         progressInterval: PropTypes.number,
         videoHeight: PropTypes.string,
@@ -57,11 +58,12 @@ class MissionDetail extends React.Component {
         controls: [],
         missions: [],
         missionSelected: {
-            videoUrl: "/assets/video/colibri.mp4"
+            videoUrl: "/localAssets/video/colibri.mp4"
         },
-        onUpdateDroneGeometry: () => {},
         onPausePlayer: () => {},
+        onResetHighlightAnomaly: () => {},
         onStartPlayer: () => {},
+        onUpdateDroneGeometry: () => {},
         playing: false,
         progressInterval: 500,
         videoHeight: 375,
@@ -94,12 +96,22 @@ class MissionDetail extends React.Component {
                                 }]}
                                 ref={this.ref}
                                 playing={this.props.playing}
-
-                                onPlay= {() => {
-                                    this.props.onStartPlayer();
+                                onPlay= {() => { console.log("onPlay"); this.props.onStartPlayer(); }}
+                                onSeek={
+                                    () => {
+                                        console.log("onSeek");
+                                        if (this.state.seekFrom === "showFrame") {
+                                            this.setState({seekFrom: "manualSeek"});
+                                        } else {
+                                            this.props.onResetHighlightAnomaly();
+                                        }
+                                    }
+                                }
+                                onReady={() => {
+                                    console.log("onReady");
+                                    // this.props.onResetHighlightAnomaly();
                                 }}
-                                onSeek={this.pausePlayer}
-                                onPause={this.pausePlayer}
+                                onPause={() => { console.log("onPause"); this.pausePlayer("pause"); }}
                                 onProgress= {(state) => {
                                     const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval || 500);
                                     if (!isEqual(this.telem, telem) && telem) {
@@ -134,16 +146,15 @@ class MissionDetail extends React.Component {
 
     createAnomalyStyle = () => {
         const missionSelected = this.props.missionSelected;
-        const anomaly = this.props.anomalySelected;
-        if (missionSelected.size && anomaly) {
-            const {xMin, yMin, xMax, yMax} = anomaly;
+        if (missionSelected.size && this.props.anomalySelected) {
+            const {xmin, ymin, xmax, ymax} = this.props.anomalySelected;
             const [widthFrame, heightFrame] = missionSelected.size;
             // assuming top-left as origin (0, 0)
 
-            const newXMin = Math.floor(xMin * this.props.videoHeight / heightFrame);
-            const newXMax = Math.floor(xMax * this.props.videoHeight / heightFrame);
-            const newYMin = Math.floor(yMin * this.props.videoWidth / widthFrame);
-            const newYMax = Math.floor(yMax * this.props.videoWidth / widthFrame);
+            const newXMin = Math.floor(xmin * this.props.videoHeight / heightFrame);
+            const newXMax = Math.floor(xmax * this.props.videoHeight / heightFrame);
+            const newYMin = Math.floor(ymin * this.props.videoWidth / widthFrame);
+            const newYMax = Math.floor(ymax * this.props.videoWidth / widthFrame);
 
             const width = `${newXMax - newXMin}px`;
             const height = `${newYMax - newYMin}px`;
@@ -164,7 +175,8 @@ class MissionDetail extends React.Component {
         };
     }
     seekToFrame = (fraction = 0.5) => {
-        this.player.seekTo(fraction);
+        this.player.seekTo(fraction, false);
+        this.setState({resetHighlight: false, seekFrom: "showFrame"});
     }
     pausePlayer = () => {
         this.props.onPausePlayer();

@@ -37,6 +37,7 @@ import {
     LOADING_MISSION_DATA,
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
+    RESET_HIGHLIGHT_ANOMALY,
     SAVE_ERROR,
     SELECT_ASSET,
     SELECT_MISSION,
@@ -110,10 +111,17 @@ export default function sciadro(state = {
                 items: "missions",
                 state
             });
-
+            let missions = newState.missions;
+            const mission = find(missions, item => item.current);
+            if (mission.anomalies) {
+                const anomalies = mission.anomalies.map((a => {
+                    return {...a, selected: false};
+                }));
+                missions = updateItem(newState.missions, {id: mission.id}, {anomalies});
+            }
             return {
                 ...newState,
-                // missions: updateDrone(newState.missions, action.id, { isVisible: true }),
+                missions,
                 mode: "mission-detail"
             };
         }
@@ -437,6 +445,16 @@ export default function sciadro(state = {
                 mode: "mission-list",
                 showErrorMessage: false,
                 showSuccessMessage: false
+            };
+        }
+        case RESET_HIGHLIGHT_ANOMALY: {
+            const mission = find(state.missions, item => item.current);
+            const anomalies = mission.anomalies.map((a => {
+                return {...a, selected: false};
+            }));
+            return {
+                ...state,
+                missions: updateItem(state.missions, {id: mission.id}, {anomalies})
             };
         }
         case SAVE_ERROR: {

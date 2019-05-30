@@ -57,6 +57,7 @@ import {
     assetZoomLevelSelector,
     backendSelector,
     droneZoomLevelSelector,
+    featureAssetStyleSelector,
     missionEditedSelector,
     missionLoadedSelector,
     missionSelectedFeatureSelector,
@@ -178,26 +179,25 @@ export const getAssetFeatureEpic = (action$, store) =>
         const backendUrl = backendSelector(state);
         const asset = assetSelectedSelector(state);
         const featureAsset = assetSelectedFeatureSelector(state);
+
         if (asset && featureAsset === undefined) {
             // go fetch it
             const errorsActions = () => [fetchFeatureSciadroServerError(), loadingAssetFeature(false)];
             const postProcessActions = (item) => {
-                const fakeFeature = {
+                const assetFeature = {
                     "type": "Feature",
-                    "geometry": {
+                    "geometry": item.geometry ? item.geometry : {
                         "type": "LineString",
                         "coordinates": [[10.39985, 43.71074], [10.40483, 43.71074]]
                     },
-                    "style": {
-                        "color": "#00FF00",
-                        "weight": 2
-                    }
+                    "style": featureAssetStyleSelector(state, item.geometry && item.geometry.type || "LineString" )
+
                 };
-                actions = [updateAsset({ feature: item.feature || fakeFeature, loadingFeature: false }, a.id)];
+                actions = [updateAsset({ feature: assetFeature, loadingFeature: false }, a.id)];
                 state = store.getState();
                 const assetSelected = assetSelectedSelector(state);
                 if (assetSelected.name === item.name) {
-                    actions.push(getAdditionalLayerAction({ feature: {...item.feature, ...fakeFeature, id: a.id}, id: "assets", name: "assets", visibility: !!item.feature }));
+                    actions.push(getAdditionalLayerAction({ feature: {...item.feature, ...assetFeature, id: a.id}, id: "assets", name: "assets", visibility: !!item.feature }));
                     if (a.type === CHANGE_CURRENT_ASSET) {
                         actions.push(changeMode("mission-list"));
                     }
@@ -472,10 +472,16 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
 
                 telemetries = addStartingOffset(sortBy(telemetries, ["time"]) || []);
 
+                let missionGeom = telemetries.reduce((p, t) => {
+                    return {
+                        type: "LineString",
+                        coordinates: p.coordinates.concat([[t.longitude, t.latitude]])
+                    };
+                }, {coordinates: []});
                 let anomalies = mission.anomalies || [
                 {
                     "id": "3c696564-20ae-4512-811c-5eb9a60af2e6",
-                    "frame": "562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2",
+                    "frame": "361205b8-3cca-47e2-a565-f314c8eed0bc",
                     "type": "INS",
                     "status": "UNK",
                     "confidence": 0,
@@ -486,7 +492,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                 },
                 {
                     "id": "12696564-20ae-4512-811c-5eb9a60af2e7",
-                    "frame": "562a9ae4-2ed8-4cd9-91f1-666087897ed3",
+                    "frame": "9471dbf4-9409-4418-8c8d-dac0f6bc7e0b",
                     "type": "INS",
                     "status": "UNK",
                     "confidence": 0,
@@ -497,7 +503,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                 },
                 {
                     "id": "12696564-20ae-4512-811c-5eb9a60af2e8",
-                    "frame": "562a9ae4-2ed8-4cd9-91f1-666087897ed5",
+                    "frame": "0d39218d-28c9-422a-a163-0f893d6782b2",
                     "type": "INS",
                     "status": "UNK",
                     "confidence": 0,
@@ -514,6 +520,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                         frames,
                         telemetries,
                         anomalies,
+                        feature: {...mission.feature, geometry: missionGeom},
                         drone: {
                             type: "Feature",
                             geometry: {
@@ -548,14 +555,15 @@ export const saveAssetEpic = (action$, store) =>
     action$.ofType(START_SAVING_ASSET)
         .switchMap((a) => {
             const state = store.getState();
+            const backendUrl = backendSelector(state);
             const asset = assetEditedSelector(state);
             const resource = {
                 id: asset.id,
                 name: asset.name,
                 feature: asset.feature,
                 description: asset.description,
-                note: asset.note,
-                type: asset.type
+                note: asset.attributes && asset.attributes.note || "",
+                type: asset.attributes && asset.attributes.type || ""
             };
             const postProcessActions = (sciadroData, idResourceGeostore) =>[
                 saveAssetSuccess(resource.name),
@@ -575,7 +583,7 @@ export const saveAssetEpic = (action$, store) =>
                 endSaveAsset()
             ];
             const errorsActions = (id, message) => [saveError(id, message)];
-            return saveResource({resource, category: "ASSET", resourcePermissions: {}, postProcessActions, errorsActions});
+            return saveResource({resource, category: "ASSET", resourcePermissions: {}, postProcessActions, errorsActions, backendUrl});
         });
 
 /**
@@ -589,6 +597,7 @@ export const saveMissionEpic = (action$, store) =>
     .switchMap((a) => {
         const state = store.getState();
         const mission = missionEditedSelector(state);
+        const backendUrl = backendSelector(state);
         const asset = assetSelectedSelector(state); // TODO EVALUATE LATER: instead of taking the info from the asset selected we can save this id into the mission object and retrieving from there
         const resource = {
             id: mission.id,
@@ -623,12 +632,13 @@ export const saveMissionEpic = (action$, store) =>
         ];
         const errorsActions = (id, message) => [saveError(id, message)];
         return saveResource({
+            backendUrl,
             resource,
             category: "MISSION",
             resourcePermissions: {},
             fileUrl: mission.files,
             updateAssetAttribute: true,
-            path: `assets/${asset.attributes.sciadroResourceId}/missions`,
+            path: `assets/${asset.attributes.sciadroResourceId}/missions/`,
             postProcessActions,
             errorsActions });
     });
@@ -674,7 +684,7 @@ export const updateDroneAdditionalLayerEpic = (action$, store) =>
             let actions = [];
             const state = store.getState();
             const featureDrone = missionSelectedDroneFeatureSelector(state);
-            actions.push(zoomToItem("drone"));
+            actions.push(zoomToItem("missions"));
             actions.push(getAdditionalLayerAction({feature: featureDrone, id: "drone", name: "drone", visibility: !!featureDrone}));
             return Rx.Observable.from(actions);
         });

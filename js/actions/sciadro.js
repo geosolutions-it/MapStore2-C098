@@ -39,6 +39,7 @@ export const LOADING_MISSION_FEATURE = "SCIADRO:LOADING_MISSION_FEATURE";
 export const LOADING_MISSION_DATA = "SCIADRO:LOADING_MISSION_DATA";
 export const RESET_CURRENT_ASSET = "SCIADRO:RESET_CURRENT_ASSET";
 export const RESET_CURRENT_MISSION = "SCIADRO:RESET_CURRENT_MISSION";
+export const RESET_HIGHLIGHT_ANOMALY = "SCIADRO:RESET_HIGHLIGHT_ANOMALY";
 export const SAVE_ERROR = "SCIADRO:SAVE_ERROR";
 export const SELECT_ASSET = "SCIADRO:SELECT_ASSET";
 export const SELECT_MISSION = "SCIADRO:SELECT_MISSION";
@@ -91,6 +92,7 @@ export const loadingMissions = (loading) => ({ type: LOADING_MISSIONS, loading }
 export const pausePlayer = () => ({ type: CHANGE_PLAYING, playing: false });
 export const resetCurrentAsset = () => ({ type: RESET_CURRENT_ASSET });
 export const resetCurrentMission = () => ({ type: RESET_CURRENT_MISSION });
+export const resetHighlightAnomaly = () => ({ type: RESET_HIGHLIGHT_ANOMALY });
 export const saveError = (id, message) => ({ type: SAVE_ERROR, id, message: message || "sciadro.rest.saveError" });
 export const selectAsset = (id) => ({ type: SELECT_ASSET, id });
 export const selectMission = (id) => ({ type: SELECT_MISSION, id });

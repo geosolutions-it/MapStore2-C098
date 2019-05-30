@@ -70,7 +70,32 @@
         "missions": [],
         "assetZoomLevel": 10,
         "droneZoomLevel": 18,
-        "missionZoomLevel": 10
+        "missionZoomLevel": 10,
+        "styles": {
+          "asset": {
+            "Point": {
+              "iconColor": "orange",
+              "iconShape": "circle",
+              "iconGlyph": "comment"
+            },
+            "Marker": {
+              "iconColor": "orange",
+              "iconShape": "circle",
+              "iconGlyph": "comment"
+            },
+            "LineString": { "color": "#ffcc33", "weight": 2 }
+          },
+          "mission": {
+            "LineString": { "color": "#00ff00", "weight": 2 }
+          },
+          "drone": {
+            "Point": {
+                  "iconUrl": "/localAssets/images/drone-nord.svg",
+                  "size": [24, 24],
+                  "iconAnchor": [0.5, 0.5]
+              }
+          }
+        }
       }
     }
 	},
