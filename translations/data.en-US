@@ -39,7 +39,7 @@
                 "loading": "Loading Assets",
                 "powerline": "Powerline",
                 "pipeline": "Pipeline",
-                "electric-truss": "Electric truss",
+                "electricTruss": "Electric truss",
                 "detail": "View asset details",
                 "permissions": "Asset Permissions",
                 "permissionsOptions": "Permission options for asset: ",

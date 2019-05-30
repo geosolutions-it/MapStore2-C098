@@ -55,9 +55,9 @@ import {
     assetSelectedFeatureSelector,
     assetSelectedSelector,
     assetZoomLevelSelector,
-    backendSelector,
+    backendUrlSelector,
     droneZoomLevelSelector,
-    featureAssetStyleSelector,
+    featureStyleSelector,
     missionEditedSelector,
     missionLoadedSelector,
     missionSelectedFeatureSelector,
@@ -176,7 +176,7 @@ export const getAssetFeatureEpic = (action$, store) =>
     .flatMap((a) => {
         let actions = [];
         let state = store.getState();
-        const backendUrl = backendSelector(state);
+        const backendUrl = backendUrlSelector(state);
         const asset = assetSelectedSelector(state);
         const featureAsset = assetSelectedFeatureSelector(state);
 
@@ -190,7 +190,7 @@ export const getAssetFeatureEpic = (action$, store) =>
                         "type": "LineString",
                         "coordinates": [[10.39985, 43.71074], [10.40483, 43.71074]]
                     },
-                    "style": featureAssetStyleSelector(state, item.geometry && item.geometry.type || "LineString" )
+                    "style": featureStyleSelector(state, "asset", item.geometry && item.geometry.type || "LineString" )
 
                 };
                 actions = [updateAsset({ feature: assetFeature, loadingFeature: false }, a.id)];
@@ -233,7 +233,7 @@ export const getMissionFeatureEpic = (action$, store) =>
             let actions = [];
             const state = store.getState();
             const mission = missionSelectedSelector(state);
-            const backendUrl = backendSelector(state);
+            const backendUrl = backendUrlSelector(state);
 
             const featureMission = missionSelectedFeatureSelector(state);
             const asset = assetSelectedSelector(state);
@@ -367,7 +367,7 @@ export const startLoadingAssetsEpic = (action$) =>
                     return Rx.Observable.of(loadingAssets(false));
                 }
                 const assetsSorted = sortBy(assets, ["id"]).map(a => {
-                    return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}, attributes: {...a.attributes, missionsId: `${a.attributes.missionsId || ""}`}};
+                    return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}, attributes: {...a.attributes, missions: `${a.attributes.missions || ""}`}};
                 });
                 return Rx.Observable.of(loadedAssets( assetsSorted));
                  // if 1 result geostore returns an object
@@ -432,7 +432,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
             const state = getState();
             const mission = missionSelectedSelector(state);
             const asset = assetSelectedSelector(state);
-            const backendUrl = backendSelector(state);
+            const backendUrl = backendUrlSelector(state);
 
             return getMissionData({
                 missionId: mission.attributes.sciadroResourceId,
@@ -555,7 +555,7 @@ export const saveAssetEpic = (action$, store) =>
     action$.ofType(START_SAVING_ASSET)
         .switchMap((a) => {
             const state = store.getState();
-            const backendUrl = backendSelector(state);
+            const backendUrl = backendUrlSelector(state);
             const asset = assetEditedSelector(state);
             const resource = {
                 id: asset.id,
@@ -575,7 +575,7 @@ export const saveAssetEpic = (action$, store) =>
                         modified: sciadroData.modified,
                         note: sciadroData.note,
                         type: sciadroData.type,
-                        missionsId: sciadroData.missions.join(",")
+                        missions: sciadroData.missions.join(",")
                     },
                     id: idResourceGeostore,
                     feature: sciadroData.feature // what if backend returns a malformed/corrupted feature?
@@ -597,14 +597,14 @@ export const saveMissionEpic = (action$, store) =>
     .switchMap((a) => {
         const state = store.getState();
         const mission = missionEditedSelector(state);
-        const backendUrl = backendSelector(state);
+        const backendUrl = backendUrlSelector(state);
         const asset = assetSelectedSelector(state); // TODO EVALUATE LATER: instead of taking the info from the asset selected we can save this id into the mission object and retrieving from there
         const resource = {
             id: mission.id,
             name: mission.name,
             description: mission.description,
             assetId: asset.id,
-            missionsId: asset.attributes.missionsId,
+            missions: asset.attributes.missions,
             note: mission.attributes.note // TODO TEST THIS
         };
         const postProcessActions = (sciadroData, idResourceGeostore) => [
@@ -626,7 +626,7 @@ export const saveMissionEpic = (action$, store) =>
             updateAsset({
                 missionLoaded: true,
                 // TODO VERIFY we are not missing anything
-                attributes: {...asset.attributes, missionsId: asset.attributes && asset.attributes.missionsId ? `${asset.attributes.missionsId},${idResourceGeostore}` : `${idResourceGeostore}`}
+                attributes: {...asset.attributes, missions: asset.attributes && asset.attributes.missions ? `${asset.attributes.missions},${idResourceGeostore}` : `${idResourceGeostore}`}
             }, asset.id),
             endSaveMission()
         ];

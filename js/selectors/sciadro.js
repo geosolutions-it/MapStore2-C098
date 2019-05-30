@@ -14,13 +14,13 @@ export const assetCurrentSelector = state => find(assetsListSelector(state), a =
 export const assetSelectedSelector = state => find(assetsListSelector(state), a => a.selected) || null;
 export const assetSelectedFeatureSelector = state => get(assetSelectedSelector(state), "feature");
 export const assetZoomLevelSelector = state => get(state, "sciadro.assetZoomLevel", 10);
-export const backendSelector = state => get(state, "sciadro.sciadroBackendUrl", "");
+export const backendUrlSelector = state => get(state, "sciadro.backendUrl", "");
 
 export const dateFilterSelector = state => get(state, "sciadro.dateFilter", {});
 export const drawMethodSelector = state => get(state, "sciadro.drawMethod", "");
 export const droneZoomLevelSelector = state => get(state, "sciadro.droneZoomLevel", 18);
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
-export const featureAssetStyleSelector = (state, type) => get(state, `sciadro.styles.asset.${type}`, { "color": "#ffcc33", "weight": 2 });
+export const featureStyleSelector = (state, category, type) => get(state, `sciadro.styles.${category}.${type}`, { "color": "#ffcc33", "weight": 2 });
 export const loadingAssetsSelector = state => get(state, "sciadro.loadingAssets", false);
 export const loadingAnomaliesSelector = state => get(state, "sciadro.loadingAnomalies", false);
 export const loadingMissionsSelector = state => get(state, "sciadro.loadingMissions", false);

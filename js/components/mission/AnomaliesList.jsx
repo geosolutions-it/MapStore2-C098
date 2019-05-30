@@ -22,7 +22,7 @@ const SideGridWithLoadingState = compose(
     emptyState(
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
-            title: <Message msgId="sciadro.no-anomalies" />
+            title: <Message msgId="sciadro.noAnomalies" />
         })
 )(SideGrid);
 /**
@@ -108,21 +108,23 @@ export default class AnomaliesList extends React.Component {
                                             }
                                         }, {
                                             glyph: 'download',
+                                            visible: false,
                                             tooltipId: "sciadro.missions.downloadFrame",
                                             loading: item.downloading,
                                             disabled: item.downloading,
                                             onClick: () => {
                                                 this.props.onDownloadFrame(item.frame);
                                             }
-                                        }/*, {
+                                        }, {
                                             glyph: '1-map',
                                             tooltipId: "sciadro.missions.showMap",
+                                            visible: false,
                                             onClick: () => {
                                                 const frame = find(this.props.missionCurrent.frames, {id: item.frame});
                                                 const frameTime = frame.index * 1000 / 24; // assuming 24 fps for the video
                                                 this.props.onShowFrame(frameTime / (this.props.videoDurationSec * 1000), "fraction");
                                             }
-                                        }*/
+                                        }
                                     ]
                                 }/>
                         }))

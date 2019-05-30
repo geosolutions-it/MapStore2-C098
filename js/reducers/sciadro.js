@@ -276,7 +276,7 @@ export default function sciadro(state = {
                     edit: true,
                     isNew: true,
                     attributes: {
-                        type: "powerline",
+                        type: "POW",
                         note: "",
                         created: null,
                         modified: null

@@ -55,7 +55,7 @@ class AssetEdit extends React.Component {
         typeList: [
             { value: "POW", label: "sciadro.assets.powerline" },
             { value: "PIP", label: "sciadro.assets.pipeline" },
-            { value: "ELE", label: "sciadro.assets.electric-truss" }
+            { value: "ELE", label: "sciadro.assets.electricTruss" }
         ],
         toolbarGeometryComponent: () => null
     };

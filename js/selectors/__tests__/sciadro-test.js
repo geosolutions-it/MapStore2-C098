@@ -16,10 +16,13 @@ import {
     assetSelectedSelector,
     assetSelectedFeatureSelector,
     assetZoomLevelSelector,
+    backendUrlSelector,
     getMissiondDateFilter,
     drawMethodSelector,
     droneZoomLevelSelector,
     enabledSelector,
+    featureStyleSelector,
+    loadingAnomaliesSelector,
     loadingAssetsSelector,
     loadingMissionsSelector,
     missionsIdSelector,
@@ -67,7 +70,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual([{
@@ -86,7 +89,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual({
@@ -134,6 +137,15 @@ describe('testing sciadro selectors', () => {
             }
         })).toEqual(18);
     });
+    it('backendUrlSelector', () => {
+        expect(backendUrlSelector({})).toEqual("");
+        const backendUrl = "backendUrl";
+        expect(backendUrlSelector({
+            sciadro: {
+                backendUrl
+            }
+        })).toEqual(backendUrl);
+    });
     it('getMissiondDateFilter', () => {
         const id = 2;
         const fieldValue = {startDate: "2019-05-17T12:37:16.167Z", endDate: "2029-05-17T12:37:16.167Z"};
@@ -174,6 +186,49 @@ describe('testing sciadro selectors', () => {
         expect(enabledSelector({})).toBe(false);
         expect(enabledSelector({controls: {sciadro: {enabled: true}}})).toBe(true);
     });
+    it('featureStyleSelector', () => {
+        expect(featureStyleSelector({})).toEqual({ color: '#ffcc33', weight: 2 });
+        expect(featureStyleSelector({
+            sciadro: {
+                styles: {
+                    asset: {
+                        Point: {
+                            iconColor: "orange",
+                            iconShape: "circle",
+                            iconGlyph: "comment"
+                        }
+                    }
+                }
+            }
+        }, "asset", "LineString")).toEqual({
+            color: '#ffcc33', weight: 2
+        });
+        expect(featureStyleSelector({
+            sciadro: {
+                styles: {
+                    asset: {
+                        Point: {
+                            iconColor: "orange",
+                            iconShape: "circle",
+                            iconGlyph: "comment"
+                        }
+                    }
+                }
+            }
+        }, "asset", "Point")).toEqual({
+            iconColor: "orange",
+            iconShape: "circle",
+            iconGlyph: "comment"
+        });
+    });
+    it('loadingAnomaliesSelector', () => {
+        const loadingAnomalies = true;
+        expect(loadingAnomaliesSelector({})).toBe(false); // default
+        expect(loadingAnomaliesSelector({
+            sciadro: {
+                loadingAnomalies
+            }})).toEqual(loadingAnomalies);
+    });
     it('loadingAssetsSelector', () => {
         const loadingAssets = false;
         expect(loadingAssetsSelector({})).toBe(false); // default
@@ -196,7 +251,7 @@ describe('testing sciadro selectors', () => {
             assets: [{
                 id: 1,
                 selected: true,
-                attributes: { missionsId: "1" }
+                attributes: { missions: "1" }
             }],
             missions: [{id: 1}]
         }})).toEqual(1);
@@ -207,7 +262,7 @@ describe('testing sciadro selectors', () => {
             assets: [{
                 id: 1,
                 selected: true,
-                attributes: { missionsId: "1" }
+                attributes: { missions: "1" }
             }],
             missions: [{id: 1}]
         }})).toEqual([{id: 1}]);
@@ -218,7 +273,7 @@ describe('testing sciadro selectors', () => {
             assets: [{
                 id: 1,
                 selected: true,
-                attributes: { missionsId: "1" },
+                attributes: { missions: "1" },
                 missionLoaded: true
             }],
             missions: [{id: 1}]
@@ -233,7 +288,7 @@ describe('testing sciadro selectors', () => {
                     id: 1,
                     current: true,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, current: false }]
             }})).toEqual(mission);
@@ -246,7 +301,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(mission);
@@ -267,7 +322,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(feature);
@@ -280,7 +335,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(mission);
@@ -294,7 +349,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(files);
@@ -318,7 +373,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                 id: 1,
                 selected: true,
-                attributes: { missionsId: "1" }
+                attributes: { missions: "1" }
             }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(drone);
@@ -474,7 +529,7 @@ describe('testing sciadro selectors', () => {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missionsId: "1" }
+                    attributes: { missions: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }],
                 mode: "mission-list"
@@ -497,7 +552,7 @@ describe('testing sciadro selectors', () => {
         const assets = [{
             id: 1,
             selected: true,
-            attributes: { missionsId: "1" }
+            attributes: { missions: "1" }
         }];
         expect(toolbarButtonsStatusSelector({
             sciadro: {

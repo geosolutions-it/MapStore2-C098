@@ -96,10 +96,9 @@ class MissionDetail extends React.Component {
                                 }]}
                                 ref={this.ref}
                                 playing={this.props.playing}
-                                onPlay= {() => { console.log("onPlay"); this.props.onStartPlayer(); }}
+                                onPlay= {() => { this.props.onStartPlayer(); }}
                                 onSeek={
                                     () => {
-                                        console.log("onSeek");
                                         if (this.state.seekFrom === "showFrame") {
                                             this.setState({seekFrom: "manualSeek"});
                                         } else {
@@ -107,11 +106,7 @@ class MissionDetail extends React.Component {
                                         }
                                     }
                                 }
-                                onReady={() => {
-                                    console.log("onReady");
-                                    // this.props.onResetHighlightAnomaly();
-                                }}
-                                onPause={() => { console.log("onPause"); this.pausePlayer("pause"); }}
+                                onPause={this.pausePlayer}
                                 onProgress= {(state) => {
                                     const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval || 500);
                                     if (!isEqual(this.telem, telem) && telem) {

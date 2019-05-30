@@ -65,7 +65,7 @@
 				}
 			},
       "sciadro": {
-        "sciadroBackendUrl": "",
+        "backendUrl": "",
         "assets": [],
         "missions": [],
         "assetZoomLevel": 10,
