@@ -17,7 +17,7 @@ import {
 const axios = require("@mapstore/libs/ajax");
 import * as Persistence from "@mapstore/api/persistence/index";
 
-const DATA = {
+/*const DATA = {
     DELETE_ASSET: require("json-loader!@js/test-resources/deleteAsset.json"),
     GET_FRAME_IMAGE: require("@js/test-resources/frame16.png"),
     POST_ASSET: require("json-loader!@js/test-resources/postAsset.json"),
@@ -25,7 +25,7 @@ const DATA = {
     POST_MISSION: require("json-loader!@js/test-resources/postMission.json"),
     GET_MISSION: require("json-loader!@js/test-resources/getMission.json"),
     GET_ALL_ASSETS: require("json-loader!@js/test-resources/getAllAssets.json")
-};
+};*/
 
 export const deleteResourceSciadroServer = ({id, path = "assets", backendUrl = "http://localhost:8000", options = {
     timeout: 3000,
@@ -37,14 +37,12 @@ export const deleteResourceSciadroServer = ({id, path = "assets", backendUrl = "
 const postResourceSciadro = ({blob, path, backendUrl, resource, options} = {}) => {
     const fd = new FormData();
     if (blob) {
-        fd.append('file', blob);
+        fd.append('mission_video.video_file', blob, "Colibri_lun_nov_5_15_38_48_2018_GMT.zip");
     }
     Object.keys(resource).forEach(key => {
         if (!isNil(resource[key])) {
             if (key === "feature") {
                 fd.append("geometry", JSON.stringify(resource[key].geometry, null, 0));
-            } else if (key === "type") {
-                fd.append("type", "PIP");
             } else {
                 fd.append(key, resource[key]);
             }
@@ -125,8 +123,9 @@ export const saveResource = ({resource = {}, category, resourcePermissions = {},
                 }
                 return res;
             })
-            .catch(() => {
+            .catch((e) => {
                 // TEST THIS
+                console.log(e);
                 return {status: 500};
             })
     )
@@ -228,12 +227,12 @@ const parseSciadroResponse = res => res.data && res.data.results || res.data;
 
 export const getMissionData = ({missionId, assetId, backendUrl} = {}) =>
     Rx.Observable.forkJoin([
-        Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/frames`}).then(parseSciadroResponse)),
+        Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/frames/?page_size=1000`}).then(parseSciadroResponse)),
         Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/telemetry`}).then(parseSciadroResponse)),
-        Rx.Observable.defer( () =>
-            getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/video`}).then(parseSciadroResponse).catch(() => ({})))
+        Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/video`}).then(parseSciadroResponse).catch(() => ({}))),
+        Rx.Observable.defer( () => getResourceSciadroServer({backendUrl, path: `assets/${assetId}/missions/${missionId}/anomalies/?page_size=1000`}).then(parseSciadroResponse))
     ])
-    .map(([frames, telemetries, video]) => ({ frames, telemetries, video }));
+    .map(([frames, telemetries, video, anomalies]) => ({ frames, telemetries, video, anomalies }));
 
 
 /**

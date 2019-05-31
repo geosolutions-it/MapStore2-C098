@@ -367,7 +367,8 @@ export const startLoadingAssetsEpic = (action$) =>
                     return Rx.Observable.of(loadingAssets(false));
                 }
                 const assetsSorted = sortBy(assets, ["id"]).map(a => {
-                    return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}, attributes: {...a.attributes, missions: `${a.attributes.missions || ""}`}};
+                    return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}, attributes: {...a.attributes, missions: `${a.attributes.missions || "801"}`}};
+                    // TODO remove when mission creation is fixed
                 });
                 return Rx.Observable.of(loadedAssets( assetsSorted));
                  // if 1 result geostore returns an object
@@ -478,42 +479,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                         coordinates: p.coordinates.concat([[t.longitude, t.latitude]])
                     };
                 }, {coordinates: []});
-                let anomalies = mission.anomalies || [
-                {
-                    "id": "3c696564-20ae-4512-811c-5eb9a60af2e6",
-                    "frame": "361205b8-3cca-47e2-a565-f314c8eed0bc",
-                    "type": "INS",
-                    "status": "UNK",
-                    "confidence": 0,
-                    "xmin": 0,
-                    "xmax": 1024,
-                    "ymin": 0,
-                    "ymax": 768
-                },
-                {
-                    "id": "12696564-20ae-4512-811c-5eb9a60af2e7",
-                    "frame": "9471dbf4-9409-4418-8c8d-dac0f6bc7e0b",
-                    "type": "INS",
-                    "status": "UNK",
-                    "confidence": 0,
-                    "xmin": 0,
-                    "xmax": 35,
-                    "ymin": 100,
-                    "ymax": 172
-                },
-                {
-                    "id": "12696564-20ae-4512-811c-5eb9a60af2e8",
-                    "frame": "0d39218d-28c9-422a-a163-0f893d6782b2",
-                    "type": "INS",
-                    "status": "UNK",
-                    "confidence": 0,
-                    "xmin": 0,
-                    "xmax": 1024,
-                    "ymin": 0,
-                    "ymax": 768
-                }
-            ];
-
+                let anomalies = data.anomalies;
                 let actions = [updateMission({
                         loadingData: false,
                         size: data.size || [1024, 768],
@@ -600,12 +566,12 @@ export const saveMissionEpic = (action$, store) =>
         const backendUrl = backendUrlSelector(state);
         const asset = assetSelectedSelector(state); // TODO EVALUATE LATER: instead of taking the info from the asset selected we can save this id into the mission object and retrieving from there
         const resource = {
+            name: mission.name/*,
             id: mission.id,
-            name: mission.name,
             description: mission.description,
-            assetId: asset.id,
+            /*assetId: asset.id,
             missions: asset.attributes.missions,
-            note: mission.attributes.note // TODO TEST THIS
+            note: mission.attributes.note // TODO TEST THIS*/
         };
         const postProcessActions = (sciadroData, idResourceGeostore) => [
             saveMissionSuccess(resource.name),

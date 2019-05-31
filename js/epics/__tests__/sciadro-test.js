@@ -464,7 +464,7 @@ describe('testing sciadro epics', () => {
                         expect(action.loading).toBe(true);
                         break;
                     case LOADED_ASSETS:
-                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missions: '', type: 'POW' }, data: '', permissions: { SecurityRuleList: { SecurityRule: [] } } } ] );
+                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missions: '801', type: 'POW' }, data: '', permissions: { SecurityRuleList: { SecurityRule: [] } } } ] );
                         break;
                     case TEST_TIMEOUT:
                         expect(action.type).toBe(TEST_TIMEOUT);
@@ -493,7 +493,7 @@ describe('testing sciadro epics', () => {
                         expect(action.loading).toBe(true);
                         break;
                     case LOADED_ASSETS:
-                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missions: '', type: 'POW' }, data: '', permissions: { SecurityRuleList: { SecurityRule: [] } } } ]);
+                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missions: '801', type: 'POW' }, data: '', permissions: { SecurityRuleList: { SecurityRule: [] } } } ]);
                         break;
                     case TEST_TIMEOUT:
                         expect(action.type).toBe(TEST_TIMEOUT);

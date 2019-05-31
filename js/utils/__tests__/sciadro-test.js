@@ -140,14 +140,14 @@ describe('testing sciadro utils', () => {
         const telemetries = addStartingOffset(telemetriesTest);
         expect(telemetries[0].id).toBe("aaaaaaaa-7cde-48f7-b5fd-4e8ba9ec5f88");
         expect(telemetries[0].startingOffset).toBe(0);
-        // 4400 is the time passed between the previous telem object
+        // 750 is the time passed between the previous telem object
         expect(telemetries[1].startingOffset).toBe(750);
     });
     it('addStartingOffsetFrame', () => {
         const frames = addStartingOffsetFrame(frameTest);
         expect(frames[0].id).toBe("562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2");
         expect(frames[0].startingOffset).toBe(571);
-        // 4400 is the time passed between the previous telem object
+        // 6857 is the time passed between the previous telem object
         expect(frames[1].startingOffset).toBe(6857);
     });
     it('addTelemInterval', () => {

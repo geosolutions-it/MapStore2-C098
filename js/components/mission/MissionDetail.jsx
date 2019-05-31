@@ -15,7 +15,7 @@ import {isEqual} from 'lodash';
 import Message from '@mapstore/components/I18N/Message';
 // import ContainerDimensions from 'react-container-dimensions';
 
-
+const MOCK_VIDEO_URL = "http://164.132.80.75:8081/assets/872a244d-ec78-4ec4-a7b2-30b709302f69/missions/4f22393d-fd7e-4d34-baa0-c05b7c3585e7/video";
 /**
  * MissionDetail
  * @class
@@ -71,6 +71,8 @@ class MissionDetail extends React.Component {
         videoWidth: 500
     };
 
+    state = {}
+
     render() {
         const AnomaliesList = this.props.anomaliesListComponent;
         return (
@@ -92,7 +94,8 @@ class MissionDetail extends React.Component {
                                 controls={this.props.controls}
                                 height={this.props.videoHeight}
                                 url={[{
-                                    src: "/localAssets/video/colibri.mp4" || this.props.missionSelected.videoUrl, type: this.props.videoFormat || "video/mp4"
+                                    src: "/localAssets/video/colibri.mp4" || MOCK_VIDEO_URL || this.props.missionSelected.videoUrl,
+                                    type: this.props.videoFormat || "video/mp4"
                                 }]}
                                 ref={this.ref}
                                 playing={this.props.playing}
