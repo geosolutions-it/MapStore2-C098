@@ -8,7 +8,14 @@
 
 import {get, find, includes} from 'lodash';
 
-export const assetsListSelector = state => get(state, "sciadro.assets", []);
+export const filterTextAssetSelector = state => get(state, "sciadro.filterTextAsset", "");
+export const assetsListSelector = state => {
+    const filterText = filterTextAssetSelector(state);
+    const filteredAssets = get(state, "sciadro.assets", [])
+        .filter(a => a.name.indexOf(filterText) !== -1); // filter assets by name
+    return filteredAssets;
+};
+
 export const assetEditedSelector = state => find(assetsListSelector(state), a => a.edit) || null;
 export const assetCurrentSelector = state => find(assetsListSelector(state), a => a.current) || null;
 export const assetSelectedSelector = state => find(assetsListSelector(state), a => a.selected) || null;
@@ -21,6 +28,7 @@ export const drawMethodSelector = state => get(state, "sciadro.drawMethod", "");
 export const droneZoomLevelSelector = state => get(state, "sciadro.droneZoomLevel", 18);
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
 export const featureStyleSelector = (state, category, type) => get(state, `sciadro.styles.${category}.${type}`, { "color": "#ffcc33", "weight": 2 });
+export const filterTextMissionSelector = state => get(state, "sciadro.filterTextMission", "");
 export const loadingAssetsSelector = state => get(state, "sciadro.loadingAssets", false);
 export const loadingAnomaliesSelector = state => get(state, "sciadro.loadingAnomalies", false);
 export const loadingMissionsSelector = state => get(state, "sciadro.loadingMissions", false);
@@ -56,11 +64,15 @@ export const getMissiondDateFilter = (dateFilter = {}) => {
 export const missionsListSelector = state => {
     const missionsIds = missionsIdSelector(state);
     const missions = get(state, "sciadro.missions", []);
+    const filterText = filterTextMissionSelector(state) || "\\w";
     const dateFilter = dateFilterSelector(state);
     const missionDateFilter = getMissiondDateFilter(dateFilter);
+
+    const regexForFilteringName = new RegExp(`${filterText}`);
     return missions
         .filter(m => includes(missionsIds, m.id) || m.isNew) // filter missions of the selected asset
-        .filter(missionDateFilter); // filter missions using date creation
+        .filter(missionDateFilter) // filter missions using date creation
+        .filter(a => regexForFilteringName.test(a.name)); // filter missions by name
 };
 export const missionLoadedSelector = state => {
     const asset = assetSelectedSelector(state);

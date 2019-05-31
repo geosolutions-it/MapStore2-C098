@@ -15,6 +15,7 @@ import {
     CHANGE_CURRENT_MISSION,
     DRAW_ASSET,
     DOWNLOAD_FRAME,
+    // FILTER_ASSETS,
     ENTER_CREATE_ITEM,
     HIDE_ADDITIONAL_LAYER,
     RESET_CURRENT_ASSET,
@@ -58,6 +59,7 @@ import {
     backendUrlSelector,
     droneZoomLevelSelector,
     featureStyleSelector,
+    filterTextAssetSelector,
     missionEditedSelector,
     missionLoadedSelector,
     missionSelectedFeatureSelector,
@@ -337,12 +339,14 @@ export const overrideMapLayoutEpic = (action$) =>
  * @memberof epics.sciadro
  * @return {external:Observable}
  */
-export const startLoadingAssetsEpic = (action$) =>
+export const startLoadingAssetsEpic = (action$, {getState = () => {} }) =>
     action$.ofType(START_LOADING_ASSETS, LOGIN_SUCCESS)
         .switchMap(() => {
+            const state = getState();
+            const filterText = filterTextAssetSelector(state);
             // get all assets moved into componens
             return Rx.Observable.defer( () =>
-                GeoStoreApi.getResourcesByCategory("ASSET").then(data => data)
+                GeoStoreApi.getResourcesByCategory("ASSET", filterText).then(data => data)
             )
             .switchMap(({results = []}) => {
                  // if 1 result geostore returns an object
@@ -364,7 +368,7 @@ export const startLoadingAssetsEpic = (action$) =>
                         loadingAssets(false)]);
                 }
                 if (assets.length === 1 && !assets[0]) {
-                    return Rx.Observable.of(loadingAssets(false));
+                    return Rx.Observable.from([loadedAssets([]), loadingAssets(false)]);
                 }
                 const assetsSorted = sortBy(assets, ["id"]).map(a => {
                     return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}, attributes: {...a.attributes, missions: `${a.attributes.missions || "801"}`}};

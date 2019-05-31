@@ -40,6 +40,8 @@ import {
     enterEditItem,
     fileLoading,
     filterMissionByDate,
+    filterAssets,
+    filterMissions,
     hideAdditionalLayer,
     highlightAnomaly,
     loadedAssets,
@@ -68,6 +70,8 @@ import {
     assetSelectedSelector,
     dateFilterSelector,
     drawMethodSelector,
+    filterTextAssetSelector,
+    filterTextMissionSelector,
     isAssetEditSelector,
     loadingAssetsSelector,
     loadingAnomaliesSelector,
@@ -93,14 +97,16 @@ import {zoomToExtent} from '@mapstore/actions/map';
 export const AssetListConnected = connect(createSelector([
     assetsListSelector,
     loadingAssetsSelector,
-    restartLoadingAssetSelector
-], (assets, loadingAssets, reloadAsset ) => ({
-    assets, loadingAssets, reloadAsset
+    restartLoadingAssetSelector,
+    filterTextAssetSelector
+], (assets, loadingAssets, reloadAsset, filterText ) => ({
+    assets, loadingAssets, reloadAsset, filterText
 })), {
     onStartLoadingAssets: startLoadingAssets,
     onChangeCurrentAsset: changeCurrentAsset,
     onSelectAsset: selectAsset,
     onHideAdditionalLayer: hideAdditionalLayer,
+    onFilterAsset: filterAssets,
     onEditAssetPermission: editAssetPermission,
     onChangeCurrentMission: changeCurrentMission
 })(AssetList);
@@ -212,12 +218,14 @@ export const MissionListConnected = connect(createSelector([
     assetCurrentSelector,
     assetsListSelector,
     missionsListSelector,
-    loadingMissionsSelector
-], (assetCurrent, assets, missions, loadingMissions) => ({
-    assetCurrent, assets, missions, loadingMissions,
+    loadingMissionsSelector,
+    filterTextMissionSelector
+], (assetCurrent, assets, missions, loadingMissions, filterText) => ({
+    assetCurrent, assets, missions, loadingMissions, filterText,
     dateFilterComponent: MissionDateFilterConnected
 })), {
     onSelectMission: selectMission,
+    onFilterMission: filterMissions,
     onChangeCurrentMission: changeCurrentMission
 })(MissionList);
 

@@ -34,7 +34,7 @@
                 "detected": "Detected Anomalies"
             },
             "assets": {
-                "textSearchPlaceholder": "Filter by name",
+                "filterByName": "Filter assets by name",
                 "geomTrash": "Delete geometry",
                 "loading": "Loading Assets",
                 "powerline": "Powerline",
@@ -63,6 +63,8 @@
                 }
             },
             "missions": {
+                "filterByName": "Filter missions by name",
+                "filterByDate": "Filter missions by date",
                 "clearFilter": "Clear Filter",
                 "selectOperator": "Select",
                 "filterByDate": "Search with this date filter",

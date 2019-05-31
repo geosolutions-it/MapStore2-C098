@@ -9,6 +9,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {compose} from 'recompose';
+import {Col, Row} from 'react-bootstrap';
 
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
@@ -17,6 +18,10 @@ import Message from '@mapstore/components/I18N/Message';
 import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import LoadingWithText from '@js/components/LoadingWithText';
+import withLocal from "@mapstore/components/misc/enhancers/localizedProps";
+import FilterComp from "@mapstore/components/misc/Filter";
+const Filter = withLocal('filterPlaceholder')(FilterComp);
+
 const SideGridWithLoadingState = compose(
     loadingState(({loading}) => loading, {text: <Message msgId="sciadro.assets.loading" />}, LoadingWithText),
     emptyState(
@@ -34,28 +39,32 @@ const SideGridWithLoadingState = compose(
 class AssetList extends React.Component {
     static propTypes = {
         assets: PropTypes.array,
-        loadingAssets: PropTypes.bool,
-        reloadAsset: PropTypes.bool,
         className: PropTypes.string,
-        onStartLoadingAssets: PropTypes.func,
+        filterText: PropTypes.string,
+        loadingAssets: PropTypes.bool,
+        onChangeCurrentAsset: PropTypes.func,
         onEditAssetPermission: PropTypes.func,
+        onFilterAsset: PropTypes.func,
         onHideAdditionalLayer: PropTypes.func,
         onSelectAsset: PropTypes.func,
-        onChangeCurrentAsset: PropTypes.func
+        onStartLoadingAssets: PropTypes.func,
+        reloadAsset: PropTypes.bool
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
         assets: [],
+        className: "asset-list-container",
+        filterText: "a",
         loadingAssets: false,
-        reloadAsset: true,
+        onChangeCurrentAsset: () => {},
+        onEditAssetPermission: () => {},
+        onFilterAsset: () => {},
+        onHideAdditionalLayer: () => {},
         onStartLoadingAssets: () => {},
         onSelectAsset: () => {},
-        onEditAssetPermission: () => {},
-        onHideAdditionalLayer: () => {},
-        onChangeCurrentAsset: () => {},
-        className: "asset-list-container"
+        reloadAsset: true
     };
 
     componentWillMount() {
@@ -68,9 +77,18 @@ class AssetList extends React.Component {
         return (
             <BorderLayout
                 header={
-                    <div style={{ padding: 8, textAlign: "center" }}>
-                        Filter assets {/*<Filter filterPlaceholder="Filter assets..."/>*/}
-                    </div>
+                    <Row style={{ textAlign: "center", paddingLeft: "30px", paddingRight: "30px" }}>
+                        <Col xs={12}>
+                            <Message msgId="sciadro.assets.filterByName"/>
+                        </Col>
+                        <Col xs={12} style={{marginTop: "15px"}}>
+                            <Filter
+                                filterPlaceholder="sciadro.assets.filterByName"
+                                filterText={this.props.filterText}
+                                onFilter={this.props.onFilterAsset}
+                                />
+                        </Col>
+                    </Row>
                 }>
                 <SideGridWithLoadingState
                     loading={this.props.loadingAssets}

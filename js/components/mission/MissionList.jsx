@@ -9,6 +9,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {compose} from 'recompose';
+import {Col, Row} from 'react-bootstrap';
 
 import SideGrid from '@mapstore/components/misc/cardgrids/SideGrid';
 import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
@@ -17,6 +18,10 @@ import Message from '@mapstore/components/I18N/Message';
 import loadingState from '@mapstore/components/misc/enhancers/loadingState';
 import emptyState from '@mapstore/components/misc/enhancers/emptyState';
 import LoadingWithText from '@js/components/LoadingWithText';
+import withLocal from "@mapstore/components/misc/enhancers/localizedProps";
+import FilterComp from "@mapstore/components/misc/Filter";
+const Filter = withLocal('filterPlaceholder')(FilterComp);
+
 const SideGridWithLoadingState = compose(
     loadingState(({loading} ) => loading, {text: <Message msgId="sciadro.missions.loading" />}, LoadingWithText),
     emptyState(
@@ -32,13 +37,15 @@ const SideGridWithLoadingState = compose(
 */
 class MissionList extends React.Component {
     static propTypes = {
-        missions: PropTypes.array,
         assets: PropTypes.array,
         assetCurrent: PropTypes.object,
+        dateFilterComponent: PropTypes.func,
         loadingMissions: PropTypes.bool,
+        filterText: PropTypes.string,
+        missions: PropTypes.array,
         onChangeCurrentMission: PropTypes.func,
-        onSelectMission: PropTypes.func,
-        dateFilterComponent: PropTypes.func
+        onFilterMission: PropTypes.func,
+        onSelectMission: PropTypes.func
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -48,6 +55,7 @@ class MissionList extends React.Component {
         loadingMissions: false,
         missions: [],
         onChangeCurrentMission: () => {},
+        onFilterMission: () => {},
         onSelectMission: () => {},
         dateFilterComponent: () => null
     };
@@ -58,9 +66,23 @@ class MissionList extends React.Component {
         return (
             <BorderLayout
                 header={
-                    <div>
+                    <div style={{ textAlign: "center" }}>
                         <div className="mission-list-header">
                             {asset.name}
+                        </div>
+                        <div className="mission-list-header">
+                            <Row style={{ textAlign: "center", paddingLeft: "15px", paddingRight: "15px" }}>
+                                <Col xs={12} style={{marginTop: "15px"}}>
+                                    <Message msgId="sciadro.missions.filterByName"/>
+                                </Col>
+                                <Col xs={12} style={{marginTop: "15px"}}>
+                                    <Filter
+                                        filterPlaceholder="sciadro.missions.filterByName"
+                                        filterText={this.props.filterText}
+                                        onFilter={this.props.onFilterMission}
+                                    />
+                                </Col>
+                            </Row>
                         </div>
                         <div className="mission-list-header">
                             <MissionDateFilter/>

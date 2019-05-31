@@ -26,6 +26,8 @@ import {
     ENTER_CREATE_ITEM,
     ENTER_EDIT_ITEM,
     FILTER_MISSION_BY_DATE,
+    FILTER_ASSETS,
+    FILTER_MISSIONS,
     HIGHLIGHT_ANOMALY,
     LOADED_ASSETS,
     LOADED_MISSIONS,
@@ -328,6 +330,18 @@ export default function sciadro(state = {
                     ...state.dateFilter,
                     dateValueForFilter: state.dateFilter.fieldValue
                 }
+            };
+        }
+        case FILTER_ASSETS: {
+            return {
+                ...state,
+                filterTextAsset: action.filterText
+            };
+        }
+        case FILTER_MISSIONS: {
+            return {
+                ...state,
+                filterTextMission: action.filterText
             };
         }
         case HIGHLIGHT_ANOMALY: {
