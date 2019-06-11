@@ -43,6 +43,7 @@ import {
     resetCurrentAsset, RESET_CURRENT_ASSET,
     resetCurrentMission, RESET_CURRENT_MISSION,
     resetHighlightAnomaly, RESET_HIGHLIGHT_ANOMALY,
+    savingMission, SAVING_MISSION,
     saveError, SAVE_ERROR,
     selectAsset, SELECT_ASSET,
     startLoadingAssets, START_LOADING_ASSETS,
@@ -276,6 +277,11 @@ describe('testing sciadro actions', () => {
     it('resetHighlightAnomaly', () => {
         const action = resetHighlightAnomaly();
         expect(action.type).toEqual(RESET_HIGHLIGHT_ANOMALY);
+    });
+    it('savingMission', () => {
+        const action = savingMission(true);
+        expect(action.type).toEqual(SAVING_MISSION);
+        expect(action.saving).toEqual(true);
     });
     it('selectAsset', () => {
         const id = 1;

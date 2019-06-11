@@ -60,17 +60,28 @@ describe('testing sciadro selectors', () => {
         expect(assetsListSelector({sciadro: {assets: [{id: 1}]}})).toEqual([{id: 1}]);
     });
     it('anomaliesListSelector', () => {
-        const mission = { id: 1, selected: true, anomalies: [{
-            id: "anomaly-1",
-            otherProps: {}
-        }] };
         expect(anomaliesListSelector({})).toEqual([]);
+        const mission = {
+            id: 1,
+            selected: true,
+            current: true,
+            anomalies: [{
+                id: "anomaly-1",
+                otherProps: {}
+            }],
+            attributes: {
+                assetId: 1
+            }
+        };
         expect(anomaliesListSelector({
             sciadro: {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missions: "1" }
+                    current: true,
+                    attributes: {
+                        sciadroResourceId: 1
+                    }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual([{
@@ -79,17 +90,26 @@ describe('testing sciadro selectors', () => {
             }]);
     });
     it('anomalySelectedSelector', () => {
-        const mission = { id: 1, selected: true, current: true, anomalies: [{
-            id: "anomaly-1",
-            selected: true
-        }] };
+        const mission = {
+            id: 1,
+            selected: true,
+            current: true,
+            anomalies: [{
+                id: "anomaly-1",
+                selected: true
+            }],
+            attributes: {
+                assetId: 1
+            }
+        };
         expect(anomalySelectedSelector({})).toEqual(null);
         expect(anomalySelectedSelector({
             sciadro: {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missions: "1" }
+                    current: true,
+                    attributes: { sciadroResourceId: 1 }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual({
@@ -187,7 +207,7 @@ describe('testing sciadro selectors', () => {
         expect(enabledSelector({controls: {sciadro: {enabled: true}}})).toBe(true);
     });
     it('featureStyleSelector', () => {
-        expect(featureStyleSelector({})).toEqual({ color: '#ffcc33', weight: 2 });
+        expect(featureStyleSelector({})).toEqual({ color: '#0d912b', weight: 2 });
         expect(featureStyleSelector({
             sciadro: {
                 styles: {
@@ -201,7 +221,7 @@ describe('testing sciadro selectors', () => {
                 }
             }
         }, "asset", "LineString")).toEqual({
-            color: '#ffcc33', weight: 2
+            color: '#0d912b', weight: 2
         });
         expect(featureStyleSelector({
             sciadro: {
@@ -249,12 +269,13 @@ describe('testing sciadro selectors', () => {
         expect(missionsIdSelector({})).toEqual([]);
         expect(missionsIdSelector({sciadro: {
             assets: [{
-                id: 1,
+                id: "a1",
                 selected: true,
-                attributes: { missions: "1" }
+                current: true,
+                attributes: { sciadroResourceId: "1" }
             }],
-            missions: [{id: 1}]
-        }})).toEqual(1);
+            missions: [{id: "m1", attributes: {assetId: "1", sciadroResourceId: "1"}}]
+        }})).toEqual("1");
     });
     it('missionsListSelector', () => {
         expect(missionsListSelector({})).toEqual([]);
@@ -262,10 +283,11 @@ describe('testing sciadro selectors', () => {
             assets: [{
                 id: 1,
                 selected: true,
-                attributes: { missions: "1" }
+                current: true,
+                attributes: {sciadroResourceId: "1" }
             }],
-            missions: [{id: 1}]
-        }})).toEqual([{id: 1}]);
+            missions: [{id: 1, attributes: {assetId: "1", sciadroResourceId: "1"}}]
+        }})).toEqual([{id: 1, attributes: {assetId: "1", sciadroResourceId: "1"}}]);
     });
     it('missionLoadedSelector', () => {
         expect(missionLoadedSelector({})).toEqual(false);
@@ -280,7 +302,7 @@ describe('testing sciadro selectors', () => {
         }})).toEqual(true);
     });
     it('missionCurrentSelector', () => {
-        const mission = { id: 1, selected: true, current: true };
+        const mission = { id: 1, selected: true, current: true, attributes: {assetId: "1", sciadroResourceId: "1"} };
         expect(missionCurrentSelector({})).toEqual(null);
         expect(missionCurrentSelector({
             sciadro: {
@@ -288,20 +310,21 @@ describe('testing sciadro selectors', () => {
                     id: 1,
                     current: true,
                     selected: true,
-                    attributes: { missions: "1" }
+                    attributes: {sciadroResourceId: "1"}
                 }],
                 missions: [mission, { id: 4, current: false }]
             }})).toEqual(mission);
     });
     it('missionSelectedSelector', () => {
-        const mission = { id: 1, selected: true };
+        const mission = { id: 1, selected: true, attributes: {assetId: "1", sciadroResourceId: "1"} };
         expect(missionSelectedSelector({})).toEqual(null);
         expect(missionSelectedSelector({
             sciadro: {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missions: "1" }
+                    current: true,
+                    attributes: { sciadroResourceId: "1"}
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(mission);
@@ -315,41 +338,44 @@ describe('testing sciadro selectors', () => {
             },
             "id": "feature-id"
         };
-        const mission = { id: 1, selected: true, feature };
+        const mission = { id: 1, selected: true, current: true, feature, attributes: {assetId: "1", sciadroResourceId: "1"} };
         expect(missionSelectedFeatureSelector({})).toBe(undefined);
         expect(missionSelectedFeatureSelector({
             sciadro: {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missions: "1" }
+                    current: true,
+                    attributes: {sciadroResourceId: "1"}
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(feature);
     });
     it('missionEditedSelector', () => {
-        const mission = { id: 1, selected: true, edit: true };
+        const mission = { id: 1, selected: true, current: true, edit: true, attributes: {assetId: "1", sciadroResourceId: "1"} };
         expect(missionEditedSelector({})).toEqual(null);
         expect(missionEditedSelector({
             sciadro: {
                 assets: [{
                     id: 1,
                     selected: true,
-                    attributes: { missions: "1" }
+                    current: true,
+                    attributes: {sciadroResourceId: "1"}
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(mission);
     });
     it('missionEditedFilesSelector', () => {
         const files = "blob:url";
-        const mission = { id: 1, selected: true, edit: true, files };
+        const mission = { id: 1, selected: true, current: true, edit: true, attributes: {assetId: "1", sciadroResourceId: "1"}, files };
         expect(missionEditedFilesSelector({})).toEqual(null);
         expect(missionEditedFilesSelector({
             sciadro: {
                 assets: [{
                     id: 1,
+                    current: true,
                     selected: true,
-                    attributes: { missions: "1" }
+                    attributes: { sciadroResourceId: "1" }
                 }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(files);
@@ -366,14 +392,15 @@ describe('testing sciadro selectors', () => {
             },
             "id": "drone-feature-id"
         };
-        const mission = { id: 1, selected: true, current: true, drone };
+        const mission = { id: 1, selected: true, current: true, attributes: {assetId: "1", sciadroResourceId: "1"}, drone };
         expect(missionSelectedDroneFeatureSelector({})).toBe(undefined);
         expect(missionSelectedDroneFeatureSelector({
             sciadro: {
                 assets: [{
                 id: 1,
+                current: true,
                 selected: true,
-                attributes: { missions: "1" }
+                attributes: { sciadroResourceId: "1" }
             }],
                 missions: [mission, { id: 4, selected: false }]
             }})).toEqual(drone);
@@ -468,6 +495,7 @@ describe('testing sciadro selectors', () => {
     });
     it('toolbarButtonsStatusSelector default', () => {
         expect(toolbarButtonsStatusSelector({})).toEqual({
+            toolbarDisabled: false,
             back: false,
             add: true,
             save: false,
@@ -523,23 +551,22 @@ describe('testing sciadro selectors', () => {
                 mode: "asset-list"
             }}).edit).toEqual(false);
 
-        const mission = { id: 1, selected: true };
+        const mission = { id: 1, selected: true, current: true, attributes: {assetId: "1", sciadroResourceId: "1"} };
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 assets: [{
                     id: 1,
-                    selected: true,
-                    attributes: { missions: "1" }
+                    selected: true
                 }],
                 missions: [mission, { id: 4, selected: false }],
                 mode: "mission-list"
-            }}).edit).toEqual(true);
+            }}).edit).toEqual(false); // restore to true
         const asset = { id: 1, selected: true };
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 assets: [asset, { id: 4, selected: true }],
                 mode: "asset-list"
-            }}).edit).toEqual(true);
+            }}).edit).toEqual(true); // restore to true
     });
     it('toolbarButtonsStatusSelector draw', () => {
         expect(toolbarButtonsStatusSelector({
@@ -548,11 +575,12 @@ describe('testing sciadro selectors', () => {
             }}).draw).toEqual(true);
     });
     it('toolbarButtonsStatusSelector zoom', () => {
-        const missions = [{ id: 1, selected: true }, { id: 4, selected: false }];
+        const missions = [{ id: 1, selected: true, attributes: { assetId: "1", sciadroResourceId: "1" } }, { id: 4, selected: false }];
         const assets = [{
             id: 1,
             selected: true,
-            attributes: { missions: "1" }
+            current: true,
+            attributes: { sciadroResourceId: "1" }
         }];
         expect(toolbarButtonsStatusSelector({
             sciadro: {
@@ -582,6 +610,14 @@ describe('testing sciadro selectors', () => {
                 mode: "mission-detail"
             }}).zoom
         ).toEqual(true);
+    });
+    it('toolbarButtonsStatusSelector clear filter', () => {
+        const missions = [{ id: 1, selected: true }, { id: 4, selected: false }];
+        const assets = [{
+            id: 1,
+            selected: true,
+            attributes: { missions: "1" }
+        }];
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 missions,
@@ -599,6 +635,14 @@ describe('testing sciadro selectors', () => {
             }}).clearFilter).toEqual(
                 { disabled: false, visible: true }
         );
+    });
+    it('toolbarButtonsStatusSelector search date', () => {
+        const missions = [{ id: 1, selected: true }, { id: 4, selected: false }];
+        const assets = [{
+            id: 1,
+            selected: true,
+            attributes: { missions: "1" }
+        }];
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 missions,

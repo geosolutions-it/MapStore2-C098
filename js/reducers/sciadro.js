@@ -41,6 +41,7 @@ import {
     RESET_CURRENT_MISSION,
     RESET_HIGHLIGHT_ANOMALY,
     SAVE_ERROR,
+    SAVING_MISSION,
     SELECT_ASSET,
     SELECT_MISSION,
     START_SAVING_ASSET,
@@ -476,6 +477,12 @@ export default function sciadro(state = {
                 ...state,
                 savingAsset: false,
                 saveError: action.message
+            };
+        }
+        case SAVING_MISSION: {
+            return {
+                ...state,
+                savingMission: action.saving
             };
         }
         case SELECT_ASSET: {

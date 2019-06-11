@@ -17,6 +17,7 @@ import {
     getStyleFromType,
     getValidationState,
     getValidationFiles,
+    getVideoUrl,
     isEditedItemValid,
     removeAdditionalLayerById,
     resetProps,
@@ -202,9 +203,14 @@ describe('testing sciadro utils', () => {
         expect(getValidationState("value")).toBe("success");
     });
     it('getValidationFiles', () => {
-        expect(getValidationFiles()).toBe("success");
+        expect(getValidationFiles()).toBe("warning");
         expect(getValidationFiles({isNew: true, files: ""})).toBe("warning");
         expect(getValidationFiles({isNew: true, files: "blob::url"})).toBe("success");
+        expect(getValidationFiles({videoUrl: "blob::url"})).toBe("success");
+    });
+    it('getVideoUrl', () => {
+        expect(getVideoUrl()).toBe("/assets//missions//video");
+        expect(getVideoUrl("backendUrl", "asset-id", "mission-id")).toBe("backendUrl/assets/asset-id/missions/mission-id/video");
     });
     it('isEditedItemValid', () => {
         const assetNonValid = {name: "a name"};

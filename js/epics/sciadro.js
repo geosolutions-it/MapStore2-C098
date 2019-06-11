@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import { sortBy, isArray, includes/*, camelCase*/ } from 'lodash';
+import { sortBy, castArray, includes } from 'lodash';
 import { saveAs } from 'file-saver';
 import * as Rx from 'rxjs';
 import {
@@ -15,7 +15,6 @@ import {
     CHANGE_CURRENT_MISSION,
     DRAW_ASSET,
     DOWNLOAD_FRAME,
-    // FILTER_ASSETS,
     ENTER_CREATE_ITEM,
     HIDE_ADDITIONAL_LAYER,
     RESET_CURRENT_ASSET,
@@ -46,12 +45,14 @@ import {
     saveAssetSuccess,
     saveMissionSuccess,
     saveError,
+    savingMission,
     updateAsset,
     updateMission,
     zoomToItem
 } from '@js/actions/sciadro';
 import {saveResource, getMissionData, getAssetResource, getMissionResource, getFrameImage} from "@js/API/Persistence";
 import {
+    assetCurrentSelector,
     assetEditedSelector,
     assetSelectedFeatureSelector,
     assetSelectedSelector,
@@ -65,10 +66,9 @@ import {
     missionSelectedFeatureSelector,
     missionSelectedDroneFeatureSelector,
     missionSelectedSelector,
-    missionZoomLevelSelector,
-    missionsIdSelector
+    missionZoomLevelSelector
 } from '@js/selectors/sciadro';
-import {addTelemInterval, addStartingOffset, addStartingOffsetFrame, getStyleFromType, getAdditionalLayerAction, removeAdditionalLayerById} from '@js/utils/sciadro';
+import {addTelemInterval, addStartingOffset, addStartingOffsetFrame, getStyleFromType, getAdditionalLayerAction, removeAdditionalLayerById, getVideoUrl} from '@js/utils/sciadro';
 import {
     zoomToPoint, zoomToExtent
 } from '@mapstore/actions/map';
@@ -188,7 +188,7 @@ export const getAssetFeatureEpic = (action$, store) =>
             const postProcessActions = (item) => {
                 const assetFeature = {
                     "type": "Feature",
-                    "geometry": item.geometry ? item.geometry : {
+                    "geometry": item.geometry || {
                         "type": "LineString",
                         "coordinates": [[10.39985, 43.71074], [10.40483, 43.71074]]
                     },
@@ -240,31 +240,32 @@ export const getMissionFeatureEpic = (action$, store) =>
             const featureMission = missionSelectedFeatureSelector(state);
             const asset = assetSelectedSelector(state);
             const errorsActions = () => [fetchFeatureSciadroServerError(), loadingMissionFeature(false)];
-            const postProcessActions = (item) => {
-                const fakeFeature = {
+            const postProcessActions = (item = {}) => {
+                const missionFeature = {
                     "type": "Feature",
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [ 10.39985, 43.71064 ],
-                            [ 10.40483, 43.71064 ]
-                        ]
-                    },
+                    "geometry": item.geometry,
                     "style": {
-                        "color": "#FF0000",
-                        "weight": 5
+                        "color": "#FFCC33",
+                        "weight": 3
                     }
                 };
-                if (item.feature || fakeFeature) {
-                    actions = [...actions, updateMission({
-                        feature: item.feature || fakeFeature,
-                        videoUrl: item.video_file,
-                        loadingFeature: false
-                    }, a.id)];
+                if (item.geometry) {
+                    actions = [...actions,
+                        updateMission({
+                            feature: item.geometry ? missionFeature : null,
+                            videoUrl: getVideoUrl(
+                                backendUrl,
+                                asset && asset.attributes && asset.attributes.sciadroResourceId || "",
+                                mission && mission.attributes && mission.attributes.sciadroResourceId || ""
+                            ),
+                            loadingFeature: false
+                        }, a.id)];
                 }
-                actions = [...actions, getAdditionalLayerAction({feature: item.feature || fakeFeature, id: "missions", name: "missions", visibility: !!item.feature})];
-                actions = [...actions, loadingMissionFeature(false)];
-                return actions;
+                return [
+                    ...actions,
+                    getAdditionalLayerAction({feature: item.geometry && missionFeature || null, id: "missions", name: "missions", visibility: !!item.geometry}),
+                    loadingMissionFeature(false)
+                ];
             };
             if (mission && featureMission === undefined) {
                 // go fetch it
@@ -280,7 +281,7 @@ export const getMissionFeatureEpic = (action$, store) =>
                 );
             }
             // if null, or object it means we have already fetched it. We just update the missions additional layer
-            return Rx.Observable.from(postProcessActions({feature: featureMission}));
+            return Rx.Observable.from(postProcessActions(featureMission));
         });
 
 /**
@@ -344,13 +345,12 @@ export const startLoadingAssetsEpic = (action$, {getState = () => {} }) =>
         .switchMap(() => {
             const state = getState();
             const filterText = filterTextAssetSelector(state);
-            // get all assets moved into componens
+            // get all assets moved into components
             return Rx.Observable.defer( () =>
                 GeoStoreApi.getResourcesByCategory("ASSET", filterText).then(data => data)
             )
             .switchMap(({results = []}) => {
-                 // if 1 result geostore returns an object
-                const resources = isArray(results) ? results : [results];
+                const resources = castArray(results); // if 1 result geostore returns an object
                 if (resources.length && results) {
                     // observables object that will retrieve all the info of the reosurces
                     const getResourcesObs = resources.map(({id}) => {
@@ -371,11 +371,9 @@ export const startLoadingAssetsEpic = (action$, {getState = () => {} }) =>
                     return Rx.Observable.from([loadedAssets([]), loadingAssets(false)]);
                 }
                 const assetsSorted = sortBy(assets, ["id"]).map(a => {
-                    return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}, attributes: {...a.attributes, missions: `${a.attributes.missions || "801"}`}};
-                    // TODO remove when mission creation is fixed
+                    return {...a, permissions: {SecurityRuleList: { SecurityRule: a.permissions}}};
                 });
                 return Rx.Observable.of(loadedAssets( assetsSorted));
-                 // if 1 result geostore returns an object
             })
             .catch(() => Rx.Observable.of(loadAssetError()))
             .startWith(loadingAssets(true));
@@ -383,7 +381,7 @@ export const startLoadingAssetsEpic = (action$, {getState = () => {} }) =>
 
 
 /**
- * get related missions Resources
+ * get all missions from currentAsset
  * @param {external:Observable} action$ manages `CHANGE_CURRENT_ASSET`
  * @memberof epics.sciadro
  * @return {external:Observable}
@@ -393,38 +391,61 @@ export const startLoadingMissionsEpic = (action$, {getState = () => {} }) =>
         .filter(() => {
             const state = getState();
             const missionAlreadyLoaded = missionLoadedSelector(state);
-            const missionsIds = missionsIdSelector(state);
-            return !missionAlreadyLoaded && missionsIds.length;
+            return !missionAlreadyLoaded;
         })
         .switchMap(() => {
-            // get all missions from selectedAsset
             const state = getState();
-            const missionsIds = missionsIdSelector(state);
-
-            // observables object that will retrieve all the info of the reosurces
-            const getResourcesObs = missionsIds.map((id) => {
-                return Persistence.getResource(id)
-                    .catch(() => Rx.Observable.of("loadError"));
-            });
-            return Rx.Observable.forkJoin(getResourcesObs)
-                .switchMap((missions = []) => {
-                    if (missions.length === 1 && missions[0] === "loadError") {
-                        return Rx.Observable.from([
-                            loadMissionError(),
-                            loadingMissions(false)]);
+            const currentAsset = assetCurrentSelector(state);
+            return Rx.Observable.defer( () =>
+                GeoStoreApi.searchListByAttributes({
+                    AND: {
+                        ATTRIBUTE: [
+                            {
+                                name: ['assetId'],
+                                operator: ['EQUAL_TO'],
+                                type: ['STRING'],
+                                value: [currentAsset && currentAsset.attributes && currentAsset.attributes.sciadroResourceId || ""]
+                            }
+                        ]
                     }
-                    if (missions.length === 1 && !missions[0]) {
-                        return Rx.Observable.of(loadingMissions(false));
-                    }
-                    const missionsSorted = sortBy(missions, ["id"]);
-                    const asset = assetSelectedSelector(state);
+                }, {params: {includeAttributes: true}})
+                .then(data => {
+                    const resources = data && data.ExtResourceList && data.ExtResourceList.Resource && castArray(data.ExtResourceList.Resource) || [];
+                    return resources.map(r => {
+                        return {
+                            id: r.id,
+                            name: r.name,
+                            description: r.description,
+                            creation: r.creation,
+                            attributes: r.Attributes.attribute.reduce((p, c) => {
+                                return {
+                                    ...p,
+                                    [c.name]: c.value === "null" ? null : c.value
+                                };
+                            }, {})
+                        };
+                    });
+                })
+                .catch((e) => (["loadError"]))
+            )
+            .switchMap((missions = []) => {
+                if (missions.length === 1 && missions[0] === "loadError") {
                     return Rx.Observable.from([
-                        loadedMissions( missionsSorted),
-                        updateAsset({missionLoaded: true}, asset.id)
-                    ]);
-                }).startWith(loadingMissions(true));
+                        loadMissionError(),
+                        loadingMissions(false)]);
+                }
+                if (missions.length === 1 && !missions[0]) {
+                    return Rx.Observable.of(loadingMissions(false));
+                }
+                const missionsSorted = sortBy(missions, ["id"]);
+                const asset = assetSelectedSelector(state);
+                return Rx.Observable.from([
+                    loadedMissions( missionsSorted),
+                    updateAsset({missionLoaded: true}, asset.id)
+                ]);
+            }).startWith(loadingMissions(true));
         })
-        .catch(() => Rx.Observable.of(loadMissionError()));
+        .catch((e) => Rx.Observable.of(loadMissionError()));
 /**
  * get missions details
  * @param {external:Observable} action$ manages `CHANGE_CURRENT_MISSION`
@@ -448,6 +469,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
 
                 let frames = addStartingOffsetFrame(data.frames || []);
                 let telemetries;
+                // Undensifying the telemetries items every 1s
                 let attUndensified = [];
                 let attUndensifiedTimes = [];
                 data.telemetries.telemetry_attributes.forEach(a => {
@@ -465,6 +487,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                     }
                 });
                 if (attUndensified.length === posUndensified.length) {
+                    // merging positions with attribute records since they have different sizes
                     telemetries = attUndensified.map((item, i) => {
                         let attData = attUndensified[i];
                         let posData = posUndensified[i];
@@ -490,6 +513,11 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                         frames,
                         telemetries,
                         anomalies,
+                        videoUrl: getVideoUrl(
+                            backendUrl,
+                            asset && asset.attributes && asset.attributes.sciadroResourceId || "",
+                            mission && mission.attributes && mission.attributes.sciadroResourceId || ""
+                        ),
                         feature: {...mission.feature, geometry: missionGeom},
                         drone: {
                             type: "Feature",
@@ -530,7 +558,7 @@ export const saveAssetEpic = (action$, store) =>
             const resource = {
                 id: asset.id,
                 name: asset.name,
-                feature: asset.feature,
+                feature: asset.feature || {geometry: {}},
                 description: asset.description,
                 note: asset.attributes && asset.attributes.note || "",
                 type: asset.attributes && asset.attributes.type || ""
@@ -544,8 +572,7 @@ export const saveAssetEpic = (action$, store) =>
                         created: sciadroData.created,
                         modified: sciadroData.modified,
                         note: sciadroData.note,
-                        type: sciadroData.type,
-                        missions: sciadroData.missions.join(",")
+                        type: sciadroData.type
                     },
                     id: idResourceGeostore,
                     feature: sciadroData.feature // what if backend returns a malformed/corrupted feature?
@@ -553,7 +580,16 @@ export const saveAssetEpic = (action$, store) =>
                 endSaveAsset()
             ];
             const errorsActions = (id, message) => [saveError(id, message)];
-            return saveResource({resource, category: "ASSET", resourcePermissions: {}, postProcessActions, errorsActions, backendUrl});
+            return saveResource({
+                resource,
+                category: "ASSET",
+                isNew: asset.isNew,
+                path: `assets/${asset.isNew ? "" : asset.attributes.sciadroResourceId + "/"}`,
+                resourcePermissions: {},
+                postProcessActions,
+                otherAttributes: (data) => ({type: data.type}),
+                errorsActions,
+                backendUrl});
         });
 
 /**
@@ -570,12 +606,10 @@ export const saveMissionEpic = (action$, store) =>
         const backendUrl = backendUrlSelector(state);
         const asset = assetSelectedSelector(state); // TODO EVALUATE LATER: instead of taking the info from the asset selected we can save this id into the mission object and retrieving from there
         const resource = {
-            name: mission.name/*,
-            id: mission.id,
             description: mission.description,
-            /*assetId: asset.id,
-            missions: asset.attributes.missions,
-            note: mission.attributes.note // TODO TEST THIS*/
+            name: mission.name,
+            id: mission.id,
+            note: mission.attributes.note
         };
         const postProcessActions = (sciadroData, idResourceGeostore) => [
             saveMissionSuccess(resource.name),
@@ -583,6 +617,7 @@ export const saveMissionEpic = (action$, store) =>
                 // TODO VERIFY we are not missing anything
                 attributes: {
                     ...mission.attributes,
+                    assetId: asset.attributes.sciadroResourceId,
                     sciadroResourceId: sciadroData.id,
                     created: sciadroData.created,
                     modified: sciadroData.modified,
@@ -594,21 +629,20 @@ export const saveMissionEpic = (action$, store) =>
                 feature: sciadroData.feature // what if backend returns a malformed/corrupted feature?
             }, a.id),
             updateAsset({
-                missionLoaded: true,
-                // TODO VERIFY we are not missing anything
-                attributes: {...asset.attributes, missions: asset.attributes && asset.attributes.missions ? `${asset.attributes.missions},${idResourceGeostore}` : `${idResourceGeostore}`}
+                missionLoaded: true
             }, asset.id),
             endSaveMission()
         ];
-        const errorsActions = (id, message) => [saveError(id, message)];
+        const errorsActions = (id, message) => [saveError(id, message), savingMission(false)];
         return saveResource({
             backendUrl,
             resource,
             category: "MISSION",
             resourcePermissions: {},
             fileUrl: mission.files,
-            updateAssetAttribute: true,
-            path: `assets/${asset.attributes.sciadroResourceId}/missions/`,
+            isNew: mission.isNew,
+            otherAttributes: () => ({assetId: asset.attributes.sciadroResourceId}),
+            path: `assets/${asset.attributes.sciadroResourceId}/missions/${mission.isNew ? "" : mission.attributes.sciadroResourceId + "/"}`,
             postProcessActions,
             errorsActions });
     });
@@ -660,7 +694,7 @@ export const updateDroneAdditionalLayerEpic = (action$, store) =>
         });
 
 /**
- * hide assets layer
+ * zoom to feature, mission has precedence over asset
  * @param {external:Observable} action$ manages `ZOOM_TO_ITEM`
  * @memberof epics.sciadro
  * @return {external:Observable}

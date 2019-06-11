@@ -93,7 +93,7 @@ class MissionEdit extends React.Component {
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.missions.note"/></ControlLabel>
                             <FormControl
-                                value={mission.attributes && mission.attributes.note}
+                                value={mission && mission.attributes && mission.attributes.note}
                                 onChange={(e) => this.props.onEditMission(mission.id, "attributes.note", e.target.value)}
                             />
                         </Col>
@@ -106,7 +106,7 @@ class MissionEdit extends React.Component {
                                 disabled
                                 format={this.props.formatDate}
                                 time={false}
-                                defaultValue={new Date(mission.attributes && mission.attributes.created)}
+                                defaultValue={new Date(mission && mission.attributes && mission.attributes.created)}
                             />
                         </Col>
                     </FormGroup>}

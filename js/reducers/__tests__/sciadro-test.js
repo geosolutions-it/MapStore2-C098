@@ -41,6 +41,7 @@ import {
     resetCurrentMission,
     resetHighlightAnomaly,
     saveError,
+    savingMission,
     selectAsset,
     selectMission,
     startPlayer,
@@ -330,11 +331,12 @@ describe('testing sciadro reducers', () => {
         const oldAsset = {
             id: 3,
             name: "",
+            current: true,
             selected: true,
-            attributes: {type: "POW", missions: "4"}};
+            attributes: {type: "POW", sciadroResourceId: "4"}};
         const assets = [{id: 2, name: "asset2"}, oldAsset];
 
-        const oldMission = {id: 4, name: "mission4", selected: true};
+        const oldMission = {id: 4, name: "mission4", selected: true, attributes: {assetId: "4"}};
         const missions = [{id: 5, name: "mission5", selected: false}, oldMission];
         const state = sciadro({missions, assets}, enterEditItem(mode, id));
         const mission = find(state.missions, item => item.id === id);
@@ -588,9 +590,12 @@ describe('testing sciadro reducers', () => {
     });
     it('RESET_CURRENT_MISSION, from mission-edit (edit) to mission-list', () => {
         const mode = "mission-edit";
-        const missions = [{id: 2, name: "mission2"}, {id: 3, name: "mission 4", selected: true}];
         const id = 3;
-        const oldAsset = {id: 1, name: "", selected: true, attributes: {type: "POW", missions: "3"}};
+        const missions = [
+            {id: 2, name: "mission2"},
+            {id: 3, name: "mission 4", selected: true, current: true, attributes: {assetId: "3"}}
+        ];
+        const oldAsset = {id: 1, name: "", selected: true, current: true, attributes: {type: "POW", sciadroResourceId: "3"}};
 
         const oldItem = {id: 3, name: "mission 3", selected: true};
         const state = sciadro({assets: [oldAsset], missions}, enterEditItem(mode, id));
@@ -629,6 +634,11 @@ describe('testing sciadro reducers', () => {
         expect(state.mode).toEqual(mode);
         expect(state.savingAsset).toEqual(false);
         expect(state.saveError).toEqual("sciadro.rest.saveError");
+    });
+    it('SAVING_MISSION', () => {
+        const saving = true;
+        const state = sciadro({missions: [], saving: false }, savingMission(saving));
+        expect(state.savingMission).toEqual(saving);
     });
     it('SELECT_ASSET', () => {
         const mode = "asset-list";

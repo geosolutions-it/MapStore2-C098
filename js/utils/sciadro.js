@@ -84,21 +84,27 @@ export const getTelemetryByTimePlayed = (telemetries = [], timePlayedMS = 0, int
     return {};
 };
 
+
 export const getValidationState = (val) => {
     return !!val ? "success" : "warning";
 };
 
 export const getValidationFiles = (mission = {}) => {
-    if (mission.isNew) {
+    if (mission && mission.isNew) {
         return mission.files ? "success" : "warning";
     }
-    return "success";
+    if (mission && mission.videoUrl) {
+        return "success";
+    }
+    return "warning";
 };
+
+export const getVideoUrl = (backendUrl = "", assetId= "", missionId= "") => `${backendUrl}/assets/${assetId}/missions/${missionId}/video`;
 
 export const isEditedItemValid = (type, item) => {
     switch (type) {
         case "asset": return !!item.name && !!item.attributes && !!item.attributes.type;
-        case "mission": return !!item.name && !!item.files;
+        case "mission": return !!item.name && (!!item.files || !!item.videoUrl);
         default: return false;
     }
 };

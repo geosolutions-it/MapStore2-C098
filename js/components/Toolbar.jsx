@@ -100,7 +100,8 @@ export default class MainToolbar extends React.Component {
                                 }
                             },
                             glyph: "arrow-left",
-                            visible: this.props.buttonsStatus.back // all but the first view(asset-list) has the back button
+                            visible: this.props.buttonsStatus.back, // all but the first view(asset-list) has the back button
+                            disabled: this.props.buttonsStatus.toolbarDisabled
                         },
                         {
                             tooltipId: this.props.mode === "mission-list" ? "sciadro.missions.add" : "sciadro.assets.add",
@@ -112,14 +113,15 @@ export default class MainToolbar extends React.Component {
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "plus",
-                            visible: this.props.buttonsStatus.add
+                            visible: this.props.buttonsStatus.add,
+                            disabled: this.props.buttonsStatus.toolbarDisabled
                         },
                         {
                             tooltipId: "sciadro.save",
                             tooltipPosition: "top",
                             className: "square-button-md no-border",
                             pullRight: true,
-                            disabled: this.props.buttonsStatus.saveDisabled,
+                            disabled: this.props.buttonsStatus.toolbarDisabled || this.props.buttonsStatus.saveDisabled,
                             onClick: () => {
                                 if (this.props.mode === "mission-edit") {
                                     this.props.onStartSavingMission(missionEdited.id);
@@ -141,7 +143,8 @@ export default class MainToolbar extends React.Component {
                                 this.props.onHideAdditionalLayer("missions");
                             },
                             glyph: "wrench",
-                            visible: this.props.buttonsStatus.edit
+                            visible: this.props.buttonsStatus.edit,
+                            disabled: this.props.buttonsStatus.toolbarDisabled
                         },
                         {
                             tooltipId: this.props.mode.indexOf("mission") !== -1 ? "sciadro.missions.zoom" : "sciadro.assets.zoom",
@@ -153,7 +156,7 @@ export default class MainToolbar extends React.Component {
                             },
                             glyph: "zoom-to",
                             visible: this.props.buttonsStatus.zoom,
-                            disabled: this.props.buttonsStatus.zoomDisabled
+                            disabled: this.props.buttonsStatus.toolbarDisabled || this.props.buttonsStatus.zoomDisabled
                         },
                         {
                             tooltipId: this.props.buttonsStatus.saveError.message,
@@ -166,7 +169,7 @@ export default class MainToolbar extends React.Component {
                         },
                         {
                             bsStyle: this.props.buttonsStatus.searchDate.error ? "danger" : "primary",
-                            disabled: this.props.buttonsStatus.searchDate.disabled,
+                            disabled: this.props.buttonsStatus.toolbarDisabled || this.props.buttonsStatus.searchDate.disabled,
                             className: "square-button-md no-border",
                             glyph: "search",
                             pullRight: true,
@@ -181,7 +184,7 @@ export default class MainToolbar extends React.Component {
                         },
                         {
                             className: "square-button-md no-border",
-                            disabled: this.props.buttonsStatus.clearFilter.disabled,
+                            disabled: this.props.buttonsStatus.toolbarDisabled || this.props.buttonsStatus.clearFilter.disabled,
                             glyph: "clear-filter",
                             pullRight: true,
                             onClick: () => {
