@@ -104,6 +104,11 @@
             "error": {
                 "select": "Select only one geoJSON.json file contained in a zip archive"
             }
+        },
+        "queryform": {
+            "from": "From",
+            "to": "To",
+            "date": "Date"
         }
     }
 }
