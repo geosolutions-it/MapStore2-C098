@@ -34,9 +34,9 @@ class MissionDetail extends React.Component {
         onUpdateDroneGeometry: PropTypes.func,
         playing: PropTypes.bool,
         progressInterval: PropTypes.number,
-        videoHeight: PropTypes.string,
+        videoHeight: PropTypes.number,
         videoFormat: PropTypes.string,
-        videoWidth: PropTypes.string
+        videoWidth: PropTypes.number
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -53,7 +53,7 @@ class MissionDetail extends React.Component {
                 }
             }
         },
-        controls: [],
+        controls: true,
         missions: [],
         missionSelected: {},
         onPausePlayer: () => {},
@@ -91,7 +91,7 @@ class MissionDetail extends React.Component {
                                 height={this.props.videoHeight}
                                 url={[{
                                     src: this.props.missionSelected.videoUrl,
-                                    type: this.props.videoFormat || "video/mp4"
+                                    type: this.props.videoFormat
                                 }]}
                                 ref={this.ref}
                                 playing={this.props.playing}

@@ -38,7 +38,7 @@ import { UPDATE_MAP_LAYOUT, updateMapLayout } from '@mapstore/actions/maplayout'
 import { SHOW_NOTIFICATION } from "@mapstore/actions/notifications";
 import { CHANGE_DRAWING_STATUS } from "@mapstore/actions/draw";
 import { ZOOM_TO_POINT, ZOOM_TO_EXTENT } from "@mapstore/actions/map";
-import { ON_SHAPE_SUCCESS } from "@mapstore/actions/shapefile";
+import { ON_SUCCESS } from "@mapstore/actions/mapimport";
 import { UPDATE_ADDITIONAL_LAYER, REMOVE_ADDITIONAL_LAYER } from "@mapstore/actions/additionallayers";
 import {createEpicMiddleware, combineEpics } from 'redux-observable';
 import {addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, updateDroneAdditionalLayerEpic, zoomToItemEpic
@@ -603,8 +603,8 @@ describe('testing sciadro epics', () => {
                         expect(action.missions.length).toEqual(1);
                         const mission = head(action.missions);
                         console.table(mission);
-                        expect(Object.keys(mission).length).toEqual(5);
-                        expect(Object.keys(mission)).toEqual([ 'id', 'name', 'description', 'creation', 'attributes' ]);
+                        expect(Object.keys(mission).length).toEqual(6);
+                        expect(Object.keys(mission)).toEqual([ 'id', 'name', 'description', 'creation', 'attributes', 'videoUrl' ]);
                         expect(mission.id).toEqual(902);
                         expect(mission.name).toEqual("m2");
                         expect(mission.description).toEqual(2);
@@ -641,7 +641,7 @@ describe('testing sciadro epics', () => {
                         expect(action.owner).toBe("sciadro");
                         break;
                     }
-                    case ON_SHAPE_SUCCESS: {
+                    case ON_SUCCESS: {
                         expect(action.message).toBe(null);
                         break;
                     }
@@ -667,7 +667,7 @@ describe('testing sciadro epics', () => {
                         expect(action.owner).toBe("sciadro");
                         break;
                     }
-                    case ON_SHAPE_SUCCESS: {
+                    case ON_SUCCESS: {
                         expect(action.message).toBe(null);
                         break;
                     }
@@ -761,7 +761,7 @@ describe('testing sciadro epics', () => {
                         expect(action.owner).toBe("sciadro");
                         break;
                     }
-                    case ON_SHAPE_SUCCESS: {
+                    case ON_SUCCESS: {
                         expect(action.message).toBe(null);
                         break;
                     }

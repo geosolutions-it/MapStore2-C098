@@ -73,8 +73,8 @@ import {
     zoomToPoint, zoomToExtent
 } from '@mapstore/actions/map';
 import {
-    onShapeSuccess
-} from '@mapstore/actions/shapefile';
+    onSuccess
+} from '@mapstore/actions/mapimport';
 import {
     UPDATE_MAP_LAYOUT, updateMapLayout
 } from '@mapstore/actions/maplayout';
@@ -395,6 +395,7 @@ export const startLoadingMissionsEpic = (action$, {getState = () => {} }) =>
         })
         .switchMap(() => {
             const state = getState();
+            const backendUrl = backendUrlSelector(state);
             const currentAsset = assetCurrentSelector(state);
             return Rx.Observable.defer( () =>
                 GeoStoreApi.searchListByAttributes({
@@ -426,7 +427,7 @@ export const startLoadingMissionsEpic = (action$, {getState = () => {} }) =>
                         };
                     });
                 })
-                .catch((e) => (["loadError"]))
+                .catch(() => (["loadError"]))
             )
             .switchMap((missions = []) => {
                 if (missions.length === 1 && missions[0] === "loadError") {
@@ -437,7 +438,11 @@ export const startLoadingMissionsEpic = (action$, {getState = () => {} }) =>
                 if (missions.length === 1 && !missions[0]) {
                     return Rx.Observable.of(loadingMissions(false));
                 }
-                const missionsSorted = sortBy(missions, ["id"]);
+                const missionsSorted = sortBy(missions, ["id"]).map(m => ({...m, videoUrl: getVideoUrl(
+                    backendUrl,
+                    m && m.attributes && m.attributes.assetId || "",
+                    m && m.attributes && m.attributes.sciadroResourceId || ""
+                )}));
                 const asset = assetSelectedSelector(state);
                 return Rx.Observable.from([
                     loadedMissions( missionsSorted),
@@ -445,7 +450,7 @@ export const startLoadingMissionsEpic = (action$, {getState = () => {} }) =>
                 ]);
             }).startWith(loadingMissions(true));
         })
-        .catch((e) => Rx.Observable.of(loadMissionError()));
+        .catch(() => Rx.Observable.of(loadMissionError()));
 /**
  * get missions details
  * @param {external:Observable} action$ manages `CHANGE_CURRENT_MISSION`
@@ -665,7 +670,7 @@ export const updateAdditionalLayerEpic = (action$, store) =>
 
             if (a.type === RESET_CURRENT_ASSET || a.type === START_SAVING_ASSET ) {
                 actions.push(changeDrawingStatus("clean", "", "sciadro", [], {}, {}));
-                actions.push(onShapeSuccess(null));
+                actions.push(onSuccess(null));
             }
 
             // remove or update features for assets, missions and drones

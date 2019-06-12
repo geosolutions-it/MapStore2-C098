@@ -91,7 +91,7 @@ import {
     toolbarButtonsStatusSelector
 } from '@js/selectors/sciadro';
 import {userSelector} from '@mapstore/selectors/security';
-import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
+import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/mapimport';
 import {zoomToExtent} from '@mapstore/actions/map';
 
 export const AssetListConnected = connect(createSelector([
@@ -126,7 +126,7 @@ export const AssetListVirtualScrollConnected = connect(createSelector([
     onChangeCurrentMission: changeCurrentMission
 })(AssetListVirtualScroll);
 
-import ShapeFile from '@mapstore/plugins/shapefile/ShapeFile';
+import ShapeFile from '@mapstore/plugins/import/StyleDialog';
 export const ShapeFileConnected = connect((state) => (
     {
         mapType: "openlayers",
