@@ -17,17 +17,18 @@ const config = require('./MapStore2/build/buildConfig')(
     extractThemesPlugin,
     false,
     "/dist/",
-    '.MapStore2-C098'
+    '.MapStore2-C098',
+    null,
+    {
+        '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
+        '@js': path.resolve(__dirname, 'js')
+    }
 );
 
 config.devServer.proxy = {
     '/assets': {
         target: "http://164.132.80.75"
     }
-};
-config.resolve.alias = {
-    '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
-    '@js': path.resolve(__dirname, 'js')
 };
 
 module.exports = config;
