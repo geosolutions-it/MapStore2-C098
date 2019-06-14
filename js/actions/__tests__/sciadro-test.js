@@ -33,13 +33,17 @@ import {
     highlightAnomaly, HIGHLIGHT_ANOMALY,
     loadedAssets, LOADED_ASSETS,
     loadedMissions, LOADED_MISSIONS,
+    loadingAnomalies, LOADING_ANOMALIES,
     loadingAssets, LOADING_ASSETS,
     loadingAssetFeature, LOADING_ASSET_FEATURE,
     loadingMissionFeature, LOADING_MISSION_FEATURE,
+    loadingMissionsData, LOADING_MISSION_DATA,
     loadingMissions, LOADING_MISSIONS,
     pausePlayer,
     resetCurrentAsset, RESET_CURRENT_ASSET,
     resetCurrentMission, RESET_CURRENT_MISSION,
+    resetHighlightAnomaly, RESET_HIGHLIGHT_ANOMALY,
+    savingMission, SAVING_MISSION,
     saveError, SAVE_ERROR,
     selectAsset, SELECT_ASSET,
     startLoadingAssets, START_LOADING_ASSETS,
@@ -221,6 +225,12 @@ describe('testing sciadro actions', () => {
         expect(action.type).toEqual(LOADED_MISSIONS);
         expect(action.missions).toEqual(missions);
     });
+    it('loadingAnomalies', () => {
+        const loading = true;
+        const action = loadingAnomalies(loading);
+        expect(action.type).toEqual(LOADING_ANOMALIES);
+        expect(action.loading).toEqual(loading);
+    });
     it('loadingAssets', () => {
         const loading = true;
         const action = loadingAssets(loading);
@@ -231,6 +241,12 @@ describe('testing sciadro actions', () => {
         const loading = true;
         const action = loadingAssetFeature(loading);
         expect(action.type).toEqual(LOADING_ASSET_FEATURE);
+        expect(action.loading).toEqual(loading);
+    });
+    it('loadingMissionsData', () => {
+        const loading = true;
+        const action = loadingMissionsData(loading);
+        expect(action.type).toEqual(LOADING_MISSION_DATA);
         expect(action.loading).toEqual(loading);
     });
     it('loadingMissionFeature', () => {
@@ -257,6 +273,15 @@ describe('testing sciadro actions', () => {
     it('resetCurrentMission', () => {
         const action = resetCurrentMission();
         expect(action.type).toEqual(RESET_CURRENT_MISSION);
+    });
+    it('resetHighlightAnomaly', () => {
+        const action = resetHighlightAnomaly();
+        expect(action.type).toEqual(RESET_HIGHLIGHT_ANOMALY);
+    });
+    it('savingMission', () => {
+        const action = savingMission(true);
+        expect(action.type).toEqual(SAVING_MISSION);
+        expect(action.saving).toEqual(true);
     });
     it('selectAsset', () => {
         const id = 1;

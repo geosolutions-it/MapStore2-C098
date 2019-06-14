@@ -17,6 +17,7 @@ import {
     getStyleFromType,
     getValidationState,
     getValidationFiles,
+    getVideoUrl,
     isEditedItemValid,
     removeAdditionalLayerById,
     resetProps,
@@ -30,7 +31,7 @@ const telemetriesTest = [
     {
         "id": "aaaaaaaa-7cde-48f7-b5fd-4e8ba9ec5f88",
         "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
-        "time": "2019-05-14T07:57:00.000Z",
+        "time": 2300,
         "roll": null,
         "pitch": null,
         "yaw": 0.52,
@@ -47,7 +48,7 @@ const telemetriesTest = [
     }, {
         "id": "aaaabbbb-7cde-48f7-b5fd-4e8ba9ec5f88",
         "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
-        "time": "2019-05-14T07:57:04.400Z",
+        "time": 3050,
         "roll": null,
         "pitch": null,
         "yaw": 1.04,
@@ -64,7 +65,7 @@ const telemetriesTest = [
     }, {
         "id": "aaaacccc-7cde-48f7-b5fd-4e8ba9ec5f88",
         "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
-        "time": "2019-05-14T07:57:08.800Z",
+        "time": 5432,
         "roll": null,
         "pitch": null,
         "yaw": 1.57,
@@ -81,7 +82,7 @@ const telemetriesTest = [
     }, {
         "id": "aaaadddd-7cde-48f7-b5fd-4e8ba9ec5f88",
         "mission": "e4b678f6-0000-4aa7-86a4-f43f6697691d",
-        "time": "2019-05-14T07:57:13.200Z",
+        "time": 8888,
         "roll": null,
         "pitch": null,
         "yaw": 2.09,
@@ -140,19 +141,19 @@ describe('testing sciadro utils', () => {
         const telemetries = addStartingOffset(telemetriesTest);
         expect(telemetries[0].id).toBe("aaaaaaaa-7cde-48f7-b5fd-4e8ba9ec5f88");
         expect(telemetries[0].startingOffset).toBe(0);
-        // 4400 is the time passed between the previous telem object
-        expect(telemetries[1].startingOffset).toBe(4400);
+        // 750 is the time passed between the previous telem object
+        expect(telemetries[1].startingOffset).toBe(750);
     });
     it('addStartingOffsetFrame', () => {
         const frames = addStartingOffsetFrame(frameTest);
         expect(frames[0].id).toBe("562a9ae4-2ed8-4cd9-91f1-66608dbd7ed2");
-        expect(frames[0].startingOffset).toBe(833);
-        // 4400 is the time passed between the previous telem object
-        expect(frames[1].startingOffset).toBe(10000);
+        expect(frames[0].startingOffset).toBe(571);
+        // 6857 is the time passed between the previous telem object
+        expect(frames[1].startingOffset).toBe(6857);
     });
     it('addTelemInterval', () => {
         const interval = addTelemInterval(telemetriesTest);
-        expect(interval).toBe(4400);
+        expect(interval).toBe(750);
     });
     it('getAdditionalLayerAction', () => {
         const id = 3;
@@ -202,9 +203,14 @@ describe('testing sciadro utils', () => {
         expect(getValidationState("value")).toBe("success");
     });
     it('getValidationFiles', () => {
-        expect(getValidationFiles()).toBe("success");
+        expect(getValidationFiles()).toBe("warning");
         expect(getValidationFiles({isNew: true, files: ""})).toBe("warning");
         expect(getValidationFiles({isNew: true, files: "blob::url"})).toBe("success");
+        expect(getValidationFiles({videoUrl: "blob::url"})).toBe("success");
+    });
+    it('getVideoUrl', () => {
+        expect(getVideoUrl()).toBe("/assets//missions//video");
+        expect(getVideoUrl("backendUrl", "asset-id", "mission-id")).toBe("backendUrl/assets/asset-id/missions/mission-id/video");
     });
     it('isEditedItemValid', () => {
         const assetNonValid = {name: "a name"};

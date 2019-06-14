@@ -30,14 +30,18 @@ import {
     highlightAnomaly,
     loadedAssets,
     loadedMissions,
+    loadingAnomalies,
     loadingAssets,
     loadingAssetFeature,
     loadingMissions,
     loadingMissionFeature,
+    loadingMissionsData,
     pausePlayer,
     resetCurrentAsset,
     resetCurrentMission,
+    resetHighlightAnomaly,
     saveError,
+    savingMission,
     selectAsset,
     selectMission,
     startPlayer,
@@ -113,7 +117,6 @@ describe('testing sciadro reducers', () => {
             if (a.id === 2) {
                 expect(a.selected).toBe(true);
                 expect(a.current).toBe(true);
-                expect(a.drone.properties.isVisible).toBe(true);
             } else {
                 expect(a.selected).toBe(false);
                 expect(a.current).toBe(false);
@@ -231,7 +234,7 @@ describe('testing sciadro reducers', () => {
         const id = 3;
         const prop = "description";
         const value = "the description of the asset";
-        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "", attributes: {type: "powerline"}, edit: true, selected: true}];
+        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "", attributes: {type: "POW"}, edit: true, selected: true}];
         const state = sciadro({assets, missions: []}, editAsset(id, prop, value));
         const asset = find(state.assets, item => item.id === id);
         expect(asset[prop]).toEqual(value);
@@ -242,7 +245,7 @@ describe('testing sciadro reducers', () => {
         const id = 3;
         const prop = "name";
         const value = "the name of the asset";
-        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", attributes: {type: "powerline"}, edit: true, selected: true}];
+        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset3", attributes: {type: "POW"}, edit: true, selected: true}];
         const state = sciadro({assets, missions: []}, editAsset(id, prop, value));
         const asset = find(state.assets, item => item.id === id);
         expect(asset[prop]).toEqual(value);
@@ -285,7 +288,7 @@ describe('testing sciadro reducers', () => {
             edit: true,
             isNew: true,
             attributes: {
-                type: "powerline",
+                type: "POW",
                 note: "",
                 created: null,
                 modified: null
@@ -313,7 +316,7 @@ describe('testing sciadro reducers', () => {
     it('ENTER_EDIT_ITEM of an asset', () => {
         const mode = "asset-edit";
         const id = 3;
-        const oldAsset = {id: 3, name: "", type: "powerline", selected: true};
+        const oldAsset = {id: 3, name: "", type: "POW", selected: true};
         const assets = [{id: 2, name: "asset2"}, oldAsset];
         const state = sciadro({assets}, enterEditItem(mode, id));
         const asset = find(state.assets, item => item.id === id);
@@ -325,9 +328,15 @@ describe('testing sciadro reducers', () => {
     it('ENTER_EDIT_ITEM of an mission', () => {
         const mode = "mission-edit";
         const id = 4;
-        const oldAsset = {id: 3, name: "", selected: true, attributes: {type: "powerline", missionsId: "4"}};
+        const oldAsset = {
+            id: 3,
+            name: "",
+            current: true,
+            selected: true,
+            attributes: {type: "POW", sciadroResourceId: "4"}};
         const assets = [{id: 2, name: "asset2"}, oldAsset];
-        const oldMission = {id: 4, name: "mission4", selected: true};
+
+        const oldMission = {id: 4, name: "mission4", selected: true, attributes: {assetId: "4"}};
         const missions = [{id: 5, name: "mission5", selected: false}, oldMission];
         const state = sciadro({missions, assets}, enterEditItem(mode, id));
         const mission = find(state.missions, item => item.id === id);
@@ -339,7 +348,7 @@ describe('testing sciadro reducers', () => {
     it('END_DRAWING a point for sciadro layers', () => {
         const owner = "sciadro";
         const id = 3;
-        const oldAsset = {id, name: "asset 3", type: "powerline", selected: true, draw: true};
+        const oldAsset = {id, name: "asset 3", type: "POW", selected: true, draw: true};
         const assets = [{id: 2, name: "asset2"}, oldAsset];
         const geometry = {
             id: "8cdb09b0-6ce0-11e9-917c-db7c1743ad0d",
@@ -369,7 +378,7 @@ describe('testing sciadro reducers', () => {
     it('END_DRAWING a line for sciadro layers', () => {
         const owner = "sciadro";
         const id = 3;
-        const oldAsset = {id, name: "", type: "powerline", selected: true, draw: true};
+        const oldAsset = {id, name: "", type: "POW", selected: true, draw: true};
         const assets = [{id: 2, name: "asset2"}, oldAsset];
         const geometry = {
             id: 'b9b12820-6ce0-11e9-917c-db7c1743ad0d',
@@ -408,7 +417,7 @@ describe('testing sciadro reducers', () => {
 
     });
     it('END_DRAWING for other layers', () => {
-        const oldAsset = {id: 3, name: "", type: "powerline", selected: true};
+        const oldAsset = {id: 3, name: "", type: "POW", selected: true};
         const assets = [{id: 2, name: "asset2"}, oldAsset];
         const owner = "non-sciadro";
         const state = sciadro({assets}, endDrawing(null, owner));
@@ -416,7 +425,7 @@ describe('testing sciadro reducers', () => {
     });
     it('END_SAVE_ASSET', () => {
         const id = 3;
-        const oldAsset = {id: 3, name: "", type: "powerline", selected: true};
+        const oldAsset = {id: 3, name: "", type: "POW", selected: true};
         const assets = [{id: 2, name: "asset2"}, {...oldAsset, edit: true}];
         const state = sciadro({assets}, endSaveAsset(id));
         const asset = find(state.assets, item => item.id === id);
@@ -480,6 +489,12 @@ describe('testing sciadro reducers', () => {
         const state2 = sciadro({assets: []}, loadingAssets(false));
         expect(state2.loadingAssets).toEqual(false);
     });
+    it('LOADING_ANOMALIES', () => {
+        const state = sciadro({assets: []}, loadingAnomalies(true));
+        expect(state.loadingAnomalies).toEqual(true);
+        const state2 = sciadro({assets: []}, loadingAnomalies(false));
+        expect(state2.loadingAnomalies).toEqual(false);
+    });
     it('LOADING_ASSET_FEATURE', () => {
         const id = 3;
         const name = "asset3";
@@ -497,6 +512,16 @@ describe('testing sciadro reducers', () => {
         const state = sciadro({missions}, loadingMissionFeature(true));
         const mission = find(state.missions, item => item.id === id);
         expect(mission.loadingFeature).toEqual(true);
+        expect(mission.id).toEqual(id);
+        expect(mission.name).toEqual(name);
+    });
+    it('LOADING_MISSION_DATA', () => {
+        const id = 3;
+        const name = "mission3";
+        const missions = [{id: 2, name: "mission2"}, {id, name, selected: true, feature: {}}];
+        const state = sciadro({missions}, loadingMissionsData(true));
+        const mission = find(state.missions, item => item.id === id);
+        expect(mission.loadingData).toEqual(true);
         expect(mission.id).toEqual(id);
         expect(mission.name).toEqual(name);
     });
@@ -530,8 +555,8 @@ describe('testing sciadro reducers', () => {
     it('RESET_CURRENT_ASSET, from asset-edit (editing asset) to asset-list', () => {
         const mode = "asset-edit";
         const id = 3;
-        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset 4", type: "powerline", selected: true}];
-        const oldItem = {id: 3, name: "asset 3", type: "powerline", selected: true};
+        const assets = [{id: 2, name: "asset2"}, {id: 3, name: "asset 4", type: "POW", selected: true}];
+        const oldItem = {id: 3, name: "asset 3", type: "POW", selected: true};
         const state = sciadro({assets, missions: []}, enterEditItem(mode, id));
         const nextState = sciadro({...state, oldItem}, resetCurrentAsset());
         const asset = find(nextState.assets, item => item.id === id);
@@ -547,7 +572,7 @@ describe('testing sciadro reducers', () => {
         // reset only current asset
         const mode = "mission-list";
         const id = 3;
-        const assets = [{id: 2, name: "asset2"}, {id, name: "asset 3", type: "powerline", selected: true, current: true}];
+        const assets = [{id: 2, name: "asset2"}, {id, name: "asset 3", type: "POW", selected: true, current: true}];
         const state = sciadro({assets, missions: [], mode}, resetCurrentAsset());
         const asset = find(state.assets, item => item.id === id);
         expect(asset.current).toEqual(false);
@@ -565,9 +590,12 @@ describe('testing sciadro reducers', () => {
     });
     it('RESET_CURRENT_MISSION, from mission-edit (edit) to mission-list', () => {
         const mode = "mission-edit";
-        const missions = [{id: 2, name: "mission2"}, {id: 3, name: "mission 4", selected: true}];
         const id = 3;
-        const oldAsset = {id: 1, name: "", selected: true, attributes: {type: "powerline", missionsId: "3"}};
+        const missions = [
+            {id: 2, name: "mission2"},
+            {id: 3, name: "mission 4", selected: true, current: true, attributes: {assetId: "3"}}
+        ];
+        const oldAsset = {id: 1, name: "", selected: true, current: true, attributes: {type: "POW", sciadroResourceId: "3"}};
 
         const oldItem = {id: 3, name: "mission 3", selected: true};
         const state = sciadro({assets: [oldAsset], missions}, enterEditItem(mode, id));
@@ -586,6 +614,18 @@ describe('testing sciadro reducers', () => {
         expect(mission.current).toEqual(false);
         expect(mission.drone.properties.isVisible).toEqual(false);
     });
+    it('RESET_HIGHLIGHT_ANOMALY', () => {
+        const anomalyId = 4;
+        const missionId = 2;
+        const missions = [{
+            id: missionId,
+            current: true,
+            name: "mission 2",
+            anomalies: [{ id: anomalyId, selected: true}]
+        }];
+        const state = sciadro({missions}, resetHighlightAnomaly(anomalyId));
+        expect(state.missions[0].anomalies[0].selected).toEqual(false);
+    });
     it('SAVE_ERROR', () => {
         const mode = "asset-edit";
         const id = 3;
@@ -595,9 +635,14 @@ describe('testing sciadro reducers', () => {
         expect(state.savingAsset).toEqual(false);
         expect(state.saveError).toEqual("sciadro.rest.saveError");
     });
+    it('SAVING_MISSION', () => {
+        const saving = true;
+        const state = sciadro({missions: [], saving: false }, savingMission(saving));
+        expect(state.savingMission).toEqual(saving);
+    });
     it('SELECT_ASSET', () => {
         const mode = "asset-list";
-        const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline"}];
+        const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "POW"}];
         const id = 3;
         const state = sciadro({assets, missions: [], mode }, selectAsset(id));
         expect(state.mode).toEqual(mode);
@@ -608,7 +653,7 @@ describe('testing sciadro reducers', () => {
     });
     it('SELECT_MISSION', () => {
         const mode = "mission-list";
-        const missions = [{selected: true, id: 2, name: "mission2"}, {id: 3, name: "mission3", type: "powerline"}];
+        const missions = [{selected: true, id: 2, name: "mission2"}, {id: 3, name: "mission3", type: "POW"}];
         const id = 3;
         const state = sciadro({assets: [], missions, mode }, selectMission(id));
         expect(state.mode).toEqual(mode);
@@ -618,7 +663,7 @@ describe('testing sciadro reducers', () => {
         expect(missionPreviouslySelected.selected).toEqual(false);
     });
     it('START_SAVING_ASSET', () => {
-        const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline"}];
+        const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "POW"}];
         const id = 3;
         const state = sciadro({assets, missions: []}, startSavingAsset(id));
         expect(state.reloadAsset).toEqual(false);
@@ -631,7 +676,7 @@ describe('testing sciadro reducers', () => {
         expect(state.savingMission).toEqual(true);
     });
     it('UPDATE_ASSET', () => {
-        const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "powerline"}];
+        const assets = [{selected: true, id: 2, name: "asset2"}, {id: 3, name: "", type: "POW"}];
         const id = 3;
         const props = {feature: {type: "Feature"}, name: "tre"};
         const state = sciadro({assets, missions: []}, updateAsset(props, id));
@@ -659,7 +704,7 @@ describe('testing sciadro reducers', () => {
         const style = {iconUrl: "/assets/drone.svg"};
         const missions = [
             { selected: true, id: missionId, name: "mission2", drone: {type: "Feature", style}},
-            { id: 3, name: "", type: "powerline"}];
+            { id: 3, name: "", type: "POW"}];
         const telemetryId = 1;
         const yaw = 3.14;
         const geometry = {type: "Point", coordinates: [1, 3]};
@@ -670,7 +715,7 @@ describe('testing sciadro reducers', () => {
 
     });
     it('UPDATE_MISSION', () => {
-        const missions = [{selected: true, id: 2, name: "mission2"}, {id: 3, name: "", type: "powerline"}];
+        const missions = [{selected: true, id: 2, name: "mission2"}, {id: 3, name: "", type: "POW"}];
         const id = 3;
         const props = {feature: {type: "Feature"}, name: "tre"};
         const state = sciadro({missions, assets: []}, updateMission(props, id));

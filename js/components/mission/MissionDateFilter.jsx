@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 
 import DateField from '@mapstore/components/data/query/DateField';
 import {getDateTimeFormat} from '@mapstore/utils/TimeUtils';
-import {Col} from 'react-bootstrap';
+import {Col, Row} from 'react-bootstrap';
 
 /**
  * Mission MissionDateFilter
@@ -47,28 +47,25 @@ class MissionDateFilter extends React.Component {
     render() {
 
         return (
-            <div>
+            <Row style={{ textAlign: "center", paddingLeft: "15px", paddingRight: "15px" }}>
+                <Col xs={12}>
+                <DateField
+                    showLabels
+                    attType={this.props.attType}
+                    fieldValue={this.props.dateFilter.fieldValue}
+                    time={this.props.timeEnabled}
+                    calendar={this.props.dateEnabled}
+                    format={getDateTimeFormat(this.context.locale, this.props.attType)}
+                    onUpdateField={(fieldRowId, fieldName, value, attType) => {
+                        this.props.onUpdateDateFilterValue(fieldRowId, fieldName, value, attType);
+                    }}
+                    onUpdateExceptionField={(fieldRowId, error) => {
+                        this.props.onUpdateDateFilterException(fieldRowId, error);
 
-                <div className="mission-list-header">
-                    <Col xs={12}>
-                    <DateField
-                        showLabels
-                        attType={this.props.attType}
-                        fieldValue={this.props.dateFilter.fieldValue}
-                        time={this.props.timeEnabled}
-                        calendar={this.props.dateEnabled}
-                        format={getDateTimeFormat(this.context.locale, this.props.attType)}
-                        onUpdateField={(fieldRowId, fieldName, value, attType) => {
-                            this.props.onUpdateDateFilterValue(fieldRowId, fieldName, value, attType);
-                        }}
-                        onUpdateExceptionField={(fieldRowId, error) => {
-                            this.props.onUpdateDateFilterException(fieldRowId, error);
-
-                        }}
-                        operator="><"/>
-                    </Col>
-                </div>
-            </div>
+                    }}
+                    operator="><"/>
+                </Col>
+            </Row>
         );
     }
 }

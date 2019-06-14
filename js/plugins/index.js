@@ -10,8 +10,9 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import AnomaliesList from '@js/components/mission/AnomaliesList';
-import AssetList from '@js/components/asset/AssetList';
 import AssetEdit from '@js/components/asset/AssetEdit';
+import AssetList from '@js/components/asset/AssetList';
+import AssetListVirtualScroll from '@js/components/asset/AssetListVirtualScroll';
 import AssetPermission from '@js/components/asset/AssetPermission';
 import MissionDetail from '@js/components/mission/MissionDetail';
 import MissionEdit from '@js/components/mission/MissionEdit';
@@ -39,11 +40,15 @@ import {
     enterEditItem,
     fileLoading,
     filterMissionByDate,
+    filterAssets,
+    filterMissions,
     hideAdditionalLayer,
     highlightAnomaly,
+    loadedAssets,
     pausePlayer,
     resetCurrentAsset,
     resetCurrentMission,
+    resetHighlightAnomaly,
     selectAsset,
     selectMission,
     startLoadingAssets,
@@ -65,8 +70,11 @@ import {
     assetSelectedSelector,
     dateFilterSelector,
     drawMethodSelector,
+    filterTextAssetSelector,
+    filterTextMissionSelector,
     isAssetEditSelector,
     loadingAssetsSelector,
+    loadingAnomaliesSelector,
     loadingMissionsSelector,
     missionsListSelector,
     missionCurrentSelector,
@@ -82,46 +90,65 @@ import {
     showSuccessMessageSelector,
     toolbarButtonsStatusSelector
 } from '@js/selectors/sciadro';
-import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/shapefile';
+import {userSelector} from '@mapstore/selectors/security';
+import {onShapeError, setLoading, setLayers, onSelectLayer, onLayerAdded, updateBBox, onSuccess} from '@mapstore/actions/mapimport';
 import {zoomToExtent} from '@mapstore/actions/map';
 
 export const AssetListConnected = connect(createSelector([
     assetsListSelector,
     loadingAssetsSelector,
-    restartLoadingAssetSelector
-], (assets, loadingAssets, reloadAsset ) => ({
-    assets, loadingAssets, reloadAsset
+    restartLoadingAssetSelector,
+    filterTextAssetSelector
+], (assets, loadingAssets, reloadAsset, filterText ) => ({
+    assets, loadingAssets, reloadAsset, filterText
 })), {
     onStartLoadingAssets: startLoadingAssets,
     onChangeCurrentAsset: changeCurrentAsset,
     onSelectAsset: selectAsset,
     onHideAdditionalLayer: hideAdditionalLayer,
+    onFilterAsset: filterAssets,
     onEditAssetPermission: editAssetPermission,
     onChangeCurrentMission: changeCurrentMission
 })(AssetList);
 
-import ShapeFile from '@mapstore/plugins/shapefile/ShapeFile';
+export const AssetListVirtualScrollConnected = connect(createSelector([
+    assetSelectedSelector,
+    assetsListSelector
+], (assetSelected, items ) => ({
+    assetSelected, items
+})), {
+    onStartLoadingAssets: startLoadingAssets,
+    onChangeCurrentAsset: changeCurrentAsset,
+    onSelectAsset: selectAsset,
+    onSetResults: loadedAssets,
+    onHideAdditionalLayer: hideAdditionalLayer,
+    onEditAssetPermission: editAssetPermission,
+    onChangeCurrentMission: changeCurrentMission
+})(AssetListVirtualScroll);
+
+import ShapeFile from '@mapstore/components/import/ShapeFileUploadAndStyle';
 export const ShapeFileConnected = connect((state) => (
     {
+        wrap: false,
         mapType: "openlayers",
         visible: modeSelector(state) === "asset-edit",
-        layers: state.shapefile && state.shapefile.layers || null,
-        selected: state.shapefile && state.shapefile.selected || null,
-        bbox: state.shapefile && state.shapefile.bbox || null,
-        success: state.shapefile && state.shapefile.success || null,
-        error: state.shapefile && state.shapefile.error || null,
+        layers: state.mapimport && state.mapimport.layers || null,
+        selected: state.mapimport && state.mapimport.selected || null,
+        bbox: state.mapimport && state.mapimport.bbox || null,
+        success: state.mapimport && state.mapimport.success || null,
+        error: state.mapimport && state.mapimport.error || null,
         shapeStyle: state.style || {}
     }
 ), {
-    onShapeChoosen: onShapeChoosen,
+    onShapeChoosen: setLayers,
     onShapeError: onShapeError,
     onLayerAdded: onLayerAdded,
     onSelectLayer: onSelectLayer,
-    onShapeSuccess: onShapeSuccess,
+    onShapeSuccess: onSuccess,
     addShapeLayer: addFeatureAsset,
     onZoomSelected: zoomToExtent,
-    updateShapeBBox: updateShapeBBox,
-    shapeLoading: shapeLoading
+    updateShapeBBox: updateBBox,
+    shapeLoading: setLoading
 })(ShapeFile);
 
 export const ToolbarGeomConnected = connect(createSelector([
@@ -156,25 +183,28 @@ export const ToolbarDropzoneConnected = connect(createSelector([
     onDropFiles: dropFiles
 })(ToolbarDropzone);
 
+export const AssetPermissionConnected = connect(createSelector([
+    assetEditedSelector,
+    userSelector
+], (assetEdited, user) => ({
+    assetEdited, user
+})), {
+    // action: actionCreator
+})(AssetPermission);
+
 export const AssetEditConnected = connect(createSelector([
     assetsListSelector,
     assetEditedSelector,
     savingAssetSelector
 ], (assets, assetEdited, savingAsset) => ({
     assets, assetEdited, savingAsset,
+    assetPermissionComponent: undefined, // AssetPermissionConnected restore to complete permission section
     dropZoneComponent: ShapeFileConnected,
     toolbarGeometryComponent: ToolbarGeomConnected
 })), {
     onEditAsset: editAsset
 })(AssetEdit);
 
-export const AssetPermissionConnected = connect(createSelector([
-    assetsListSelector
-], (assets) => ({
-    assets
-})), {
-     // action: actionCreator
-})(AssetPermission);
 
 export const MissionDateFilterConnected = connect(createSelector([
     dateFilterSelector
@@ -189,12 +219,14 @@ export const MissionListConnected = connect(createSelector([
     assetCurrentSelector,
     assetsListSelector,
     missionsListSelector,
-    loadingMissionsSelector
-], (assetCurrent, assets, missions, loadingMissions) => ({
-    assetCurrent, assets, missions, loadingMissions,
+    loadingMissionsSelector,
+    filterTextMissionSelector
+], (assetCurrent, assets, missions, loadingMissions, filterText) => ({
+    assetCurrent, assets, missions, loadingMissions, filterText,
     dateFilterComponent: MissionDateFilterConnected
 })), {
     onSelectMission: selectMission,
+    onFilterMission: filterMissions,
     onChangeCurrentMission: changeCurrentMission
 })(MissionList);
 
@@ -222,9 +254,10 @@ export const MissionEditConnected = connect(createSelector([
 
 export const AnomaliesListConnected = connect(createSelector([
     anomaliesListSelector,
+    loadingAnomaliesSelector,
     missionCurrentSelector
-], (anomalies, missionCurrent) => ({
-    anomalies, missionCurrent
+], (anomalies, loadingAnomalies, missionCurrent) => ({
+    anomalies, loadingAnomalies, missionCurrent
 })), {
     onDownloadFrame: downloadFrame,
     onHighlightAnomaly: highlightAnomaly
@@ -241,6 +274,7 @@ export const MissionDetailConnected = connect(createSelector([
     anomaliesListComponent: AnomaliesListConnected
 })), {
     onPausePlayer: pausePlayer,
+    onResetHighlightAnomaly: resetHighlightAnomaly,
     onStartPlayer: startPlayer,
     onUpdateDroneGeometry: updateDroneGeometry
 })(MissionDetail);

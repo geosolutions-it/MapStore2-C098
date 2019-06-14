@@ -30,37 +30,40 @@ import LoadingWithText from '@js/components/LoadingWithText';
 class AssetEdit extends React.Component {
     static propTypes = {
         assets: PropTypes.array,
-        typeList: PropTypes.array,
         assetEdited: PropTypes.object,
+        assetPermissionComponent: PropTypes.func,
         className: PropTypes.string,
-        formatDate: PropTypes.string,
-        savingAsset: PropTypes.bool,
-        onEditAsset: PropTypes.func,
         dropZoneComponent: PropTypes.func,
-        toolbarGeometryComponent: PropTypes.func
+        formatDate: PropTypes.string,
+        onEditAsset: PropTypes.func,
+        savingAsset: PropTypes.bool,
+        toolbarGeometryComponent: PropTypes.func,
+        typeList: PropTypes.array
     };
     static contextTypes = {
         messages: PropTypes.object
     };
     static defaultProps = {
-        assetEdited: {attributes: {}, isNew: true},
-        savingAsset: false,
         assets: [],
+        assetEdited: {attributes: {}, isNew: true},
+        assetPermissionComponent: () => null,
+        className: "",
+        dropZoneComponent: () => null,
         formatDate: "DD/MM/YYYY HH:mm:ss",
+        onEditAsset: () => {},
+        savingAsset: false,
         typeList: [
             { value: "POW", label: "sciadro.assets.powerline" },
             { value: "PIP", label: "sciadro.assets.pipeline" },
-            { value: "ELE", label: "sciadro.assets.electric-truss" }
+            { value: "ELE", label: "sciadro.assets.electricTruss" }
         ],
-        className: "",
-        onEditAsset: () => {},
-        dropZoneComponent: () => null,
         toolbarGeometryComponent: () => null
     };
 
     render() {
         const asset = this.props.assetEdited;
         const DropZone = this.props.dropZoneComponent;
+        const AssetPermission = this.props.assetPermissionComponent;
         const ToolbarGeom = this.props.toolbarGeometryComponent;
         return (
             <BorderLayout
@@ -95,7 +98,7 @@ class AssetEdit extends React.Component {
                             />
                         </Col>
                     </FormGroup>
-                    <FormGroup>
+                  <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.description"/></ControlLabel>
                             <FormControl
@@ -146,7 +149,12 @@ class AssetEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.assets.geometry"/></ControlLabel>
                             <br/>
                             <ToolbarGeom/>
-                            <DropZone wrap={false}/>
+                            <DropZone
+                                uploadMessage = {<Message msgId={"shapefile.placeholder"}/>}
+                                addMessage = {<Message msgId={"shapefile.addMessage"}/>}
+                                cancelMessage = {<Message msgId={"shapefile.cancelMessage"}/>}
+                            />
+                            <AssetPermission/>
                         </Col>
                     </FormGroup>
                 </Form>

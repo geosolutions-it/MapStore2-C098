@@ -7,11 +7,14 @@
             "mandatory": "* mandatory fields",
             "back": "Back",
             "save": "Save",
-            "no-assets": "No assets found, please add one or change filter",
-            "no-missions": "No missions found, please add one or change filter",
+            "noAnomalies": "No Anomalies found",
+            "noAssets": "No assets found",
+            "noMissions": "No missions found",
+            "pageInfoInfinite": "{total, plural, =undefined {} =0 {No results} =1 {{total} of {total} matched} other {Loaded {loaded} of {total} matched}}",
             "rest": {
-                "saveError": "An error occured while saving the resources. Please contact the web admin in order to verify this problem",
-                "loadError": "An error occured while loading the assets resources. Please contact the web admin in order to verify this problem",
+                "loadMissionDataError": "An error occured while loading the mission resources",
+                "saveError": "An error occured while saving the resources",
+                "loadError": "An error occured while loading the assets resources",
                 "fetchFeatureError": "Cannot load feature for this resource",
                 "error": "An error occured"
             },
@@ -25,16 +28,18 @@
                 "mission-edit": "Edit Mission"
             },
             "anomalies": {
+                "loading": "Loading Anomalies",
                 "ins": "Insulator",
                 "pip": "Pipeline",
                 "detected": "Detected Anomalies"
             },
             "assets": {
+                "filterByName": "Filter assets by name",
                 "geomTrash": "Delete geometry",
                 "loading": "Loading Assets",
                 "powerline": "Powerline",
                 "pipeline": "Pipeline",
-                "electric-truss": "Electric truss",
+                "electricTruss": "Electric truss",
                 "detail": "View asset details",
                 "permissions": "Asset Permissions",
                 "permissionsOptions": "Permission options for asset: ",
@@ -58,6 +63,8 @@
                 }
             },
             "missions": {
+                "filterByName": "Filter missions by name",
+                "filterByDate": "Filter missions by date",
                 "clearFilter": "Clear Filter",
                 "selectOperator": "Select",
                 "filterByDate": "Search with this date filter",
@@ -69,7 +76,7 @@
                 "add": "Create Mission",
                 "zoom": "Zoom to Mission",
                 "edit": "Edit Mission",
-                "data": "Telemetry (.telem), Anomalies (.xml) and Video (.mp4) *",
+                "data": "Telemetry (.telem), Anomalies (.xml) and Video (.avi) *",
                 "upload": "Upload data",
                 "name": "Name",
                 "description": "Description",
@@ -82,21 +89,28 @@
                 "rest": {
                     "saveSuccess": "The mission '{name}' has been correctly saved",
                     "saveError": "An error occured when saving the mission",
-                    "downloadingFrameError": "An error occured when downloadin the frame",
+                    "downloadingFrameError": "An error occured when downloading the frame",
                     "downloadingFrameSuccess": "The download has completed succesfully"
                 },
                 "files" : {
                     "valid": "Files dropped are valid",
-                    "invalid": "Files dropped are invalid, Please drop a .zip file containing the .mp4, .telem and .xml files"
+                    "invalid": "Files dropped are invalid, Please drop a .zip file containing the .avi, .telem and .xml files"
                 }
             }
         },
         "shapefile": {
             "placeholder": "Drop your file here or click to select the Vector File to import. (supported files: file.json with a LineString or Point only, must be contained in a zip archive)",
-            "placeholderMissionFiles": "Drop your file here or click to select the file to import (supported formats: .zip file containing the .mp4, .telem and .xml files)",
+            "placeholderMissionFiles": "Drop your file here or click to select the file to import (supported formats: .zip file containing the .avi, .telem and .xml files)",
             "error": {
                 "select": "Select only one geoJSON.json file contained in a zip archive"
-            }
+            },
+            "addMessage": "Add",
+            "cancelMessage": "Cancel"
+        },
+        "queryform": {
+            "from": "From",
+            "to": "To",
+            "date": "Date"
         }
     }
 }

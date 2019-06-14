@@ -26,16 +26,22 @@ import {
     ENTER_CREATE_ITEM,
     ENTER_EDIT_ITEM,
     FILTER_MISSION_BY_DATE,
+    FILTER_ASSETS,
+    FILTER_MISSIONS,
     HIGHLIGHT_ANOMALY,
     LOADED_ASSETS,
     LOADED_MISSIONS,
+    LOADING_ANOMALIES,
     LOADING_ASSETS,
     LOADING_ASSET_FEATURE,
     LOADING_MISSIONS,
     LOADING_MISSION_FEATURE,
+    LOADING_MISSION_DATA,
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
+    RESET_HIGHLIGHT_ANOMALY,
     SAVE_ERROR,
+    SAVING_MISSION,
     SELECT_ASSET,
     SELECT_MISSION,
     START_SAVING_ASSET,
@@ -67,7 +73,7 @@ import uuidv1 from 'uuid/v1';
 
 export default function sciadro(state = {
     defaultDroneStyle: {
-        iconUrl: "/assets/images/drone-nord.svg",
+        iconUrl: "/localAssets/images/drone-nord.svg",
         size: [24, 24],
         iconAnchor: [0.5, 0.5]
     },
@@ -108,10 +114,17 @@ export default function sciadro(state = {
                 items: "missions",
                 state
             });
-
+            let missions = newState.missions;
+            const mission = find(missions, item => item.current);
+            if (mission.anomalies) {
+                const anomalies = mission.anomalies.map((a => {
+                    return {...a, selected: false};
+                }));
+                missions = updateItem(newState.missions, {id: mission.id}, {anomalies});
+            }
             return {
                 ...newState,
-                missions: updateDrone(newState.missions, action.id, { isVisible: true }),
+                missions,
                 mode: "mission-detail"
             };
         }
@@ -266,7 +279,7 @@ export default function sciadro(state = {
                     edit: true,
                     isNew: true,
                     attributes: {
-                        type: "powerline",
+                        type: "POW",
                         note: "",
                         created: null,
                         modified: null
@@ -320,6 +333,18 @@ export default function sciadro(state = {
                 }
             };
         }
+        case FILTER_ASSETS: {
+            return {
+                ...state,
+                filterTextAsset: action.filterText
+            };
+        }
+        case FILTER_MISSIONS: {
+            return {
+                ...state,
+                filterTextMission: action.filterText
+            };
+        }
         case HIGHLIGHT_ANOMALY: {
             const mission = find(state.missions, item => item.current);
             const anomalies = mission.anomalies.map((a => {
@@ -345,6 +370,12 @@ export default function sciadro(state = {
                 missions: state.missions.concat(action.missions)
             };
         }
+        case LOADING_ANOMALIES: {
+            return {
+                ...state,
+                loadingAnomalies: action.loading
+            };
+        }
         case LOADING_ASSETS: {
             return {
                 ...state,
@@ -358,6 +389,10 @@ export default function sciadro(state = {
         case LOADING_MISSION_FEATURE: {
             const item = find(state.missions, i => i.selected);
             return arrayUpdate("missions", {...item, loadingFeature: action.loading}, i => i.selected, state);
+        }
+        case LOADING_MISSION_DATA: {
+            const item = find(state.missions, i => i.selected);
+            return arrayUpdate("missions", {...item, loadingData: action.loading}, i => i.selected, state);
         }
         case LOADING_MISSIONS: {
             return {
@@ -427,11 +462,27 @@ export default function sciadro(state = {
                 showSuccessMessage: false
             };
         }
+        case RESET_HIGHLIGHT_ANOMALY: {
+            const mission = find(state.missions, item => item.current);
+            const anomalies = mission.anomalies.map((a => {
+                return {...a, selected: false};
+            }));
+            return {
+                ...state,
+                missions: updateItem(state.missions, {id: mission.id}, {anomalies})
+            };
+        }
         case SAVE_ERROR: {
             return {
                 ...state,
                 savingAsset: false,
                 saveError: action.message
+            };
+        }
+        case SAVING_MISSION: {
+            return {
+                ...state,
+                savingMission: action.saving
             };
         }
         case SELECT_ASSET: {

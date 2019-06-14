@@ -7,7 +7,7 @@
 */
 
 import expect from "expect";
-import {includes} from 'lodash';
+import {includes, head} from 'lodash';
 import {
     addFeatureAsset,
     changeCurrentAsset,
@@ -38,7 +38,7 @@ import { UPDATE_MAP_LAYOUT, updateMapLayout } from '@mapstore/actions/maplayout'
 import { SHOW_NOTIFICATION } from "@mapstore/actions/notifications";
 import { CHANGE_DRAWING_STATUS } from "@mapstore/actions/draw";
 import { ZOOM_TO_POINT, ZOOM_TO_EXTENT } from "@mapstore/actions/map";
-import { ON_SHAPE_SUCCESS } from "@mapstore/actions/shapefile";
+import { ON_SUCCESS } from "@mapstore/actions/mapimport";
 import { UPDATE_ADDITIONAL_LAYER, REMOVE_ADDITIONAL_LAYER } from "@mapstore/actions/additionallayers";
 import {createEpicMiddleware, combineEpics } from 'redux-observable';
 import {addFeatureAssetEpic, drawAssetFeatureEpic, downloadFrameEpic, getAssetFeatureEpic, getMissionFeatureEpic, hideAdditionalLayerEpic, overrideMapLayoutEpic, startLoadingAssetsEpic, startLoadingMissionsEpic, updateAdditionalLayerEpic, updateDroneAdditionalLayerEpic, zoomToItemEpic
@@ -63,6 +63,50 @@ const responseResourceAsset = {
     }
 };
 const responseDataResourceAsset = "";
+const responseExtJSList = {
+    "ExtResourceList": {
+        "ResourceCount": 1,
+        "Resource": {
+            "Attributes": {
+                "attribute": [
+                    {
+                        "@type": "STRING",
+                        "name": "sciadroResourceId",
+                        "value": "d3c1801c-7eaa-41e2-a32f-44b93302caf6"
+                    },
+                    {
+                        "@type": "STRING",
+                        "name": "created",
+                        "value": "2019-06-10T09:50:59.886728Z"
+                    },
+                    {
+                        "@type": "STRING",
+                        "name": "modified",
+                        "value": "2019-06-10T09:51:00.311031Z"
+                    },
+                    {
+                        "@type": "STRING",
+                        "name": "note",
+                        "value": "null"
+                    },
+                    {
+                        "@type": "STRING",
+                        "name": "assetId",
+                        "value": "d2f4b671-9aaa-442b-af04-84e56d509945"
+                    }
+                ]
+            },
+            "category": {
+                "id": 6,
+                "name": "MISSION"
+            },
+            "creation": "2019-06-10T11:52:34.591+02:00",
+            "description": 2,
+            "id": 902,
+            "name": "m2"
+        }
+    }
+};
 const attributesResponse = {
     "AttributeList": {
         "Attribute": [
@@ -87,14 +131,14 @@ const attributesResponse = {
                 "value": ""
             },
             {
-                "name": "missionsId",
+                "name": "missions",
                 "type": "STRING",
                 "value": ""
             },
             {
                 "name": "type",
                 "type": "STRING",
-                "value": "powerline"
+                "value": "POW"
             }
         ]
     }
@@ -109,7 +153,6 @@ describe('testing sciadro epics', () => {
     });
     afterEach((done) => {
         mockAxios.restore();
-        // mockAxios.reset();
         epicMiddleware.replaceEpic(rootEpic);
         console.log(store);
         setTimeout(done);
@@ -166,10 +209,10 @@ describe('testing sciadro epics', () => {
         }, {
             sciadro: {
                 assets: [
-                    { id: 1, selected: true, current: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                    { id: 1, selected: true, current: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset"} }
                 ],
                 missions: [
-                    { id: 1, selected: true, current: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission"} }
+                    { id: 1, selected: true, current: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission", assetId: "sha5-asset"} }
                 ]
             }
         });
@@ -195,10 +238,10 @@ describe('testing sciadro epics', () => {
         }, {
             sciadro: {
                 assets: [
-                    { id: 1, selected: true, current: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                    { id: 1, selected: true, current: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset"} }
                 ],
                 missions: [
-                    { id: 1, selected: true, current: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission"} }
+                    { id: 1, selected: true, current: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission", assetId: "sha5-asset"} }
                 ]
             }
         });
@@ -296,7 +339,7 @@ describe('testing sciadro epics', () => {
         }, {
             sciadro: {
                 assets: [
-                    { id: 1, selected: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                    { id: 1, selected: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset"} }
                 ]
             }
         });
@@ -333,7 +376,7 @@ describe('testing sciadro epics', () => {
         }, {
             sciadro: {
                 assets: [
-                    { id: 1, selected: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                    { id: 1, selected: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset"} }
                 ]
             }
         });
@@ -371,10 +414,10 @@ describe('testing sciadro epics', () => {
         }, {
             sciadro: {
                 assets: [
-                    { id: 1, selected: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                    { id: 1, selected: true, current: true, name: "asset 1", attributes: { sciadroResourceId: "sha5-asset"} }
                 ],
                 missions: [
-                    { id: 1, selected: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission"} }
+                    { id: 1, selected: true, current: true, name: "mission 1", attributes: { sciadroResourceId: "sha5-mission", assetId: "sha5-asset"} }
                 ]
             }
         });
@@ -438,6 +481,9 @@ describe('testing sciadro epics', () => {
                             expect(action.loading).toBe(false);
                         }
                         break;
+                    case LOADED_ASSETS:
+                        expect(action.assets).toEqual([]);
+                        break;
                     case TEST_TIMEOUT:
                         expect(action.type).toBe(TEST_TIMEOUT);
                         break;
@@ -464,7 +510,7 @@ describe('testing sciadro epics', () => {
                         expect(action.loading).toBe(true);
                         break;
                     case LOADED_ASSETS:
-                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missionsId: '', type: 'powerline' }, data: '' } ] );
+                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missions: '', type: 'POW' }, data: '', permissions: { SecurityRuleList: { SecurityRule: [] } } } ] );
                         break;
                     case TEST_TIMEOUT:
                         expect(action.type).toBe(TEST_TIMEOUT);
@@ -493,7 +539,7 @@ describe('testing sciadro epics', () => {
                         expect(action.loading).toBe(true);
                         break;
                     case LOADED_ASSETS:
-                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missionsId: '', type: 'powerline' }, data: '' } ]);
+                        expect(action.assets).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missions: '', type: 'POW' }, data: '', permissions: { SecurityRuleList: { SecurityRule: [] } } } ]);
                         break;
                     case TEST_TIMEOUT:
                         expect(action.type).toBe(TEST_TIMEOUT);
@@ -540,13 +586,10 @@ describe('testing sciadro epics', () => {
         });
     });
     it('startLoadingMissionsEpic triggered by CHANGE_CURRENT_ASSET', (done) => {
-        const results = {id: 1, name: "name 2"};
-        mockAxios.onGet(/ASSET/).reply(200, {results});
-        mockAxios.onGet(/resources\/resource\/1\/attributes/).reply(200, attributesResponse);
-        mockAxios.onGet(/[\w-\/]*resource\/1/).reply(200, responseResourceAsset);
-        mockAxios.onGet(/[\w-\/]*\/data\/1/).reply(200, responseDataResourceAsset);
-        testEpic(addTimeoutEpic(startLoadingMissionsEpic, 50), 4, changeCurrentAsset(1), actions => {
-            expect(actions.length).toBe(4);
+        mockAxios.onPost(/extjs\/search\/list/).reply(200, responseExtJSList);
+        const numActions = 4;
+        testEpic(addTimeoutEpic(startLoadingMissionsEpic, 50), numActions, changeCurrentAsset(1), actions => {
+            expect(actions.length).toBe(numActions);
             actions.map((action, i) => {
                 switch (action.type) {
                     case LOADING_MISSIONS:
@@ -557,7 +600,18 @@ describe('testing sciadro epics', () => {
                         }
                         break;
                     case LOADED_MISSIONS:
-                        expect(action.missions).toEqual([ { canDelete: true, canEdit: true, creation: '2019-04-29T11:54:06.448+02:00', description: '', id: 1, name: 'test res', attributes: { sciadroResourceId: 'e4b678f6-ffff-4aa7-86a4-f43f6697691d', created: '2019-04-18T14:45:07.261967Z', modified: '2019-04-18T14:45:07.261991Z', note: '', missionsId: '', type: 'powerline' }, data: '' } ] );
+                        expect(action.missions.length).toEqual(1);
+                        const mission = head(action.missions);
+                        console.table(mission);
+                        expect(Object.keys(mission).length).toEqual(6);
+                        expect(Object.keys(mission)).toEqual([ 'id', 'name', 'description', 'creation', 'attributes', 'videoUrl' ]);
+                        expect(mission.id).toEqual(902);
+                        expect(mission.name).toEqual("m2");
+                        expect(mission.description).toEqual(2);
+                        expect(Object.keys(mission.attributes).length).toEqual(5);
+                        expect(mission.attributes.sciadroResourceId).toEqual("d3c1801c-7eaa-41e2-a32f-44b93302caf6");
+                        expect(mission.attributes.assetId).toEqual("d2f4b671-9aaa-442b-af04-84e56d509945");
+
                         break;
                     case UPDATE_ASSET:
                         expect(action.props).toEqual({missionLoaded: true});
@@ -573,7 +627,7 @@ describe('testing sciadro epics', () => {
         }, {
             sciadro: {
                 assets: [
-                    { id: 1, selected: true, name: "name 1", attributes: { missionsId: "1" }, feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} }
+                    { id: 1, selected: true, current: true, name: "name 1", attributes: {sciadroResourceId: "shaIfd"}, feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} }
                 ]
             }
         });
@@ -587,7 +641,7 @@ describe('testing sciadro epics', () => {
                         expect(action.owner).toBe("sciadro");
                         break;
                     }
-                    case ON_SHAPE_SUCCESS: {
+                    case ON_SUCCESS: {
                         expect(action.message).toBe(null);
                         break;
                     }
@@ -613,7 +667,7 @@ describe('testing sciadro epics', () => {
                         expect(action.owner).toBe("sciadro");
                         break;
                     }
-                    case ON_SHAPE_SUCCESS: {
+                    case ON_SUCCESS: {
                         expect(action.message).toBe(null);
                         break;
                     }
@@ -644,7 +698,7 @@ describe('testing sciadro epics', () => {
             actions.map(action => {
                 switch (action.type) {
                     case ZOOM_TO_ITEM: {
-                        expect(action.zoomTo).toBe("drone");
+                        expect(action.zoomTo).toBe("missions");
                         break;
                     }
                     case UPDATE_ADDITIONAL_LAYER:
@@ -664,7 +718,8 @@ describe('testing sciadro epics', () => {
                         current: true,
                         name: "name 1",
                         feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
-                        attributes: { sciadroResourceId: "sha5-asset", missionsId: "1"} }
+                        attributes: { sciadroResourceId: "sha5-asset" }
+                    }
                 ],
                 missions: [
                     {
@@ -674,7 +729,7 @@ describe('testing sciadro epics', () => {
                         name: "mission 1",
                         feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}},
                         drone: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}, properties: {isVisible: true}},
-                        attributes: { sciadroResourceId: "sha5-mission"}
+                        attributes: { sciadroResourceId: "sha5-mission", assetId: "sha5-asset"}
                     }
                 ]
             }
@@ -706,7 +761,7 @@ describe('testing sciadro epics', () => {
                         expect(action.owner).toBe("sciadro");
                         break;
                     }
-                    case ON_SHAPE_SUCCESS: {
+                    case ON_SUCCESS: {
                         expect(action.message).toBe(null);
                         break;
                     }
@@ -797,8 +852,9 @@ describe('testing sciadro epics', () => {
         });
     });
     it('zoomToItemEpic, zooming on mission LineString triggered by ZOOM_TO_ITEM', (done) => {
-        testEpic(zoomToItemEpic, 1, zoomToItem(), actions => {
-            expect(actions.length).toBe(1);
+        const numActions = 1;
+        testEpic(zoomToItemEpic, numActions, zoomToItem(), actions => {
+            expect(actions.length).toBe(numActions);
             actions.map(action => {
                 switch (action.type) {
                     case ZOOM_TO_EXTENT:
@@ -814,10 +870,10 @@ describe('testing sciadro epics', () => {
         }, {
             sciadro: {
                 missions: [
-                    { id: 1, selected: true, name: "name 1", feature: {type: "Feature", geometry: {coordinates: [[0, 8], [3, 6]], type: "LineString"}} }
+                    { id: 1, selected: true, name: "name 1", attributes: {assetId: "sha5-asset"}, feature: {type: "Feature", geometry: {coordinates: [[0, 8], [3, 6]], type: "LineString"}} }
                 ],
                 assets: [
-                    { id: 1, attributes: {missionsId: "1"}, selected: true, name: "name 1", feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} }
+                    { id: 1, attributes: {sciadroResourceId: "sha5-asset"}, selected: true, current: true, name: "name 1", feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}} }
                 ]
             }
         });

@@ -1,7 +1,12 @@
 {
 	"proxyUrl": {
 		"url": "proxy/?url=",
-		"useCORS": ["http://demo.geo-solutions.it/geoserver", "https://demo.geo-solutions.it:443/geoserver", "https://demo.geo-solutions.it/geoserver", "https://nominatim.openstreetmap.org"]
+		"useCORS": [
+      "http://demo.geo-solutions.it/geoserver",
+      "https://demo.geo-solutions.it:443/geoserver",
+      "https://demo.geo-solutions.it/geoserver",
+      "https://nominatim.openstreetmap.org"
+    ]
 	},
 	"geoStoreUrl": "rest/geostore/",
 	"bingApiKey": "AhuXBu7ipR1gNbBfXhtUAyCZ6rkC5PkWpxs2MnMRZ1ZupxQfivjLCch22ozKSCAn",
@@ -60,11 +65,37 @@
 				}
 			},
       "sciadro": {
+        "backendUrl": "",
         "assets": [],
         "missions": [],
         "assetZoomLevel": 10,
         "droneZoomLevel": 18,
-        "missionZoomLevel": 10
+        "missionZoomLevel": 10,
+        "styles": {
+          "asset": {
+            "Point": {
+              "iconColor": "orange",
+              "iconShape": "circle",
+              "iconGlyph": "comment"
+            },
+            "Marker": {
+              "iconColor": "orange",
+              "iconShape": "circle",
+              "iconGlyph": "comment"
+            },
+            "LineString": { "color": "#ffcc33", "weight": 2 }
+          },
+          "mission": {
+            "LineString": { "color": "#00ff00", "weight": 2 }
+          },
+          "drone": {
+            "Point": {
+                  "iconUrl": "/localAssets/images/drone-nord.svg",
+                  "size": [24, 24],
+                  "iconAnchor": [0.5, 0.5]
+              }
+          }
+        }
       }
     }
 	},
@@ -98,9 +129,7 @@
 			}, {
         "name": "Sciadro",
         "cfg": {
-          "toolbarCfg": {
-            "backend_url": "http://backendUrl:8000/"
-          },
+          "toolbarCfg": { },
           "componentsCfg": {
             "asset-list": {},
             "asset-edit": {},

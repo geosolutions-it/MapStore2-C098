@@ -14,16 +14,16 @@ import Container from '@js/components/Container';
 import {
     ToolbarConnected,
     MissionDetailConnected,
-    // AnomaliesListConnected,
     MissionEditConnected,
     MissionListConnected,
-    AssetPermissionConnected,
     AssetEditConnected,
-    AssetListConnected
+    AssetListConnected/*,
+    AssetListVirtualScrollConnected*/
 } from './index';
 
+
 import sciadro from '@js/reducers/sciadro';
-import shapefile from '@mapstore/reducers/shapefile';
+import mapimport from '@mapstore/reducers/mapimport';
 import style from '@mapstore/reducers/style';
 import * as sciadroEpics from '@js/epics/sciadro';
 import {
@@ -43,9 +43,8 @@ export const Sciadro = connect(createSelector([
 ], (show, mode) => ({
     show, mode,
     renderBodyComponents: {
-        "asset-list": AssetListConnected,
+        "asset-list": AssetListConnected,// AssetListVirtualScrollConnected // restore after backend integration,
         "asset-edit": AssetEditConnected,
-        "asset-permission": AssetPermissionConnected, // todo remove, and move it in asset-edit
         "mission-edit": MissionEditConnected,
         "mission-list": MissionListConnected,
         "mission-detail": MissionDetailConnected
@@ -54,5 +53,5 @@ export const Sciadro = connect(createSelector([
 })), {})(Container);
 
 export const SciadroPlugin = assign(Sciadro);
-export const reducers = { shapefile, style, sciadro };
+export const reducers = { mapimport, style, sciadro };
 export const epics = sciadroEpics;

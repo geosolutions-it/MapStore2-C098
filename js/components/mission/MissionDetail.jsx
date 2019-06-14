@@ -13,8 +13,6 @@ import ReactPlayer from 'react-player';
 import {getTelemetryByTimePlayed} from '@js/utils/sciadro';
 import {isEqual} from 'lodash';
 import Message from '@mapstore/components/I18N/Message';
-// import ContainerDimensions from 'react-container-dimensions';
-
 
 /**
  * MissionDetail
@@ -30,14 +28,15 @@ class MissionDetail extends React.Component {
         controls: PropTypes.bool,
         missions: PropTypes.array,
         missionSelected: PropTypes.object,
-        onUpdateDroneGeometry: PropTypes.func,
         onPausePlayer: PropTypes.func,
+        onResetHighlightAnomaly: PropTypes.func,
         onStartPlayer: PropTypes.func,
+        onUpdateDroneGeometry: PropTypes.func,
         playing: PropTypes.bool,
         progressInterval: PropTypes.number,
-        videoHeight: PropTypes.string,
+        videoHeight: PropTypes.number,
         videoFormat: PropTypes.string,
-        videoWidth: PropTypes.string
+        videoWidth: PropTypes.number
     };
     static contextTypes = {
         messages: PropTypes.object
@@ -54,20 +53,21 @@ class MissionDetail extends React.Component {
                 }
             }
         },
-        controls: [],
+        controls: true,
         missions: [],
-        missionSelected: {
-            videoUrl: "/assets/video/colibri.mp4"
-        },
-        onUpdateDroneGeometry: () => {},
+        missionSelected: {},
         onPausePlayer: () => {},
+        onResetHighlightAnomaly: () => {},
         onStartPlayer: () => {},
+        onUpdateDroneGeometry: () => {},
         playing: false,
         progressInterval: 500,
         videoHeight: 375,
         videoFormat: "video/mp4",
         videoWidth: 500
     };
+
+    state = {}
 
     render() {
         const AnomaliesList = this.props.anomaliesListComponent;
@@ -90,21 +90,31 @@ class MissionDetail extends React.Component {
                                 controls={this.props.controls}
                                 height={this.props.videoHeight}
                                 url={[{
-                                    src: this.props.missionSelected.videoUrl || "/assets/video/colibri.mp4", type: this.props.videoFormat || "video/mp4"
+                                    src: this.props.missionSelected.videoUrl,
+                                    type: this.props.videoFormat
                                 }]}
                                 ref={this.ref}
                                 playing={this.props.playing}
-
-                                onPlay= {() => {
-                                    this.props.onStartPlayer();
-                                }}
-                                onSeek={this.pausePlayer}
+                                onPlay= {() => { this.props.onStartPlayer(); }}
+                                onSeek={
+                                    () => {
+                                        if (this.state.seekFrom === "showFrame") {
+                                            this.setState({seekFrom: "manualSeek"});
+                                        } else {
+                                            this.props.onResetHighlightAnomaly();
+                                        }
+                                    }
+                                }
+                                onPause={this.pausePlayer}
                                 onProgress= {(state) => {
-                                    const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval);
-                                    if (!isEqual(this.telem, telem) ) {
+                                    const telem = getTelemetryByTimePlayed(this.props.missionSelected.telemetries, state.playedSeconds * 1000, this.props.missionSelected.telemInterval || 500);
+                                    if (!isEqual(this.telem, telem) && telem) {
                                         // optimized update process of drone position when telem has not changed
                                         this.telem = telem;
-                                        this.props.onUpdateDroneGeometry(telem.id, telem.yaw, telem.location, this.props.missionSelected.id);
+                                        this.props.onUpdateDroneGeometry(telem.id, telem.yaw, {
+                                            "type": "Point",
+                                            "coordinates": [telem.longitude, telem.latitude]
+                                        }, this.props.missionSelected.id);
                                     }
                                 }}
                             />
@@ -130,16 +140,15 @@ class MissionDetail extends React.Component {
 
     createAnomalyStyle = () => {
         const missionSelected = this.props.missionSelected;
-        const anomaly = this.props.anomalySelected;
-        if (missionSelected.size && anomaly) {
-            const {xMin, yMin, xMax, yMax} = anomaly;
+        if (missionSelected.size && this.props.anomalySelected) {
+            const {xmin, ymin, xmax, ymax} = this.props.anomalySelected;
             const [widthFrame, heightFrame] = missionSelected.size;
             // assuming top-left as origin (0, 0)
 
-            const newXMin = Math.floor(xMin * this.props.videoHeight / heightFrame);
-            const newXMax = Math.floor(xMax * this.props.videoHeight / heightFrame);
-            const newYMin = Math.floor(yMin * this.props.videoWidth / widthFrame);
-            const newYMax = Math.floor(yMax * this.props.videoWidth / widthFrame);
+            const newXMin = Math.floor(xmin * this.props.videoHeight / heightFrame);
+            const newXMax = Math.floor(xmax * this.props.videoHeight / heightFrame);
+            const newYMin = Math.floor(ymin * this.props.videoWidth / widthFrame);
+            const newYMax = Math.floor(ymax * this.props.videoWidth / widthFrame);
 
             const width = `${newXMax - newXMin}px`;
             const height = `${newYMax - newYMin}px`;
@@ -160,7 +169,8 @@ class MissionDetail extends React.Component {
         };
     }
     seekToFrame = (fraction = 0.5) => {
-        this.player.seekTo(fraction);
+        this.player.seekTo(fraction, false);
+        this.setState({resetHighlight: false, seekFrom: "showFrame"});
     }
     pausePlayer = () => {
         this.props.onPausePlayer();
