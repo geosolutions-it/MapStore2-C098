@@ -126,7 +126,7 @@ export const AssetListVirtualScrollConnected = connect(createSelector([
     onChangeCurrentMission: changeCurrentMission
 })(AssetListVirtualScroll);
 
-import ShapeFile from '@mapstore/components/import/ShapeFileUploadAndStyle';
+import ShapeFile from '@mapstore/components/import/ShapefileUploadAndStyle';
 export const ShapeFileConnected = connect((state) => (
     {
         wrap: false,
