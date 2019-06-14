@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import {get, find} from 'lodash';
+import {get, find, isNil} from 'lodash';
 import {userSelector} from '@mapstore/selectors/security';
 
 export const filterTextAssetSelector = state => get(state, "sciadro.filterTextAsset", "");
@@ -108,7 +108,7 @@ export const saveErrorSelector = state => state && get(state, "sciadro.saveError
 export const showErrorMessageSelector = state => get(state, "sciadro.showErrorMessage", false);
 export const showSuccessMessageSelector = state => get(state, "sciadro.showSuccessMessage", false);
 export const toolbarButtonsStatusSelector = state => {
-    const user = userSelector(state);
+    const user = !isNil(userSelector(state)) ? userSelector(state) : false;
     const mode = modeSelector(state);
     const assetSelected = assetSelectedSelector(state);
     const missionSelected = missionSelectedSelector(state);

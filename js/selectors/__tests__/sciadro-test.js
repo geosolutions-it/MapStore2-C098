@@ -497,7 +497,7 @@ describe('testing sciadro selectors', () => {
         expect(toolbarButtonsStatusSelector({})).toEqual({
             toolbarDisabled: false,
             back: false,
-            add: true,
+            add: false,
             save: false,
             saveDisabled: true,
             saveError: {
@@ -531,10 +531,12 @@ describe('testing sciadro selectors', () => {
     });
     it('toolbarButtonsStatusSelector add', () => {
         expect(toolbarButtonsStatusSelector({
+            security: {user: {name: "user"}},
             sciadro: {
                 mode: "asset-list"
             }}).add).toEqual(true);
         expect(toolbarButtonsStatusSelector({
+            security: {user: {name: "user"}},
             sciadro: {
                 mode: "mission-list"
             }}).add).toEqual(true);
