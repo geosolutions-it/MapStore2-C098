@@ -29,11 +29,11 @@ const config = require('./MapStore2/build/buildConfig')(
             inject: true,
             hash: true
         })
-    ]
+    ],
+    {
+        '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
+        '@js': path.resolve(__dirname, 'js')
+    }
 );
-config.resolve.alias = {
-    '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
-    '@js': path.resolve(__dirname, 'js')
-};
 
 module.exports = config;
