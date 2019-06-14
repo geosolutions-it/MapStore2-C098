@@ -628,6 +628,11 @@ export const saveMissionEpic = (action$, store) =>
                     modified: sciadroData.modified,
                     note: sciadroData.note
                 },
+                videoUrl: getVideoUrl(
+                    backendUrl,
+                    asset && asset.attributes && asset.attributes.sciadroResourceId || "",
+                    mission && mission.attributes && mission.attributes.sciadroResourceId || ""
+                ),
                 id: idResourceGeostore,
                 anomalies: sciadroData.anomalies || [],
                 telemetries: sciadroData.telemetries || [],

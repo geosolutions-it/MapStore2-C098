@@ -51,7 +51,7 @@ export const createResourceSciadroServer = ({
     fileUrl,
     isNew = false,
     options = {
-        timeout: 30000,
+        timeout: 80000,
         headers: {
             "Accept": "application/json",
             "Content-Type": 'multipart/form-data'

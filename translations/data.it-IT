@@ -103,7 +103,9 @@
         "placeholderMissionFiles": "Carica il file o clicca perselezionare il file da importare. (formati supportati: .zip contenente .avi, .telem e .xml)",
         "error": {
             "select": "Seleziona solo un geoJSON.json contenuto in un archivio .zip"
-        }
+        },
+        "addMessage": "Aggiungi",
+        "cancelMessage": "Annulla"
     },
     "queryform": {
         "from": "Da",

@@ -7,6 +7,7 @@
 */
 
 import {get, find} from 'lodash';
+import {userSelector} from '@mapstore/selectors/security';
 
 export const filterTextAssetSelector = state => get(state, "sciadro.filterTextAsset", "");
 export const allMissionsSelector = state => get(state, "sciadro.missions", []);
@@ -107,6 +108,7 @@ export const saveErrorSelector = state => state && get(state, "sciadro.saveError
 export const showErrorMessageSelector = state => get(state, "sciadro.showErrorMessage", false);
 export const showSuccessMessageSelector = state => get(state, "sciadro.showSuccessMessage", false);
 export const toolbarButtonsStatusSelector = state => {
+    const user = userSelector(state);
     const mode = modeSelector(state);
     const assetSelected = assetSelectedSelector(state);
     const missionSelected = missionSelectedSelector(state);
@@ -114,7 +116,7 @@ export const toolbarButtonsStatusSelector = state => {
     return {
         toolbarDisabled: savingMissionSelector(state) || savingAssetSelector(state) || loadingAssetsSelector(state) || loadingMissionsSelector(state),
         back: mode !== "asset-list",
-        add: mode.indexOf("list") !== -1,
+        add: user && mode.indexOf("list") !== -1,
         save: mode.indexOf("edit") !== -1,
         saveDisabled: saveDisabledSelector(state),
         saveError: {

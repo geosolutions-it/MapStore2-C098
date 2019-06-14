@@ -98,7 +98,7 @@ class AssetEdit extends React.Component {
                             />
                         </Col>
                     </FormGroup>
-                    <FormGroup>
+                  <FormGroup>
                         <Col xs={12} sm={12} md={12}>
                             <ControlLabel><Message msgId="sciadro.assets.description"/></ControlLabel>
                             <FormControl
@@ -149,7 +149,11 @@ class AssetEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.assets.geometry"/></ControlLabel>
                             <br/>
                             <ToolbarGeom/>
-                            <DropZone wrap={false}/>
+                            <DropZone
+                                uploadMessage = {<Message msgId={"shapefile.placeholder"}/>}
+                                addMessage = {<Message msgId={"shapefile.addMessage"}/>}
+                                cancelMessage = {<Message msgId={"shapefile.cancelMessage"}/>}
+                            />
                             <AssetPermission/>
                         </Col>
                     </FormGroup>

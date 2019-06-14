@@ -91,7 +91,7 @@ import {
     toolbarButtonsStatusSelector
 } from '@js/selectors/sciadro';
 import {userSelector} from '@mapstore/selectors/security';
-import {onShapeError, shapeLoading, onShapeChoosen, onSelectLayer, onLayerAdded, updateShapeBBox, onShapeSuccess} from '@mapstore/actions/mapimport';
+import {onShapeError, setLoading, setLayers, onSelectLayer, onLayerAdded, updateBBox, onSuccess} from '@mapstore/actions/mapimport';
 import {zoomToExtent} from '@mapstore/actions/map';
 
 export const AssetListConnected = connect(createSelector([
@@ -126,28 +126,29 @@ export const AssetListVirtualScrollConnected = connect(createSelector([
     onChangeCurrentMission: changeCurrentMission
 })(AssetListVirtualScroll);
 
-import ShapeFile from '@mapstore/plugins/import/StyleDialog';
+import ShapeFile from '@mapstore/components/import/ShapeFileUploadAndStyle';
 export const ShapeFileConnected = connect((state) => (
     {
+        wrap: false,
         mapType: "openlayers",
         visible: modeSelector(state) === "asset-edit",
-        layers: state.shapefile && state.shapefile.layers || null,
-        selected: state.shapefile && state.shapefile.selected || null,
-        bbox: state.shapefile && state.shapefile.bbox || null,
-        success: state.shapefile && state.shapefile.success || null,
-        error: state.shapefile && state.shapefile.error || null,
+        layers: state.mapimport && state.mapimport.layers || null,
+        selected: state.mapimport && state.mapimport.selected || null,
+        bbox: state.mapimport && state.mapimport.bbox || null,
+        success: state.mapimport && state.mapimport.success || null,
+        error: state.mapimport && state.mapimport.error || null,
         shapeStyle: state.style || {}
     }
 ), {
-    onShapeChoosen: onShapeChoosen,
+    onShapeChoosen: setLayers,
     onShapeError: onShapeError,
     onLayerAdded: onLayerAdded,
     onSelectLayer: onSelectLayer,
-    onShapeSuccess: onShapeSuccess,
+    onShapeSuccess: onSuccess,
     addShapeLayer: addFeatureAsset,
     onZoomSelected: zoomToExtent,
-    updateShapeBBox: updateShapeBBox,
-    shapeLoading: shapeLoading
+    updateShapeBBox: updateBBox,
+    shapeLoading: setLoading
 })(ShapeFile);
 
 export const ToolbarGeomConnected = connect(createSelector([
