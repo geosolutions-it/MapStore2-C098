@@ -149,11 +149,11 @@ class AssetEdit extends React.Component {
                             <ControlLabel><Message msgId="sciadro.assets.geometry"/></ControlLabel>
                             <br/>
                             <ToolbarGeom/>
-                            <DropZone
+                            {asset && !asset.draw ? <DropZone
                                 uploadMessage = {<Message msgId={"shapefile.placeholder"}/>}
                                 addMessage = {<Message msgId={"shapefile.addMessage"}/>}
                                 cancelMessage = {<Message msgId={"shapefile.cancelMessage"}/>}
-                            />
+                            /> : null}
                             <AssetPermission/>
                         </Col>
                     </FormGroup>

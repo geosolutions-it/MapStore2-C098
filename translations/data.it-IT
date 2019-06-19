@@ -16,7 +16,10 @@
                 "saveError": "C'è stato un errore durante il salvataggio",
                 "loadError": "C'è stato un errore durante il caricamento delle attività",
                 "fetchFeatureError": "Non è stato possibile caricare la geometria di questa risorsa",
-                "error": "C'è stato un errore"
+                "error": "C'è stato un errore",
+                "duplicated": "Una risorsa con questo nome esiste già. Per favore, fornisci un nuovo nome",
+                "deletedSuccess": "La risorsa con nome: '{name}' è stata eliminata correntamente",
+                "deleteError": "C'è stato un errore durante l'eliminazione della risorsa con nome '{name}'"
             },
             "mode": {
                 "asset-list": "Attività",
@@ -34,9 +37,11 @@
                 "detected": "Detected Anomalies"
             },
             "assets": {
+                "delete": "Elimina Attività",
                 "filterByName": "Filter assets by name",
-                "geomTrash": "Delete geometry",
-                "loading": "Loading Assets",
+                "geomTrash": "Elimina geometria",
+                "loading": "Caricamento Attività",
+                "deleting": "Eliminazione Attività",
                 "powerline": "Powerline",
                 "pipeline": "Conduttura",
                 "electricTruss": "Traliccio",
@@ -57,12 +62,14 @@
                 "line": "Linea",
                 "created": "Crea",
                 "modified": "Modifica",
+                "geometryAdded": "La geometria è stata aggiunta correttamente",
                 "rest": {
                     "saveSuccess": "L'attività '{name}' è stata salvata correntamente",
                     "saveError": "c'è stato un errore è durante il salvataggio dell'attività"
                 }
             },
             "missions": {
+                "delete": "Elimina missione",
                 "filterByName": "Filtra le missioni per nome",
                 "filterByDate": "Filtra le missioni per date",
                 "clearFilter": "Pulisci filtri",
@@ -71,6 +78,7 @@
                 "filterByDateError": "L'intervallo delle date è sbagliato",
                 "dateFilter": "Filtro per data",
                 "loading": "Caricamento Missione",
+                "deleting": "Eliminazione Missione",
                 "detail": "Vedi dettagli missione",
                 "permissions": "Permessi Missione",
                 "add": "Crea Missione",

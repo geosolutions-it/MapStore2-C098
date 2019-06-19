@@ -24,6 +24,7 @@ const Filter = withLocal('filterPlaceholder')(FilterComp);
 
 const SideGridWithLoadingState = compose(
     loadingState(({loading} ) => loading, {text: <Message msgId="sciadro.missions.loading" />}, LoadingWithText),
+    loadingState(({deleting}) => deleting, {text: <Message msgId="sciadro.missions.deleting"/>}, LoadingWithText),
     emptyState(
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
@@ -41,6 +42,7 @@ class MissionList extends React.Component {
         assetCurrent: PropTypes.object,
         dateFilterComponent: PropTypes.func,
         loadingMissions: PropTypes.bool,
+        deleting: PropTypes.bool,
         filterText: PropTypes.string,
         missions: PropTypes.array,
         onChangeCurrentMission: PropTypes.func,
@@ -53,6 +55,7 @@ class MissionList extends React.Component {
     static defaultProps = {
         assets: [],
         loadingMissions: false,
+        deleting: false,
         missions: [],
         onChangeCurrentMission: () => {},
         onFilterMission: () => {},
@@ -91,6 +94,7 @@ class MissionList extends React.Component {
                 }>
             <SideGridWithLoadingState
                 loading={this.props.loadingMissions}
+                deleting={this.props.deleting}
                 className="mission-list-container"
                 size="sm"
                 onItemClick = {(item) => {
@@ -103,7 +107,7 @@ class MissionList extends React.Component {
                         selected: item.selected,
                         tools: <Toolbar
                             btnDefaultProps={{
-                                bsStyle: 'primary',
+                                bsStyle: item.selected ? 'success' : 'primary',
                                 className: 'square-button-md'
                             }}
                             buttons={

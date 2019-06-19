@@ -6,16 +6,19 @@
  * LICENSE file in the root directory of this source tree.
 */
 
-import { sortBy, castArray, includes } from 'lodash';
+import { sortBy, castArray, includes, find } from 'lodash';
 import { saveAs } from 'file-saver';
 import * as Rx from 'rxjs';
 import {
     ADD_FEATURE_ASSET,
     CHANGE_CURRENT_ASSET,
     CHANGE_CURRENT_MISSION,
+    DELETE_FEATURE_ASSET,
+    DELETE_RESOURCE,
     DRAW_ASSET,
     DOWNLOAD_FRAME,
     ENTER_CREATE_ITEM,
+    EDIT_ASSET,
     HIDE_ADDITIONAL_LAYER,
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
@@ -27,6 +30,7 @@ import {
     UPDATE_DRONE_GEOMETRY,
     ZOOM_TO_ITEM,
     changeMode,
+    deletingResource,
     downloadingFrame,
     downloadingFrameError,
     downloadingFrameSuccess,
@@ -42,6 +46,9 @@ import {
     loadingMissionFeature,
     loadingMissions,
     loadMissionError,
+    resourceDeleted,
+    resourceDeletedSuccess,
+    resourceDeletedError,
     saveAssetSuccess,
     saveMissionSuccess,
     saveError,
@@ -81,10 +88,13 @@ import {
 import {
     getGeoJSONExtent
 } from '@mapstore/utils/CoordinatesUtils';
+import {
+    getMessageById
+} from '@mapstore/utils/LocaleUtils';
 import GeoStoreApi from "@mapstore/api/GeoStoreDAO";
 import {LOGIN_SUCCESS} from "@mapstore/actions/security";
 import * as Persistence from "@mapstore/api/persistence/index";
-import {changeDrawingStatus} from '@mapstore/actions/draw';
+import {changeDrawingStatus, END_DRAWING} from '@mapstore/actions/draw';
 
 const ADDITIONAL_LAYERS = {
     asset: {
@@ -112,6 +122,36 @@ export const addFeatureAssetEpic = (action$, store) =>
                 getAdditionalLayerAction({feature: featureWithStyle, id: "assets", name: "assets", style: a.layer.style}),
                 updateAsset({feature: featureWithStyle}, assetEdit.id)
             ]);
+        });
+/**
+ * it deletes a resource from geostore
+ * @param {external:Observable} action$ manages `DELETE_RESOURCE`
+ * @memberof epics.sciadro
+ * @return {external:Observable}
+**/
+export const deleteResourceEpic = (action$, store) =>
+    action$.ofType(DELETE_RESOURCE)
+        .switchMap(() => {
+            const state = store.getState();
+            const asset = assetSelectedSelector(state);
+            const mission = missionSelectedSelector(state);
+            const id = (mission && mission.id) || (asset && asset.id);
+            const name = (mission && mission.name) || (asset && asset.name);
+            return Rx.Observable.defer( () =>
+                GeoStoreApi.deleteResource(id)
+            ).switchMap(() => {
+                return Rx.Observable.from([
+                    deletingResource(false),
+                    resourceDeleted(id),
+                    resourceDeletedSuccess(name)
+                ]);
+            }).
+            catch( () => {
+                return Rx.Observable.from([
+                    deletingResource(false),
+                    resourceDeletedError(name)]);
+            })
+            .startWith(deletingResource(true));
         });
 
 /**
@@ -150,9 +190,10 @@ export const downloadFrameEpic = (action$, store) =>
  * @memberof epics.sciadro
  * @return {external:Observable}
  **/
-export const drawAssetFeatureEpic = (action$) =>
+export const drawAssetFeatureEpic = (action$, store) =>
     action$.ofType(DRAW_ASSET)
         .switchMap((a) => {
+            const state = store.getState();
             const drawOptions = {
                 stopAfterDrawing: true,
                 editEnabled: false,
@@ -161,11 +202,27 @@ export const drawAssetFeatureEpic = (action$) =>
                 translateEnabled: false,
                 transformToFeatureCollection: false
             };
+            const asset = assetEditedSelector(state);
             return Rx.Observable.of(
                 removeAdditionalLayerById(ADDITIONAL_LAYERS.asset.id),
-                changeDrawingStatus("start", a.drawMethod, "sciadro", [], drawOptions, getStyleFromType(a.drawMethod)));
+                changeDrawingStatus(asset && asset.draw ? "start" : "stop", a.drawMethod, "sciadro", [], drawOptions, getStyleFromType(a.drawMethod)));
         });
 
+export const removeAssetFeatureWhenChangingTypeEpic = (action$, store) =>
+    action$.ofType(EDIT_ASSET)
+    .filter(a => {
+        const state = store.getState();
+        const asset = assetEditedSelector(state);
+        return a.prop === "attributes.type" && a.value !== "ELE" && asset && asset.feature && asset.feature.geometry && asset.feature.geometry.type === "Point";
+    })
+    .switchMap((a) => {
+        return Rx.Observable.from([
+            updateAsset({ feature: null}, a.id),
+            removeAdditionalLayerById("assets"),
+            changeDrawingStatus("clean", "", "sciadro", [], {}, {}),
+            onSuccess(null)
+        ]);
+    });
 /**
  * fetch the asset feature from sciadro backend if it is undefined,
  * otherwise it returns directly the actions to dispatch
@@ -186,19 +243,15 @@ export const getAssetFeatureEpic = (action$, store) =>
             // go fetch it
             const errorsActions = () => [fetchFeatureSciadroServerError(), loadingAssetFeature(false)];
             const postProcessActions = (item) => {
-                const assetFeature = {
+                const assetFeature = item.geometry ? {
                     "type": "Feature",
-                    "geometry": item.geometry || {
-                        "type": "LineString",
-                        "coordinates": [[10.39985, 43.71074], [10.40483, 43.71074]]
-                    },
+                    "geometry": item.geometry,
                     "style": featureStyleSelector(state, "asset", item.geometry && item.geometry.type || "LineString" )
-
-                };
+                } : null;
                 actions = [updateAsset({ feature: assetFeature, loadingFeature: false }, a.id)];
                 state = store.getState();
                 const assetSelected = assetSelectedSelector(state);
-                if (assetSelected.name === item.name) {
+                if (`${assetSelected.name}` === item.name) {
                     actions.push(getAdditionalLayerAction({ feature: {...item.feature, ...assetFeature, id: a.id}, id: "assets", name: "assets", visibility: !!item.feature }));
                     if (a.type === CHANGE_CURRENT_ASSET) {
                         actions.push(changeMode("mission-list"));
@@ -511,7 +564,9 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                         coordinates: p.coordinates.concat([[t.longitude, t.latitude]])
                     };
                 }, {coordinates: []});
-                let anomalies = data.anomalies;
+                let anomalies = sortBy(castArray(data.anomalies.map(a => {
+                    return {...a, indexFrame: find(frames, {id: a.frame}).index};
+                })), ["indexFrame"]);
                 let actions = [updateMission({
                         loadingData: false,
                         size: data.size || [1024, 768],
@@ -531,7 +586,7 @@ export const startLoadingMissionsDetailsEpic = (action$, {getState = () => {} })
                                 coordinates: [ 10.39985, 43.71064 ]
                             },
                             style: {
-                                iconUrl: "/localAssets/images/drone-nord.svg",
+                                iconUrl: "resources/images/drone-nord.svg",
                                 size: [24, 24],
                                 iconAnchor: [0.5, 0.5]
                             },
@@ -563,7 +618,7 @@ export const saveAssetEpic = (action$, store) =>
             const resource = {
                 id: asset.id,
                 name: asset.name,
-                feature: asset.feature || {geometry: {}},
+                feature: asset.feature,
                 description: asset.description,
                 note: asset.attributes && asset.attributes.note || "",
                 type: asset.attributes && asset.attributes.type || ""
@@ -579,8 +634,7 @@ export const saveAssetEpic = (action$, store) =>
                         note: sciadroData.note,
                         type: sciadroData.type
                     },
-                    id: idResourceGeostore,
-                    feature: sciadroData.feature // what if backend returns a malformed/corrupted feature?
+                    id: idResourceGeostore
                 }, a.id),
                 endSaveAsset()
             ];
@@ -643,7 +697,8 @@ export const saveMissionEpic = (action$, store) =>
             }, asset.id),
             endSaveMission()
         ];
-        const errorsActions = (id, message) => [saveError(id, message), savingMission(false)];
+        const errorsActions = (id, message, status) => [
+            saveError(id, status === 409 ? "sciadro.rest.duplicated" : message), savingMission(false)];
         return saveResource({
             backendUrl,
             resource,
@@ -701,6 +756,21 @@ export const updateDroneAdditionalLayerEpic = (action$, store) =>
             actions.push(zoomToItem("missions"));
             actions.push(getAdditionalLayerAction({feature: featureDrone, id: "drone", name: "drone", visibility: !!featureDrone}));
             return Rx.Observable.from(actions);
+        });
+
+export const updateAssetSuccessMessageEpic = (action$, store) =>
+    action$.ofType(END_DRAWING)
+        .switchMap(() => {
+            const state = store.getState();
+            return Rx.Observable.from(
+                [removeAdditionalLayerById(ADDITIONAL_LAYERS.asset.id),
+                onSuccess(getMessageById(state.locale.messages, "sciadro.assets.geometryAdded"))]);
+        });
+
+export const clearFeatureMessageEpic = (action$) =>
+    action$.ofType(DELETE_FEATURE_ASSET)
+        .switchMap(() => {
+            return Rx.Observable.of(changeDrawingStatus("clean", "", "sciadro", [], {}, {}));
         });
 
 /**

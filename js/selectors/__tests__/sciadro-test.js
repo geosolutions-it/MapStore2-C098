@@ -504,6 +504,7 @@ describe('testing sciadro selectors', () => {
                 visible: false,
                 message: undefined
             },
+            "delete": {visible: null},
             searchDate: {
                 disabled: true,
                 error: undefined,
@@ -516,7 +517,10 @@ describe('testing sciadro selectors', () => {
             edit: false,
             zoom: null,
             zoomDisabled: null,
-            draw: false
+            draw: {
+                visible: false,
+                disabled: false
+            }
         });
     });
     it('toolbarButtonsStatusSelector back', () => {
@@ -574,7 +578,7 @@ describe('testing sciadro selectors', () => {
         expect(toolbarButtonsStatusSelector({
             sciadro: {
                 mode: "asset-edit"
-            }}).draw).toEqual(true);
+            }}).draw).toEqual({ visible: true, disabled: false });
     });
     it('toolbarButtonsStatusSelector zoom', () => {
         const missions = [{ id: 1, selected: true, attributes: { assetId: "1", sciadroResourceId: "1" } }, { id: 4, selected: false }];

@@ -15,6 +15,8 @@ import {
     changeMode, CHANGE_MODE,
     CHANGE_PLAYING,
     deleteAssetFeature, DELETE_FEATURE_ASSET,
+    deleteResource, DELETE_RESOURCE,
+    deletingResource, DELETING_RESOURCE,
     downloadFrame, DOWNLOAD_FRAME,
     downloadingFrame, DOWNLOADING_FRAME,
     drawAsset, DRAW_ASSET,
@@ -43,6 +45,7 @@ import {
     resetCurrentAsset, RESET_CURRENT_ASSET,
     resetCurrentMission, RESET_CURRENT_MISSION,
     resetHighlightAnomaly, RESET_HIGHLIGHT_ANOMALY,
+    resourceDeleted, RESOURCE_DELETED,
     savingMission, SAVING_MISSION,
     saveError, SAVE_ERROR,
     selectAsset, SELECT_ASSET,
@@ -61,6 +64,8 @@ import {
     downloadingFrameSuccess,
     loadAssetError,
     loadMissionError,
+    resourceDeletedError,
+    resourceDeletedSuccess,
     saveAssetSuccess,
     saveMissionSuccess,
     saveSciadroServerError,
@@ -104,6 +109,18 @@ describe('testing sciadro actions', () => {
         const action = deleteAssetFeature(id);
         expect(action.type).toEqual(DELETE_FEATURE_ASSET);
         expect(action.id).toEqual(id);
+    });
+    it('deleteResource', () => {
+        const id = 1;
+        const action = deleteResource(id);
+        expect(action.type).toEqual(DELETE_RESOURCE);
+        expect(action.id).toEqual(id);
+    });
+    it('deletingResource', () => {
+        const deleting = true;
+        const action = deletingResource(deleting);
+        expect(action.type).toEqual(DELETING_RESOURCE);
+        expect(action.deleting).toEqual(deleting);
     });
     it('downloadFrame', () => {
         const frame = "frame-id";
@@ -278,6 +295,12 @@ describe('testing sciadro actions', () => {
         const action = resetHighlightAnomaly();
         expect(action.type).toEqual(RESET_HIGHLIGHT_ANOMALY);
     });
+    it('resourceDeleted', () => {
+        const id = 1;
+        const action = resourceDeleted(id);
+        expect(action.type).toEqual(RESOURCE_DELETED);
+        expect(action.id).toEqual(id);
+    });
     it('savingMission', () => {
         const action = savingMission(true);
         expect(action.type).toEqual(SAVING_MISSION);
@@ -397,6 +420,16 @@ describe('testing sciadro actions', () => {
         const action = loadMissionError(errorOptions);
         expect(action.type).toEqual(SHOW_NOTIFICATION);
         expect(action.name).toEqual(name);
+    });
+    it('resourceDeletedSuccess', () => {
+        const action = resourceDeletedSuccess();
+        expect(action.type).toEqual(SHOW_NOTIFICATION);
+        expect(action.message).toEqual("sciadro.rest.deleteSuccess");
+    });
+    it('resourceDeletedError', () => {
+        const action = resourceDeletedError();
+        expect(action.type).toEqual(SHOW_NOTIFICATION);
+        expect(action.message).toEqual("sciadro.rest.deleteError");
     });
     it('saveAssetSuccess', () => {
         const name = "name";

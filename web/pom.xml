@@ -265,17 +265,17 @@
                     </configuration>
                 </execution>
                 <execution>
-                    <id>CSS files</id>
+                    <id>resources</id>
                     <phase>process-classes</phase>
                     <goals>
                         <goal>copy-resources</goal>
                     </goals>
                     <configuration>
-                        <outputDirectory>${basedir}/target/sciadro/assets</outputDirectory>
+                        <outputDirectory>${basedir}/target/sciadro/resources</outputDirectory>
                         <encoding>UTF-8</encoding>
                         <resources>
                             <resource>
-                                <directory>${basedir}/../assets</directory>
+                                <directory>${basedir}/../resources</directory>
                             </resource>
                         </resources>
                     </configuration>

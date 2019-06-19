@@ -13,6 +13,7 @@ import {
     CHANGE_MODE,
     CHANGE_PLAYING,
     DELETE_FEATURE_ASSET,
+    DELETING_RESOURCE,
     DRAW_ASSET,
     DOWNLOAD_FRAME,
     DOWNLOADING_FRAME,
@@ -40,6 +41,7 @@ import {
     RESET_CURRENT_ASSET,
     RESET_CURRENT_MISSION,
     RESET_HIGHLIGHT_ANOMALY,
+    RESOURCE_DELETED,
     SAVE_ERROR,
     SAVING_MISSION,
     SELECT_ASSET,
@@ -55,8 +57,9 @@ import {
 
 import { assetSelectedSelector, missionSelectedSelector } from '@js/selectors/sciadro';
 import { END_DRAWING } from '@mapstore/actions/draw';
+import { SET_LAYERS, ON_LAYER_ADDED } from '@mapstore/actions/mapimport';
 import { LOGOUT, LOGIN_SUCCESS } from "@mapstore/actions/security";
-import { set, arrayUpdate } from "@mapstore/utils/ImmutableUtils";
+import { set, arrayUpdate, arrayDelete } from "@mapstore/utils/ImmutableUtils";
 import {
     getStyleFromType,
     updateItemAndResetOthers,
@@ -73,7 +76,7 @@ import uuidv1 from 'uuid/v1';
 
 export default function sciadro(state = {
     defaultDroneStyle: {
-        iconUrl: "/localAssets/images/drone-nord.svg",
+        iconUrl: "resources/images/drone-nord.svg",
         size: [24, 24],
         iconAnchor: [0.5, 0.5]
     },
@@ -148,7 +151,14 @@ export default function sciadro(state = {
         case DELETE_FEATURE_ASSET: {
             return {
                 ...state,
-                assets: updateItem(state.assets, {id: action.id}, { feature: null })
+                drawMethod: "",
+                assets: updateItem(state.assets, {id: action.id}, { feature: null, draw: false })
+            };
+        }
+        case DELETING_RESOURCE: {
+            return {
+                ...state,
+                deleting: action.deleting
             };
         }
         case DOWNLOAD_FRAME: {
@@ -170,8 +180,8 @@ export default function sciadro(state = {
         case DRAW_ASSET: {
             return {
                 ...state,
-                drawMethod: action.drawMethod,
-                assets: updateItem(state.assets, {id: action.id}, { draw: true })
+                drawMethod: state.drawMethod !== action.drawMethod ? action.drawMethod : "",
+                assets: updateItem(state.assets, {id: action.id}, { draw: state.drawMethod !== action.drawMethod })
                 // potentially useless, see edit property
             };
         }
@@ -180,7 +190,7 @@ export default function sciadro(state = {
             const missions = updateItem(state.missions, {id: state.missions[itemIndex].id}, { files: action.files });
             return {
                 ...state,
-                showSuccessMessage: true,
+                showSuccessMessage: !!action.files,
                 showErrorMessage: false,
                 saveDisabled: !isEditedItemValid("mission", missions[itemIndex]),
                 missions
@@ -416,6 +426,18 @@ export default function sciadro(state = {
                 assets: []
             };
         }
+        case SET_LAYERS: {
+            return {
+                ...state,
+                drawDisabled: !!action.layers
+            };
+        }
+        case ON_LAYER_ADDED: {
+            return {
+                ...state,
+                drawDisabled: false
+            };
+        }
         case RESET_CURRENT_ASSET: {
             let assets = [...state.assets];
             if (state.mode === "asset-edit") {
@@ -459,7 +481,8 @@ export default function sciadro(state = {
                 missions,
                 mode: "mission-list",
                 showErrorMessage: false,
-                showSuccessMessage: false
+                showSuccessMessage: false,
+                saveError: null
             };
         }
         case RESET_HIGHLIGHT_ANOMALY: {
@@ -471,6 +494,17 @@ export default function sciadro(state = {
                 ...state,
                 missions: updateItem(state.missions, {id: mission.id}, {anomalies})
             };
+        }
+        case RESOURCE_DELETED: {
+            const mission = find(state.missions, {id: action.id});
+            if (mission) {
+                return arrayDelete("missions", {id: action.id}, state);
+            }
+            const asset = find(state.assets, {id: action.id});
+            if (asset) {
+                return arrayDelete("assets", {id: action.id}, state);
+            }
+            return state;
         }
         case SAVE_ERROR: {
             return {

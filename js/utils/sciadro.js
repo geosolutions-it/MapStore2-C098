@@ -129,7 +129,7 @@ export const toggleItemsProp = (items = [], id, prop = "selected") => {
 };
 
 export const updateDrone = (items = [], id, props = {}, geometry = {}, style = {
-    iconUrl: "/localAssets/images/drone-nord.svg",
+    iconUrl: "resources/images/drone-nord.svg",
     size: [24, 24],
     iconAnchor: [0.5, 0.5]
 }) => {

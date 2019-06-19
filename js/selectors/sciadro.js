@@ -12,13 +12,15 @@ import {userSelector} from '@mapstore/selectors/security';
 export const filterTextAssetSelector = state => get(state, "sciadro.filterTextAsset", "");
 export const allMissionsSelector = state => get(state, "sciadro.missions", []);
 export const assetsListSelector = state => {
-    const filterText = filterTextAssetSelector(state);
+    const filterText = filterTextAssetSelector(state) || "\\w";
+    const regexForFilteringName = new RegExp(`${filterText}`, "i");
     const filteredAssets = get(state, "sciadro.assets", [])
-        .filter(a => a.name ? a.name.indexOf(filterText) !== -1 : true); // filter assets by name
+        .filter(a => a.name ? regexForFilteringName.test(a.name) : true); // filter assets by name
     return filteredAssets;
 };
 
 export const assetEditedSelector = state => find(assetsListSelector(state), a => a.edit) || null;
+export const assetEditedFeatureSelector = state => get(assetEditedSelector(state), "feature");
 export const assetCurrentSelector = state => find(assetsListSelector(state), a => a.current) || null;
 export const assetSelectedSelector = state => find(assetsListSelector(state), a => a.selected) || null;
 export const assetSelectedFeatureSelector = state => get(assetSelectedSelector(state), "feature");
@@ -27,24 +29,28 @@ export const backendUrlSelector = state => get(state, "sciadro.backendUrl", "");
 
 export const dateFilterSelector = state => get(state, "sciadro.dateFilter", {});
 export const drawMethodSelector = state => get(state, "sciadro.drawMethod", "");
+
 export const droneZoomLevelSelector = state => get(state, "sciadro.droneZoomLevel", 18);
 export const enabledSelector = state => get(state, "controls.sciadro.enabled", false);
 export const featureStyleSelector = (state, category, type) => get(state, `sciadro.styles.${category}.${type}`, { "color": "#0d912b", "weight": 2 });
 export const filterTextMissionSelector = state => get(state, "sciadro.filterTextMission", "");
 export const loadingAssetsSelector = state => get(state, "sciadro.loadingAssets", false);
+export const deletingResourceSelector = state => get(state, "sciadro.deleting", false);
 export const loadingAnomaliesSelector = state => get(state, "sciadro.loadingAnomalies", false);
 export const loadingMissionsSelector = state => get(state, "sciadro.loadingMissions", false);
 
 export const getMissiondDateFilter = (dateFilter = {}) => {
-    if (dateFilter.dateValueForFilter) {
+    if (dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.startDate) {
         switch (dateFilter.operator) {
             case "><": {
-                return mission => {
-                    const startDate = new Date(dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.startDate);
-                    const endDate = new Date(dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.endDate);
-                    const created = new Date(mission.attributes.created);
-                    return startDate <= created && created <= endDate;
-                };
+                if (dateFilter.dateValueForFilter.endDate) {
+                    return mission => {
+                        const startDate = new Date(dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.startDate);
+                        const endDate = new Date(dateFilter.dateValueForFilter && dateFilter.dateValueForFilter.endDate);
+                        const created = new Date(mission.attributes.created);
+                        return startDate <= created && created <= endDate;
+                    };
+                }
             }
             case ">=": {
                 return mission => {
@@ -66,7 +72,7 @@ export const missionsListSelector = state => {
     const dateFilter = dateFilterSelector(state);
     const missionDateFilter = getMissiondDateFilter(dateFilter);
 
-    const regexForFilteringName = new RegExp(`${filterText}`);
+    const regexForFilteringName = new RegExp(`${filterText}`, "i");
     return missions
         .filter(m => (assetId && m && m.attributes && m.attributes.assetId === assetId) || m.isNew) // filter missions of the selected asset
         .filter(missionDateFilter) // filter missions using date creation
@@ -99,6 +105,12 @@ export const missionSelectedDroneFeatureSelector = state => get(missionSelectedS
 export const missionZoomLevelSelector = state => get(state, "sciadro.missionZoomLevel", 10);
 export const modeSelector = state => get(state, "sciadro.mode", "asset-list");
 export const isAssetEditSelector = state => modeSelector(state) === "asset-edit";
+
+export const drawDisabledSelector = state => get(state, "sciadro.drawDisabled", false);
+export const drawAssetEditSelector = state => ({
+    visible: isAssetEditSelector(state),
+    disabled: drawDisabledSelector(state)
+});
 export const playingSelector = state => get(state, "sciadro.playing", false);
 export const restartLoadingAssetSelector = state => state && get(state, "sciadro.reloadAsset", true);
 export const saveDisabledSelector = state => state && get(state, "sciadro.saveDisabled", true);
@@ -123,6 +135,9 @@ export const toolbarButtonsStatusSelector = state => {
             visible: !!saveErrorSelector(state) && mode.indexOf("edit") !== -1,
             message: saveErrorSelector(state)
         },
+        "delete": {
+            visible: (assetSelected || missionSelected) && mode.indexOf("list") !== -1
+        },
         searchDate: {
             disabled: fieldValue && !fieldValue.startDate,
             error: dateError,
@@ -135,6 +150,6 @@ export const toolbarButtonsStatusSelector = state => {
         edit: (mode === "mission-list" && !!missionSelected || mode === "asset-list" && !!assetSelected),
         zoom: (missionSelected && (mode === "mission-list" || mode === "mission-detail") || assetSelected && mode === "asset-list"),
         zoomDisabled: ((missionSelected && !missionSelected.feature) || (assetSelected && !assetSelected.feature)),
-        draw: isAssetEditSelector(state)
+        draw: drawAssetEditSelector(state)
     };
 };

@@ -14,6 +14,7 @@ import AssetEdit from '@js/components/asset/AssetEdit';
 import AssetList from '@js/components/asset/AssetList';
 import AssetListVirtualScroll from '@js/components/asset/AssetListVirtualScroll';
 import AssetPermission from '@js/components/asset/AssetPermission';
+import MissionDateFilter from '@js/components/mission/MissionDateFilter';
 import MissionDetail from '@js/components/mission/MissionDetail';
 import MissionEdit from '@js/components/mission/MissionEdit';
 import MissionFileUpload from '@js/components/mission/MissionFileUpload';
@@ -21,13 +22,13 @@ import MissionList from '@js/components/mission/MissionList';
 import Toolbar from '@js/components/Toolbar';
 import ToolbarGeometry from '@js/components/asset/ToolbarGeometry';
 import ToolbarDropzone from '@js/components/mission/ToolbarDropzone';
-import MissionDateFilter from '@js/components/mission/MissionDateFilter';
 
 import {
     addFeatureAsset,
     clearMissionDateFilter,
     changeCurrentAsset,
     changeCurrentMission,
+    deleteResource,
     deleteAssetFeature,
     drawAsset,
     downloadFrame,
@@ -67,9 +68,12 @@ import {
     assetsListSelector,
     assetCurrentSelector,
     assetEditedSelector,
+    assetEditedFeatureSelector,
     assetSelectedSelector,
     dateFilterSelector,
+    deletingResourceSelector,
     drawMethodSelector,
+    drawAssetEditSelector,
     filterTextAssetSelector,
     filterTextMissionSelector,
     isAssetEditSelector,
@@ -97,10 +101,11 @@ import {zoomToExtent} from '@mapstore/actions/map';
 export const AssetListConnected = connect(createSelector([
     assetsListSelector,
     loadingAssetsSelector,
+    deletingResourceSelector,
     restartLoadingAssetSelector,
     filterTextAssetSelector
-], (assets, loadingAssets, reloadAsset, filterText ) => ({
-    assets, loadingAssets, reloadAsset, filterText
+], (assets, loadingAssets, deleting, reloadAsset, filterText ) => ({
+    assets, loadingAssets, deleting, reloadAsset, filterText
 })), {
     onStartLoadingAssets: startLoadingAssets,
     onChangeCurrentAsset: changeCurrentAsset,
@@ -126,7 +131,7 @@ export const AssetListVirtualScrollConnected = connect(createSelector([
     onChangeCurrentMission: changeCurrentMission
 })(AssetListVirtualScroll);
 
-import ShapeFile from '@mapstore/components/import/ShapefileUploadAndStyle';
+import FileUpload from '@js/components/asset/AssetFileUpload';
 export const ShapeFileConnected = connect((state) => (
     {
         wrap: false,
@@ -134,6 +139,7 @@ export const ShapeFileConnected = connect((state) => (
         visible: modeSelector(state) === "asset-edit",
         layers: state.mapimport && state.mapimport.layers || null,
         selected: state.mapimport && state.mapimport.selected || null,
+        assetFeature: assetEditedFeatureSelector(state),
         bbox: state.mapimport && state.mapimport.bbox || null,
         success: state.mapimport && state.mapimport.success || null,
         error: state.mapimport && state.mapimport.error || null,
@@ -149,24 +155,26 @@ export const ShapeFileConnected = connect((state) => (
     onZoomSelected: zoomToExtent,
     updateShapeBBox: updateBBox,
     shapeLoading: setLoading
-})(ShapeFile);
+})(FileUpload);
 
 export const ToolbarGeomConnected = connect(createSelector([
     assetsListSelector,
     modeSelector,
     drawMethodSelector,
     assetEditedSelector,
+    drawAssetEditSelector,
     isAssetEditSelector
-], (assets, mode, drawMethod, assetEdited, drawGeom) => ({
-    assets, mode, drawMethod, assetEdited, drawGeom,
+], (assets, mode, drawMethod, assetEdited, draw, drawGeom) => ({
+    assets, mode, drawMethod, assetEdited,
     buttonsStatus: {
-        drawGeom: drawGeom,
+        draw: draw,
         deleteGeom: drawGeom,
         deleteGeomDisabled: !assetEdited.feature
     }
 })), {
     onDrawAsset: drawAsset,
     onDeleteAssetFeature: deleteAssetFeature,
+    onChangeSuccessMessage: onSuccess,
     onHideAdditionalLayer: hideAdditionalLayer
 })(ToolbarGeometry);
 
@@ -220,9 +228,10 @@ export const MissionListConnected = connect(createSelector([
     assetsListSelector,
     missionsListSelector,
     loadingMissionsSelector,
-    filterTextMissionSelector
-], (assetCurrent, assets, missions, loadingMissions, filterText) => ({
-    assetCurrent, assets, missions, loadingMissions, filterText,
+    filterTextMissionSelector,
+    deletingResourceSelector
+], (assetCurrent, assets, missions, loadingMissions, filterText, deleting) => ({
+    assetCurrent, assets, missions, loadingMissions, filterText, deleting,
     dateFilterComponent: MissionDateFilterConnected
 })), {
     onSelectMission: selectMission,
@@ -295,6 +304,7 @@ export const ToolbarConnected = connect(createSelector([
     assets, missions, mode, drawMethod, assetEdited,
     assetSelected, missionSelected, buttonsStatus, missionEdited
 })), {
+    onDelete: deleteResource,
     onClearMissionDateFilter: clearMissionDateFilter,
     onEnterCreateItem: enterCreateItem,
     onEnterEditItem: enterEditItem,

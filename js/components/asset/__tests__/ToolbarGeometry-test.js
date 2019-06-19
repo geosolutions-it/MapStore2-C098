@@ -49,7 +49,10 @@ describe('testing ToolbarGeometry component', () => {
             buttonsStatus={{
                 deleteGeom: true,
                 deleteGeomDisabled: true,
-                drawGeom: true
+                draw: {
+                    visible: true,
+                    disabled: false
+                }
             }}
             />, document.getElementById("container"));
         expect(assetlist).toExist();
@@ -62,7 +65,7 @@ describe('testing ToolbarGeometry component', () => {
         const line = document.getElementsByClassName("glyphicon-line")[0];
         expect(line).toExist();
         const point = document.getElementsByClassName("glyphicon-point")[0];
-        expect(point).toExist();
+        expect(point).toNotExist();
     });
     it('rendering ToolbarGeometry with a point geom drawn', () => {
         const assetlist = ReactDOM.render(
@@ -71,7 +74,10 @@ describe('testing ToolbarGeometry component', () => {
             buttonsStatus={{
                 deleteGeom: true,
                 deleteGeomDisabled: false,
-                drawGeom: true
+                draw: {
+                    visible: true,
+                    disabled: false
+                }
             }}
             />, document.getElementById("container"));
         expect(assetlist).toExist();

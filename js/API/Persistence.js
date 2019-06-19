@@ -31,9 +31,10 @@ const postResourceSciadro = ({blob, path, backendUrl, resource, options, isNew =
     }
     const notAllowedProperties = ["id"];
     Object.keys(resource).forEach(key => {
-        if (!isNil(resource[key]) && !includes(notAllowedProperties)) {
+        if ((!isNil(resource[key]) || key === "feature") && !includes(notAllowedProperties, key)) {
             if (key === "feature") {
-                fd.append("geometry", JSON.stringify(resource[key].geometry, null, 0));
+                // if null then reset it in the backend
+                fd.append("geometry", resource[key] && resource[key].geometry ? JSON.stringify(resource[key].geometry, null, 0) : null);
             } else {
                 fd.append(key, resource[key]);
             }
@@ -45,7 +46,7 @@ const postResourceSciadro = ({blob, path, backendUrl, resource, options, isNew =
 
 export const createResourceSciadroServer = ({
     path = "assets/",
-    backendUrl = "http://localhost:8000",
+    backendUrl = "",
     category,
     resource = {},
     fileUrl,
@@ -82,14 +83,15 @@ const createResourceGeostoreCallBack = (metadata, category, permission) => {
 };
 
 const manageCreationResourceGeostore = (metadata, category, configuredPermission, id, isNew = false) => {
-    return isNew ? createResourceGeostoreCallBack(metadata, category, configuredPermission)
+    return isNew ? createResourceGeostoreCallBack(metadata, category, configuredPermission)/*
     .catch( (e) => {
         if (e.status === 409) {
             /*
              * geostore resource duplicated
              * retry creation with the name suggested by geostore
             */
-            return createResourceGeostoreCallBack({...metadata, name: e.data || metadata.name + " - 2"}, category, configuredPermission)
+            /*
+            return Rx.Observable.of(e) || createResourceGeostoreCallBack({...metadata, name: e.data || metadata.name + " - 2"}, category, configuredPermission)
                 .catch(() => {
                     // if an error occur on retry => reset the whole process
                     return Rx.Observable.of(null);
@@ -97,7 +99,7 @@ const manageCreationResourceGeostore = (metadata, category, configuredPermission
         }
         // if an error occur on creation => reset the whole process
         return Rx.Observable.of(null);
-    }) : Persistence.updateResource({id, metadata, permission: configuredPermission});
+    })*/ : Persistence.updateResource({id, metadata, permission: configuredPermission});
 };
 
 
@@ -131,14 +133,10 @@ export const saveResource = ({
                     // TEST THIS
                     return {status: 500};
                 }
-                if (category === "MISSION") {
+                if (category === "MISSION" && isNew) {
                     return {...res, data: res.data.created};
                 }
                 return res;
-            })
-            .catch((e) => {
-                // TEST THIS
-                return e;
             })
     )
     .switchMap(({status, data: sciadroData} = {}) => {
@@ -168,14 +166,17 @@ export const saveResource = ({
                                     ]);
                             });
                     }
-                    return Rx.Observable.from(postProcessActions(sciadroData, idResourceGeostore));
+                    return Rx.Observable.from(postProcessActions({...sciadroData}, idResourceGeostore));
+                })
+                .catch((e) => {
+                    return Rx.Observable.from(errorsActions(resource.id, null, e.status));
                 });
         }
-        return Rx.Observable.from([...(errorsActions(resource.id)), saveSciadroServerError()]);
+        return Rx.Observable.from([...(errorsActions(resource.id, null, status)), saveSciadroServerError()]);
     });
 
 
-export const getResourceSciadroServer = ({path = "assets", backendUrl = "http://localhost:8081", options = {
+export const getResourceSciadroServer = ({path = "assets", backendUrl = "", options = {
     timeout: 3000,
     headers: {'Accept': 'application/json,image/png', 'Content-Type': 'application/json' }
 }} = {}) => {

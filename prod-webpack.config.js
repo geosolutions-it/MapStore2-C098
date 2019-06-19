@@ -14,7 +14,7 @@ const paths = {
 const config = require('./MapStore2/build/buildConfig')(
     {
         'sciadro': path.join(__dirname, "js", "sciadro"),
-        'themes-sciadro': path.join(__dirname, "assets", "themes", "sciadro.less") // custom theme for sciadro
+        'themes-sciadro': path.join(__dirname, "resources", "themes", "sciadro.less") // custom theme for sciadro
     },
     themeEntries,
     paths,
