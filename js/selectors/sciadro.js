@@ -136,7 +136,7 @@ export const toolbarButtonsStatusSelector = state => {
             message: saveErrorSelector(state)
         },
         "delete": {
-            visible: (assetSelected || missionSelected) && mode.indexOf("list") !== -1
+            visible: (mode === "mission-list" && !!missionSelected || mode === "asset-list" && !!assetSelected)
         },
         searchDate: {
             disabled: fieldValue && !fieldValue.startDate,
