@@ -504,7 +504,7 @@ describe('testing sciadro selectors', () => {
                 visible: false,
                 message: undefined
             },
-            "delete": {visible: null},
+            "delete": {visible: false},
             searchDate: {
                 disabled: true,
                 error: undefined,
