@@ -1,115 +1,124 @@
 {
     "locale": "it-IT",
     "messages": {
-    "sciadro": {
-        "video": "Video",
-        "titlePanel": "Sciadro",
-        "mandatory": "* campi obbligatori",
-        "back": "Indietro",
-        "save": "Salva",
-        "noAnomalies": "Nessuna anomalia trovata",
-        "noAssets": "Nessuna attivita trovata",
-        "noMissions": "Nessuna missione trovata",
-        "pageInfoInfinite": "{total, plural, =undefined {} =0 {Nessun Risultato} =1 {{total} risultato} other {Caricati {loaded} di {total} risultati}}",
-        "rest": {
-            "loadMissionDataError": "C'è stato un errore durante il caricamento delle missioni",
-            "saveError": "C'è stato un errore durante il salvataggio",
-            "loadError": "C'è stato un errore durante il caricamento delle attività",
-            "fetchFeatureError": "Non è stato possibile caricare la geometria di questa risorsa",
-            "error": "C'è stato un errore"
-        },
-        "mode": {
-            "asset-list": "Attività",
-            "asset-permission": "Permessi Attività",
-            "asset-detail": "Attività",
-            "asset-edit": "Modifica Attività",
-            "mission-list": "Attività",
-            "mission-detail": "Missione",
-            "mission-edit": "Modifica Missione"
-        },
-        "anomalies": {
-            "loading": "Caricamento Anomalie",
-            "ins": "Isolante",
-            "pip": "Pipeline",
-            "detected": "Detected Anomalies"
-        },
-        "assets": {
-            "filterByName": "Filter assets by name",
-            "geomTrash": "Delete geometry",
-            "loading": "Loading Assets",
-            "powerline": "Powerline",
-            "pipeline": "Conduttura",
-            "electricTruss": "Traliccio",
-            "detail": "Vedi dettagli attività",
-            "permissions": "Permessi Attività",
-            "permissionsOptions": "Opzioni dei permessi dell'attività: ",
-            "add": "Crea Attività",
-            "edit": "Modifica Attività",
-            "zoom": "Zoom sull'attività",
-            "upload": "Carica geometria",
-            "draw": "Disegna geometria",
-            "type": "Tipo",
-            "name": "Nome",
-            "description": "Descrizione",
-            "note": "Note",
-            "geometry": "Geometria",
-            "point": "Punto",
-            "line": "Linea",
-            "created": "Crea",
-            "modified": "Modifica",
+        "sciadro": {
+            "video": "Video",
+            "titlePanel": "Sciadro",
+            "mandatory": "* campi obbligatori",
+            "back": "Indietro",
+            "save": "Salva",
+            "noAnomalies": "Nessuna anomalia trovata",
+            "noAssets": "Nessuna attivita trovata",
+            "noMissions": "Nessuna missione trovata",
+            "pageInfoInfinite": "{total, plural, =undefined {} =0 {Nessun Risultato} =1 {{total} risultato} other {Caricati {loaded} di {total} risultati}}",
             "rest": {
-                "saveSuccess": "L'attività '{name}' è stata salvata correntamente",
-                "saveError": "c'è stato un errore è durante il salvataggio dell'attività"
-            }
-        },
-        "missions": {
-            "filterByName": "Filtra le missioni per nome",
-            "filterByDate": "Filtra le missioni per date",
-            "clearFilter": "Pulisci filtri",
-            "selectOperator": "Seleziona",
-            "filterByDate": "Filtra",
-            "filterByDateError": "L'intervallo delle date è sbagliato",
-            "dateFilter": "Filtro per data",
-            "loading": "Caricamento Missione",
-            "detail": "Vedi dettagli missione",
-            "permissions": "Permessi Missione",
-            "add": "Crea Missione",
-            "zoom": "Zoom alla missione",
-            "edit": "Modifica Missione",
-            "data": "Telemetria (.telem), Anomalie (.xml) and Video (.avi) *",
-            "upload": "Carica data",
-            "name": "Nome",
-            "description": "Descrizione",
-            "note": "Note",
-            "created": "Creato",
-            "fileTrash": "Elimina file",
-            "showMap": "Mostra sulla mappa",
-            "downloadFrame": "Scarica frame",
-            "showFrame": "Mostra frame",
-            "rest": {
-                "saveSuccess": "La missione '{name}' è stata salvata correttamente",
-                "saveError": "C'è stato un errore durante il salvataggio della missione",
-                "downloadingFrameError": "C'è stato un errore durante lo scaricamento del frame",
-                "downloadingFrameSuccess": "Lo scaricamento è stato completato con successo"
+                "loadMissionDataError": "C'è stato un errore durante il caricamento delle missioni",
+                "saveError": "C'è stato un errore durante il salvataggio",
+                "loadError": "C'è stato un errore durante il caricamento delle attività",
+                "fetchFeatureError": "Non è stato possibile caricare la geometria di questa risorsa",
+                "error": "C'è stato un errore",
+                "duplicated": "Una risorsa con questo nome esiste già. Per favore, fornisci un nuovo nome",
+                "deletedSuccess": "La risorsa con nome: '{name}' è stata eliminata correntamente",
+                "deleteError": "C'è stato un errore durante l'eliminazione della risorsa con nome '{name}'"
             },
-            "files" : {
-                "valid": "I file caricati sono validi",
-                "invalid": "I file caricati sono invalidi. Per favore carica un file .zip contenente .avi, .telem and .xml"
+            "mode": {
+                "asset-list": "Attività",
+                "asset-permission": "Permessi Attività",
+                "asset-detail": "Attività",
+                "asset-edit": "Modifica Attività",
+                "mission-list": "Attività",
+                "mission-detail": "Missione",
+                "mission-edit": "Modifica Missione"
+            },
+            "anomalies": {
+                "loading": "Caricamento Anomalie",
+                "ins": "Isolante",
+                "pip": "Pipeline",
+                "detected": "Detected Anomalies"
+            },
+            "assets": {
+                "delete": "Elimina Attività",
+                "filterByName": "Filter assets by name",
+                "geomTrash": "Elimina geometria",
+                "loading": "Caricamento Attività",
+                "deleting": "Eliminazione Attività",
+                "powerline": "Powerline",
+                "pipeline": "Conduttura",
+                "electricTruss": "Traliccio",
+                "detail": "Vedi dettagli attività",
+                "permissions": "Permessi Attività",
+                "permissionsOptions": "Opzioni dei permessi dell'attività: ",
+                "add": "Crea Attività",
+                "edit": "Modifica Attività",
+                "zoom": "Zoom sull'attività",
+                "upload": "Carica geometria",
+                "draw": "Disegna geometria",
+                "type": "Tipo",
+                "name": "Nome",
+                "description": "Descrizione",
+                "note": "Note",
+                "geometry": "Geometria",
+                "point": "Punto",
+                "line": "Linea",
+                "created": "Crea",
+                "modified": "Modifica",
+                "geometryAdded": "La geometria è stata aggiunta correttamente",
+                "rest": {
+                    "saveSuccess": "L'attività '{name}' è stata salvata correntamente",
+                    "saveError": "c'è stato un errore è durante il salvataggio dell'attività"
+                }
+            },
+            "missions": {
+                "delete": "Elimina missione",
+                "filterByName": "Filtra le missioni per nome",
+                "filterByDate": "Filtra le missioni per date",
+                "clearFilter": "Pulisci filtri",
+                "selectOperator": "Seleziona",
+                "filterByDate": "Filtra",
+                "filterByDateError": "L'intervallo delle date è sbagliato",
+                "dateFilter": "Filtro per data",
+                "loading": "Caricamento Missione",
+                "deleting": "Eliminazione Missione",
+                "detail": "Vedi dettagli missione",
+                "permissions": "Permessi Missione",
+                "add": "Crea Missione",
+                "zoom": "Zoom alla missione",
+                "edit": "Modifica Missione",
+                "data": "Telemetria (.telem), Anomalie (.xml) and Video (.avi) *",
+                "upload": "Carica data",
+                "name": "Nome",
+                "description": "Descrizione",
+                "note": "Note",
+                "created": "Creato",
+                "fileTrash": "Elimina file",
+                "showMap": "Mostra sulla mappa",
+                "downloadFrame": "Scarica frame",
+                "showFrame": "Mostra frame",
+                "rest": {
+                    "saveSuccess": "La missione '{name}' è stata salvata correttamente",
+                    "saveError": "C'è stato un errore durante il salvataggio della missione",
+                    "downloadingFrameError": "C'è stato un errore durante lo scaricamento del frame",
+                    "downloadingFrameSuccess": "Lo scaricamento è stato completato con successo"
+                },
+                "files" : {
+                    "valid": "I file caricati sono validi",
+                    "invalid": "I file caricati sono invalidi. Per favore carica un file .zip contenente .avi, .telem and .xml"
+                }
             }
-        }
-    },
-    "shapefile": {
-        "placeholder": "Carica il file o click per selezionare il file vettoriale da importare (file supportati: un geoJSON la cui geometria è Point o LineString contenuto in uno .zip)",
-        "placeholderMissionFiles": "Carica il file o clicca perselezionare il file da importare. (formati supportati: .zip contenente .avi, .telem e .xml)",
-        "error": {
-            "select": "Seleziona solo un geoJSON.json contenuto in un archivio .zip"
         },
-        "addMessage": "Aggiungi",
-        "cancelMessage": "Annulla"
-    },
-    "queryform": {
-        "from": "Da",
-        "to": "A",
-        "date": "Date"
+        "shapefile": {
+            "placeholder": "Carica il file o click per selezionare il file vettoriale da importare (file supportati: un geoJSON la cui geometria è Point o LineString contenuto in uno .zip)",
+            "placeholderMissionFiles": "Carica il file o clicca perselezionare il file da importare. (formati supportati: .zip contenente .avi, .telem e .xml)",
+            "error": {
+                "select": "Seleziona solo un geoJSON.json contenuto in un archivio .zip"
+            },
+            "addMessage": "Aggiungi",
+            "cancelMessage": "Annulla"
+        },
+        "queryform": {
+            "from": "Da",
+            "to": "A",
+            "date": "Date"
+        }
     }
 }

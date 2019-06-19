@@ -27,6 +27,7 @@ export default class MainToolbar extends React.Component {
         buttonsStatus: PropTypes.object,
 
         onClearMissionDateFilter: PropTypes.func,
+        onDelete: PropTypes.func,
         onEnterCreateItem: PropTypes.func,
         onEnterEditItem: PropTypes.func,
         onFilterMissionByDate: PropTypes.func,
@@ -65,6 +66,7 @@ export default class MainToolbar extends React.Component {
         },
         mode: "asset-list",
         onClearMissionDateFilter: () => {},
+        onDelete: () => {},
         onEnterCreateItem: () => {},
         onEnterEditItem: () => {},
         onFilterMissionByDate: () => {},
@@ -77,7 +79,7 @@ export default class MainToolbar extends React.Component {
     };
 
     render() {
-        const {missionEdited, missionSelected, assetSelected, assetEdited} = this.props;
+        const {missionEdited, missionSelected, assetSelected, assetEdited, mode} = this.props;
         return (
             <ButtonToolbar className="buttonToolbar">
                 <Toolbar
@@ -91,7 +93,6 @@ export default class MainToolbar extends React.Component {
                             className: "square-button-md no-border",
                             pullRight: true,
                             onClick: () => {
-                                const {mode} = this.props;
                                 if (mode === "mission-detail" || mode === "mission-edit") {
                                     this.props.onResetCurrentMission();
                                 }
@@ -195,8 +196,21 @@ export default class MainToolbar extends React.Component {
                             tooltipId: "sciadro.missions.clearFilter",
                             tooltipPosition: "top",
                             visible: this.props.buttonsStatus.clearFilter.visible
+                        },
+                        {
+                            className: "square-button-md no-border",
+                            disabled: this.props.buttonsStatus.toolbarDisabled,
+                            glyph: "trash",
+                            pullRight: true,
+                            onClick: () => {
+                                if (!this.props.buttonsStatus.clearFilter.enabled) {
+                                    this.props.onDelete((missionSelected && missionSelected.id) || (assetSelected && assetSelected.id));
+                                }
+                            },
+                            tooltipId: mode === "mission-list" ? "sciadro.missions.delete" : "sciadro.assets.delete",
+                            tooltipPosition: "top",
+                            visible: this.props.buttonsStatus.delete.visible
                         }
-                        // TODO add  DELETE BUTTON, FOR ASSETS OR MISSIONS
                     ]}
                 />
             </ButtonToolbar>

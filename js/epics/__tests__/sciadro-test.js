@@ -275,7 +275,13 @@ describe('testing sciadro epics', () => {
             });
             done();
         }, {
-            // state
+            sciadro: {
+                assets: [{
+                    id: 1,
+                    draw: true,
+                    edit: true
+                }]
+            }
         });
     });
     it('drawAssetFeatureEpic, drawing LineString triggered by DRAW_ASSET', (done) => {
@@ -307,12 +313,18 @@ describe('testing sciadro epics', () => {
             });
             done();
         }, {
-            // state
+            sciadro: {
+                assets: [{
+                    id: 1,
+                    draw: true,
+                    edit: true
+                }]
+            }
         });
     });
     it('getAssetFeatureEpic, retrieving feature when is selected SELECT_ASSET', (done) => {
 
-        mockAxios.onGet(/assets/).reply(200, {feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}}, name: "asset 1" });
+        mockAxios.onGet(/assets/).reply(200, {geometry: {coordinates: [0, 8], type: "Point"}, name: "asset 1" });
         const numActionsExpected = 4;
         testEpic(getAssetFeatureEpic, numActionsExpected, selectAsset(1), actions => {
             expect(actions.length).toBe(numActionsExpected);
@@ -346,7 +358,7 @@ describe('testing sciadro epics', () => {
     });
     it('getAssetFeatureEpic, retrieving feature when is selected the current CHANGE_CURRENT_ASSET', (done) => {
 
-        mockAxios.onGet(/assets/).reply(200, {feature: {type: "Feature", geometry: {coordinates: [0, 8], type: "Point"}}, name: "asset 1" });
+        mockAxios.onGet(/assets/).reply(200, {geometry: {coordinates: [0, 8], type: "Point"}, name: "asset 1" });
         const numActionsExpected = 5;
         testEpic(getAssetFeatureEpic, numActionsExpected, changeCurrentAsset(1), actions => {
             expect(actions.length).toBe(numActionsExpected);
@@ -436,7 +448,13 @@ describe('testing sciadro epics', () => {
             });
             done();
         }, {
-            // state
+            sciadro: {
+                assets: [{
+                    id: 1,
+                    draw: true,
+                    edit: true
+                }]
+            }
         });
     });
     it('overrideMapLayoutEpic, adjusting map layout triggered by UPDATE_MAP_LAYOUT', (done) => {
@@ -602,7 +620,6 @@ describe('testing sciadro epics', () => {
                     case LOADED_MISSIONS:
                         expect(action.missions.length).toEqual(1);
                         const mission = head(action.missions);
-                        console.table(mission);
                         expect(Object.keys(mission).length).toEqual(6);
                         expect(Object.keys(mission)).toEqual([ 'id', 'name', 'description', 'creation', 'attributes', 'videoUrl' ]);
                         expect(mission.id).toEqual(902);

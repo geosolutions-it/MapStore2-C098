@@ -90,9 +90,9 @@
           },
           "drone": {
             "Point": {
-                  "iconUrl": "/localAssets/images/drone-nord.svg",
-                  "size": [24, 24],
-                  "iconAnchor": [0.5, 0.5]
+                "iconUrl": "resources/images/drone-nord.svg",
+                "size": [24, 24],
+                "iconAnchor": [0.5, 0.5]
               }
           }
         }

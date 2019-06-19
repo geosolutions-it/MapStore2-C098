@@ -16,7 +16,10 @@
                 "saveError": "An error occured while saving the resources",
                 "loadError": "An error occured while loading the assets resources",
                 "fetchFeatureError": "Cannot load feature for this resource",
-                "error": "An error occured"
+                "error": "An error occured",
+                "duplicated": "A resource with this name already exists. Please provide a new one",
+                "deleteSuccess": "The resource with name '{name}' has been delete successfully",
+                "deleteError": "An error occured when deleting the resource with name '{name}'"
             },
             "mode": {
                 "asset-list": "Assets",
@@ -34,9 +37,11 @@
                 "detected": "Detected Anomalies"
             },
             "assets": {
+                "delete": "Delete asset",
                 "filterByName": "Filter assets by name",
                 "geomTrash": "Delete geometry",
                 "loading": "Loading Assets",
+                "deleting": "Deleting Assets",
                 "powerline": "Powerline",
                 "pipeline": "Pipeline",
                 "electricTruss": "Electric truss",
@@ -57,12 +62,14 @@
                 "line": "LineString",
                 "created": "Created",
                 "modified": "Modified",
+                "geometryAdded": "Geometry has ben added correctly",
                 "rest": {
                     "saveSuccess": "The asset '{name}' has been correctly saved",
                     "saveError": "An error occured when saving the asset"
                 }
             },
             "missions": {
+                "delete": "Delete mission",
                 "filterByName": "Filter missions by name",
                 "filterByDate": "Filter missions by date",
                 "clearFilter": "Clear Filter",
@@ -71,6 +78,7 @@
                 "filterByDateError": "Date range is wrong",
                 "dateFilter": "Date Filter Section",
                 "loading": "Loading Missions",
+                "deleting": "Deleting Missions",
                 "detail": "View mission details",
                 "permissions": "Mission Permissions",
                 "add": "Create Mission",

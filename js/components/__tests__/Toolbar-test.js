@@ -26,6 +26,7 @@ const defaultButtonsStatus = {
         error: true,
         visible: false
     },
+    "delete": {visible: false},
     clearFilter: {
         disaled: true,
         visible: false
@@ -33,7 +34,7 @@ const defaultButtonsStatus = {
     edit: false,
     add: false,
     save: false,
-    draw: false
+    draw: {visible: false, disabled: false}
 };
 
 describe('testing Toolbar in Components', () => {

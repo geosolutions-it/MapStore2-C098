@@ -23,7 +23,8 @@ import FilterComp from "@mapstore/components/misc/Filter";
 const Filter = withLocal('filterPlaceholder')(FilterComp);
 
 const SideGridWithLoadingState = compose(
-    loadingState(({loading}) => loading, {text: <Message msgId="sciadro.assets.loading" />}, LoadingWithText),
+    loadingState(({loading}) => loading, {text: <Message msgId="sciadro.assets.loading"/>}, LoadingWithText),
+    loadingState(({deleting}) => deleting, {text: <Message msgId="sciadro.assets.deleting"/>}, LoadingWithText),
     emptyState(
         ({loading, items = []} ) => items.length === 0 && !loading,
         {
@@ -41,6 +42,7 @@ class AssetList extends React.Component {
         assets: PropTypes.array,
         className: PropTypes.string,
         filterText: PropTypes.string,
+        deleting: PropTypes.bool,
         loadingAssets: PropTypes.bool,
         onChangeCurrentAsset: PropTypes.func,
         onEditAssetPermission: PropTypes.func,
@@ -57,6 +59,7 @@ class AssetList extends React.Component {
         assets: [],
         className: "asset-list-container",
         filterText: "a",
+        deleting: false,
         loadingAssets: false,
         onChangeCurrentAsset: () => {},
         onEditAssetPermission: () => {},
@@ -91,6 +94,7 @@ class AssetList extends React.Component {
                     </Row>
                 }>
                 <SideGridWithLoadingState
+                    deleting={this.props.deleting}
                     loading={this.props.loadingAssets}
                     className={this.props.className}
                     size="sm"
@@ -104,7 +108,7 @@ class AssetList extends React.Component {
                             selected: item.selected,
                             tools: <Toolbar
                                 btnDefaultProps={{
-                                    bsStyle: 'primary',
+                                    bsStyle: item.selected ? 'success' : 'primary',
                                     className: 'square-button-md'
                                 }}
                                 buttons={

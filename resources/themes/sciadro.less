@@ -1,0 +1,74 @@
+.shadow-soft-up {
+    -webkit-box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.06), 0 -4px 8px rgba(0, 0, 0, 0.12);
+	-moz-box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.06), 0 -4px 8px rgba(0, 0, 0, 0.12);
+	box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.06), 0 -4px 8px rgba(0, 0, 0, 0.12);
+}
+
+
+/* custom theme for sciadro branch */
+.buttonToolbar {
+    width: 100%;
+    margin-bottom: 15px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+
+.mission-list-header, .mission-detail-header {
+    width: 100%;
+    margin-bottom: 15px;
+    margin-top: 8px;
+    text-align: center;
+}
+
+.mission-detail-header
+{
+    position: relative;
+    display: flex;
+    flex: 1 1 0%;
+}
+
+.mission-detail-anomalies {
+    text-align: center;
+}
+
+.msSideGrid {
+    position: relative;
+}
+
+.padding15 {
+    padding: 15px;
+    .ms2-border-layout-body {
+        overflow-x: hidden;
+    }
+}
+
+.mapstore-side-card-info {
+    cursor: pointer;
+}
+
+.fixedCenter {
+    position: absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    align-self: center;
+}
+
+.mission-detail-anomalies {
+    .mapstore-side-card:hover {
+        transform: none !important;
+    }
+}
+
+.asset-list {
+    .asset-footer {
+        .res-info {
+            margin: 5px;
+            float: right;
+        }
+        height: 30px;
+        z-index: 100;
+        .shadow-soft-up;
+    }
+}

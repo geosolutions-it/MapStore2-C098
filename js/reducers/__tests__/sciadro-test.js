@@ -14,6 +14,7 @@ import {
     changeCurrentMission,
     changeMode,
     deleteAssetFeature,
+    deletingResource,
     downloadFrame,
     downloadingFrame,
     drawAsset,
@@ -172,6 +173,10 @@ describe('testing sciadro reducers', () => {
                 expect(a.feature).toBe(null);
             }
         });
+    });
+    it('DELETING_RESOURCE', () => {
+        const state = sciadro({}, deletingResource(true));
+        expect(state.deleting).toBe(true);
     });
     it('DOWNLOAD_FRAME', () => {
         const idFrame = "frame-id";
@@ -626,6 +631,7 @@ describe('testing sciadro reducers', () => {
         const state = sciadro({missions}, resetHighlightAnomaly(anomalyId));
         expect(state.missions[0].anomalies[0].selected).toEqual(false);
     });
+
     it('SAVE_ERROR', () => {
         const mode = "asset-edit";
         const id = 3;
