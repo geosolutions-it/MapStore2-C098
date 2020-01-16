@@ -11,8 +11,8 @@
 	"ignoreMobileCss": false,
 	"useAuthenticationRules": true,
 	"loadAfterTheme": true,
-	"translationsPath": "./MapStore2/web/client/translations",
 	"themePrefix": "MapStore2-C098",
+  "translationsPath": ["./MapStore2/web/client/translations", "./translations"],
 	"defaultMapOptions": {
 		"cesium": {
 			"flyTo": true,
