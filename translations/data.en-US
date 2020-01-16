@@ -1,0 +1,9 @@
+{
+    "locale": "en-US",
+    "messages": {
+        "home":{
+		"shortDescription": "<b>Geoportal of the Hydrological and Geological Sector</b><br/><font size=-1>Database collection and analysis<br/>Access the <a href=\"http://www.sir.toscana.it\">institutional site</a>.</font>",
+                "footerDescription": "<small>tel.  050 91 53 11 - Fax 050 91 53 24 | Lungarno A. Pacinotti, 49 - 56126 PISA -  servizio.idrologico@regione.toscana.it</small>"
+        }
+    }
+}
