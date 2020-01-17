@@ -2,7 +2,7 @@
     "locale": "it-IT",
     "messages": {
         "home":{
-	     "shortDescription": "<b>Geoportale del Settore Idrologico e Geologico</b><br/><font size=-1>Raccolta banche dati ed analisi<br/>Accedi al <a href=\"http://www.sir.toscana.it\">Sito istituzionale</a>.</font>",
+	         "shortDescription": "<div class=\"text-center col-xs-12\"><h2 style=\"padding-top:30px;font-size:35px;line-height:10px\">Geoportale del Settore Idrologico e Geologico</h2><p><b>Raccolta banche dati ed analisi</b><br><span style=\"font-size:16px\">Accedi al <a href=\"http://www.sir.toscana.it\">Sito istituzionale.</a></span></p><br><br></div>",
              "footerDescription": "<small>tel.  050 91 53 11 - Fax 050 91 53 24 | Lungarno A. Pacinotti, 49 - 56126 PISA -  servizio.idrologico@regione.toscana.it</small>"
         }
     }
