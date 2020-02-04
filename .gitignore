@@ -1,5 +1,4 @@
 node_modules/
-libs/Cesium/
 dist/
 target/
 *.sublime-*
@@ -9,3 +8,8 @@ web/.classpath
 web/.project
 backend/.classpath
 backend/.project
+backend/.settings
+js/libs/Cesium/
+libs/Cesium/
+package-lock.json
+.vscode

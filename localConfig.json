@@ -32,8 +32,8 @@
 		}
 	],
 	"monitorState": [{
-			"name": "routing",
-			"path": "routing.location.pathname"
+			"name": "router",
+			"path": "router.location.pathname"
 		}, {
 			"name": "browser",
 			"path": "browser"
@@ -69,6 +69,50 @@
 							"type": "wms",
 							"title": "TIX WMS Service",
 							"autoload": false
+						}
+					},
+					"staticServices": {
+						"default_map_backgrounds": {
+							"type": "backgrounds",
+							"title": "defaultMapBackgroundsServiceTitle",
+							"autoload": true,
+							"backgrounds": [{
+								"type": "osm",
+								"title": "Open Street Map",
+								"name": "mapnik",
+								"source": "osm",
+								"group": "background"
+							}, {
+								"type": "tileprovider",
+								"title": "NASAGIBS Night 2012",
+								"provider": "NASAGIBS.ViirsEarthAtNight2012",
+								"name": "Night2012",
+								"source": "nasagibs",
+								"group": "background"
+							}, {
+								"type": "tileprovider",
+								"title": "OpenTopoMap",
+								"provider": "OpenTopoMap",
+								"name": "OpenTopoMap",
+								"source": "OpenTopoMap",
+								"group": "background"
+							}, {
+								"format": "image/jpeg",
+								"group": "background",
+								"name": "s2cloudless:s2cloudless",
+								"opacity": 1,
+								"title": "Sentinel 2 Cloudless",
+								"type": "wms",
+								"url": "https://1maps.geo-solutions.it/geoserver/wms",
+								"source": "s2cloudless",
+								"singleTile": false
+							}, {
+								"source": "ol",
+								"group": "background",
+								"title": "Empty Background",
+								"fixed": true,
+								"type": "empty"
+							}]
 						}
 					}
 				}
@@ -478,10 +522,17 @@
           "cfg": {
                 "name": null
           }
-      }, "MapSearch", "CreateNewMap", "FeaturedMaps", "ContentTabs",
+      }, "MapSearch", {
+        "name": "CreateNewMap",
+        "cfg": {
+          "showNewGeostory": false,
+          "allowedRoles": ["ADMIN"]
+        }
+      }, "FeaturedMaps", "ContentTabs",
 			{
 				"name": "Maps",
 				"cfg": {
+					"showCreateButton": false,
 					"mapsOptions": {
 						"start": 0,
 						"limit": 12
@@ -491,6 +542,7 @@
 			}, {
 				"name": "Dashboards",
 				"cfg": {
+					"showCreateButton": false,
 					"mapsOptions": {
 						"start": 0,
 						"limit": 12
@@ -511,7 +563,7 @@
 					"containerPosition": "header",
 					"className": "navbar shadow navbar-home"
 				}
-			}, "Login", "Language", "NavMenu", "Attribution", "Home", {
+			}, "BurgerMenu", "Login", "Language", "NavMenu", "Attribution", "Home", {
 				"name": "DashboardEditor",
 				"cfg": {
 					"catalog": {
@@ -531,7 +583,11 @@
 					},
 					"containerPosition": "columns"
 				}
-			}, "BurgerMenu", "Dashboard", "Notifications", {
+			},
+			"Dashboard",
+			"DashboardSave",
+			"DashboardSaveAs",
+			"Notifications", {
 				"name": "Tutorial",
 				"cfg": {
 					"allowClicksThruHole": false,
