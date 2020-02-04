@@ -24,5 +24,22 @@ module.exports = require('./MapStore2/build/buildConfig')(
     {
         '@mapstore': path.resolve(__dirname, 'MapStore2/web/client'),
         '@js': path.resolve(__dirname, 'js')
+    }, {
+        '/rest/geostore': {
+            target: "http://webgis.sir.toscana.it",
+            pathRewrite: {'^/rest/geostore': '/mapstore/rest/geostore'}
+        },
+        '/pdf': {
+            target: "http://webgis.sir.toscana.it/mapstore"
+        },
+        '/mapstore/pdf': {
+            target: "http://webgis.sir.toscana.it"
+        },
+        '/MapStore2/proxy': {
+            target: "http://webgis.sir.toscana.it"
+        },
+        '/geoserver/': {
+            target: "http://webgis.sir.toscana.it"
+        }
     }
 );
