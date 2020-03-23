@@ -270,6 +270,7 @@
 			}, {
 				"name": "Identify",
 				"cfg": {
+          "showHighlightFeatureButton": true,
 					"viewerOptions": {
 						"container": "{context.ReactSwipe}"
 					}
@@ -333,7 +334,7 @@
 			"TOCItemsSettings",
 			"Tutorial", "MapFooter", {
 				"name": "Measure"
-			}, "Print", "ShapeFile", {
+			}, "Print", "MapImport", "MapExport", {
 				"name": "Settings",
 				"cfg": {
 					"wrap": true
