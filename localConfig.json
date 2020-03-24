@@ -328,7 +328,7 @@
 				"cfg": {
 					"activateQueryTool": true,
 					"activateAddLayerButton": true,
-					"activateAddGroupButton ": true,
+					"activateAddGroupButton": true,
 					"activateMetedataTool": false
 				}
 			},
@@ -537,8 +537,8 @@
       {
         "name": "Attribution",
         "cfg": {
-          "img": "<img src='/assets/rt_logo.jpg' height='30' />",
-          "src": "/assets/rt_logo.jpg",
+          "img": "<img src='assets/rt_logo.jpg' height='30' />",
+          "src": "assets/rt_logo.jpg",
           "href": "https://www.regione.toscana.it/",
           "label": "Regione Toscana"
         }
@@ -580,7 +580,7 @@
         "name": "Footer",
         "cfg": {
           "logo": {
-            "src": "/assets/rt_logo.jpg",
+            "src": "assets/rt_logo.jpg",
             "href": "",
             "width": 50,
             "title": "Regione Toscana",
