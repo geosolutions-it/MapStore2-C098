@@ -328,13 +328,22 @@
 				"cfg": {
 					"activateQueryTool": true,
 					"activateAddLayerButton": true,
+					"activateAddGroupButton ": true,
 					"activateMetedataTool": false
 				}
 			},
+			"AddGroup",
 			"TOCItemsSettings",
-			"Tutorial", "MapFooter", {
-				"name": "Measure"
-			}, "Print", "MapImport", "MapExport", {
+			"Tutorial", {
+        "name": "MapFooter"
+      }, {
+        "name": "Measure",
+        "cfg": {
+          "defaultOptions": {
+            "showAddAsAnnotation": true
+            }
+        }
+      }, "Print", "MapImport", "MapExport", {
 				"name": "Settings",
 				"cfg": {
 					"wrap": true
@@ -524,7 +533,16 @@
 				"cfg": {
 					"className": "navbar shadow navbar-home"
 				}
-			}, "ManagerMenu", "Login", "Language", "NavMenu", "Attribution", "ScrollTop", "Notifications"],
+      }, "ManagerMenu", "Login", "Language", "NavMenu",
+      {
+        "name": "Attribution",
+        "cfg": {
+          "img": "<img src='/assets/rt_logo.jpg' height='30' />",
+          "src": "/assets/rt_logo.jpg",
+          "href": "https://www.regione.toscana.it/",
+          "label": "Regione Toscana"
+        }
+      }, "ScrollTop", "Notifications"],
 		"maps": [
       {
           "name": "HomeDescription",
@@ -558,7 +576,18 @@
 					},
 					"fluid": true
 				}
-			}, "Footer", {
+			}, {
+        "name": "Footer",
+        "cfg": {
+          "logo": {
+            "src": "/assets/rt_logo.jpg",
+            "href": "",
+            "width": 50,
+            "title": "Regione Toscana",
+            "alt": "Regione Toscana"
+          }
+        }
+      }, {
 				"name": "Cookie",
 				"cfg": {
 					"externalCookieUrl": "",
