@@ -25,7 +25,8 @@
 			"terrainProvider": {
 				"type": "ellipsoid"
 			}
-		}
+		},
+    "floatingIdentifyDelay": 1000
 	},
 	"authenticationRules": [{
 			"urlPattern": ".*geostore.*",
@@ -36,16 +37,12 @@
 			"method": "authkey"
 		}
 	],
-	"monitorState": [{
-			"name": "router",
-			"path": "router.location.pathname"
-		}, {
-			"name": "browser",
-			"path": "browser"
-		}, {
-			"name": "featuregridmode",
-			"path": "featuregrid.mode"
-		}
+	"monitorState": [
+    {"name": "router", "path": "router.location.pathname"},
+    {"name": "browser", "path": "browser"},
+    {"name": "geostorymode", "path": "geostory.mode"},
+    {"name": "featuregridmode", "path": "featuregrid.mode"},
+    {"name": "printEnabled", "path": "print.capabilities"}
 	],
 	"projectionDefs": [],
 	"initialState": {
@@ -327,13 +324,16 @@
 				"name": "TOC",
 				"cfg": {
 					"activateQueryTool": true,
-					"activateAddLayerButton": true,
+          "activateAddLayerButton": true,
 					"activateAddGroupButton": true,
+          "activateLayerFilterTool": true,
 					"activateMetedataTool": false
 				}
 			},
+      "FilterLayer",
 			"AddGroup",
-			"TOCItemsSettings",
+      "TOCItemsSettings",
+      "ThematicLayer",
 			"Tutorial", {
         "name": "MapFooter"
       }, {
@@ -343,7 +343,11 @@
             "showAddAsAnnotation": true
             }
         }
-      }, "Print", "MapImport", "MapExport", {
+      },
+      "Print",
+      "MapImport",
+      "MapExport",
+      {
 				"name": "Settings",
 				"cfg": {
 					"wrap": true
@@ -366,6 +370,20 @@
 					"additionalCRS": {}
 				}
 			}, {
+        "name": "CRSSelector",
+        "cfg": {
+          "additionalCRS": {
+
+          },
+          "filterAllowedCRS": [
+            "EPSG:4326",
+            "EPSG:3857"
+          ],
+          "allowedRoles": [
+            "ADMIN"
+          ]
+        }
+      }, {
 				"name": "Search",
 				"cfg": {
 					"withToggle": ["max-width: 768px", "min-width: 768px"]
@@ -412,11 +430,24 @@
 					"declineUrl": "http://www.google.com"
 				}
 			},
-      "OmniBar", "Login", "Save", "SaveAs", "BurgerMenu", "Expander", "Undo", "Redo", "FullScreen", "GlobeViewSwitcher", "SearchServicesConfig",
-      "WidgetsBuilder", "Widgets", "WidgetsTray",
+      "OmniBar",
+      "Login",
+      "Save",
+      "SaveAs",
+      "BurgerMenu",
+      "Expander",
+      "Undo",
+      "Redo",
+      "FullScreen",
+      "GlobeViewSwitcher",
+      "SearchServicesConfig",
+      "WidgetsBuilder",
+      "Widgets",
+      "WidgetsTray",
       "Timeline",
       "Playback",
-			"FeedbackMask"
+      "FeedbackMask",
+      "StyleEditor"
 		],
 		"embedded": [{
 				"name": "Map",
@@ -533,7 +564,11 @@
 				"cfg": {
 					"className": "navbar shadow navbar-home"
 				}
-      }, "ManagerMenu", "Login", "Language", "NavMenu",
+      },
+      "ManagerMenu",
+      "Login",
+      "Language",
+      "NavMenu",
       {
         "name": "Attribution",
         "cfg": {
@@ -639,6 +674,6 @@
 				}
 			}
 		],
-		"manager": ["Header", "Redirect", "Manager", "Home", "UserManager", "GroupManager", "Footer"]
+    "manager": ["Header", "Redirect", "Manager", "Home", "UserManager", "GroupManager", "Footer"]
 	}
 }
