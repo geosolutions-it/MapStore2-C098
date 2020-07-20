@@ -28,6 +28,9 @@
 		},
     "floatingIdentifyDelay": 1000
 	},
+  "localizedLayerStyles": {
+    "name": "mapstore_language"
+  },
 	"authenticationRules": [{
 			"urlPattern": ".*geostore.*",
 			"method": "bearer"
@@ -584,7 +587,13 @@
           "cfg": {
                 "name": null
           }
-      }, "MapSearch", {
+      }, {
+        "name":"MapSearch",
+        "cfg": {
+          "showContextSearchOption": false
+        }
+
+        }, {
         "name": "CreateNewMap",
         "cfg": {
           "showNewGeostory": false,
