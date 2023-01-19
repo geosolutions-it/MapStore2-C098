@@ -3,6 +3,7 @@ const path = require("path");
 const extractThemesPlugin = require("./MapStore2/build/themes.js").extractThemesPlugin;
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ModuleFederationPlugin = require("./MapStore2/build/moduleFederation.js").plugin;
+const themeEntries = require("./MapStore2/build/themes.js").themeEntries;
 
 const paths = {
     base: __dirname,
@@ -19,6 +20,7 @@ const webpackConfig = require("./MapStore2/build/buildConfig")({
         "geostory-embedded": path.join(__dirname, "js", "geostoryEmbedded"),
         "dashboard-embedded": path.join(__dirname, "js", "dashboardEmbedded")
     },
+    themeEntries,
     paths: {
         base: __dirname,
         dist: path.join(__dirname, "dist"),
