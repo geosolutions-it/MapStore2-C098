@@ -5,8 +5,14 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
-require("./customizations.css");
-const ConfigUtils = require('../MapStore2/web/client/utils/ConfigUtils');
+import ConfigUtils from "@mapstore/utils/ConfigUtils";
+import appConfig from "@mapstore/product/appConfig";
+import main from "@mapstore/product/main";
+
+import plugins from "@js/plugins";
+
+import "./customizations.css";
+
 /**
  * Add custom (overriding) translations with:
  *
@@ -20,7 +26,7 @@ ConfigUtils.setConfigProp('themePrefix', 'MapStore2-C098');
  *
  */
 
-ConfigUtils.setLocalConfigurationFile('localConfig.json');
+ConfigUtils.setLocalConfigurationFile('configs/localConfig.json');
 
 /**
  * Use a custom application configuration file with:
@@ -37,13 +43,11 @@ ConfigUtils.setLocalConfigurationFile('localConfig.json');
  *     }]
  * });
  */
-const appConfig = require('../MapStore2/web/client/product/appConfig');
 
 /**
  * Define a custom list of plugins with:
  *
  * const plugins = require('./plugins');
  */
-const plugins = require('../MapStore2/web/client/product/plugins');
 
-require('../MapStore2/web/client/product/main')(appConfig, plugins);
+main(appConfig, plugins);

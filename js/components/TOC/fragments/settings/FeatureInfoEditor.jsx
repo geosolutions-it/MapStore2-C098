@@ -6,19 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
-const PropTypes = require('prop-types');
-const ReactQuill = require('react-quill');
-const ResizableModal = require('../../../../../MapStore2/web/client/components/misc/ResizableModal');
-const Portal = require('../../../../../MapStore2/web/client/components/misc/Portal');
-const Message = require('../../../../../MapStore2/web/client/components/I18N/Message');
-const {Quill} = ReactQuill;
-const {ResizeModule, IFrame, toolbarConfig} = require('../../../../../MapStore2/web/client/components/misc/quillmodules/ResizeModule')(Quill);
+import PropTypes from 'prop-types';
+import React from 'react';
 
-Quill.register({
-    'formats/video': IFrame,
-    'modules/resizeModule': ResizeModule
-});
+import ReactQuill from '@mapstore/libs/quill/react-quill-suspense';
+import Message from '@mapstore/components/I18N/Message';
+import Portal from '@mapstore/components/misc/Portal';
+import ResizableModal from '@mapstore/components/misc/ResizableModal';
 
 /**
  * Component for rendering FeatureInfoEditor a modal editor to modify format template
@@ -27,7 +21,7 @@ Quill.register({
  * @class
  * @prop {object} element data of the current selected node
  * @prop {bool} showEditor show/hide modal
- * @prop {funciotn} onShowEditor called when click on close buttons
+ * @prop {function} onShowEditor called when click on close buttons
  * @prop {function} onChange called when text in editor has been changed
  * @prop {bool} enableIFrameModule enable iframe in editor, default true
  */
@@ -40,6 +34,7 @@ class FeatureInfoEditor extends React.Component {
         onChange: PropTypes.func,
         onShowEditor: PropTypes.func,
         enableIFrameModule: PropTypes.bool,
+        onReady: PropTypes.func,
         settingName: PropTypes.string
     };
 
@@ -47,9 +42,9 @@ class FeatureInfoEditor extends React.Component {
         showEditor: false,
         element: {},
         enableIFrameModule: false,
-        settingName: 'featureInfo',
         onChange: () => {},
-        onShowEditor: () => {}
+        onShowEditor: () => {},
+        settingName: 'featureInfo'
     };
 
     state = {
@@ -63,7 +58,7 @@ class FeatureInfoEditor extends React.Component {
     }
 
     render() {
-        const { showEditor, enableIFrameModule = true } = this.props;
+        const { showEditor, enableIFrameModule = true, onReady = () => {} } = this.props;
         return (
             <Portal>
                 <ResizableModal
@@ -84,8 +79,8 @@ class FeatureInfoEditor extends React.Component {
                     <div id="ms-template-editor" className="ms-editor">
                         <ReactQuill
                             bounds="#ms-template-editor"
-                            ref={(quill) => { if (quill) { this.quill = quill; } } }
-                            modules={enableIFrameModule ? {
+                            ref={(quill) => { if (quill) { this.quill = quill; onReady(quill); } } }
+                            modules={(toolbarConfig) => enableIFrameModule ? {
                                 resizeModule: {},
                                 toolbar: toolbarConfig
                             } : {}}
@@ -106,4 +101,4 @@ class FeatureInfoEditor extends React.Component {
     };
 }
 
-module.exports = FeatureInfoEditor;
+export default FeatureInfoEditor;

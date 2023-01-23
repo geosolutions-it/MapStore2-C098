@@ -6,18 +6,23 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
-const {shouldUpdate} = require('recompose');
+import React from 'react';
+import { shouldUpdate } from 'recompose';
+
+import PROPERTIES from '@mapstore/components/data/identify/viewers/PropertiesViewer';
+
+import TEMPLATE from '@js/components/data/identify/viewers/TemplateViewer';
 
 const Viewers = {
-    TEMPLATE: require('./TemplateViewer'),
-    PROPERTIES: require('../../../../../MapStore2/web/client/components/data/identify/viewers/PropertiesViewer')
+    TEMPLATE,
+    PROPERTIES
 };
 
-module.exports = shouldUpdate((props, nextProps) => nextProps.response !== props.response || nextProps.gfiType !== props.gfiType)(
+export default shouldUpdate((props, nextProps) => nextProps.response !== props.response || nextProps.gfiType !== props.gfiType)(
     props => {
         const type = props.layer?.[props.gfiType]?.format && (props.layer[props.gfiType].template && props.layer[props.gfiType].template !== '<p><br></p>') && props.layer[props.gfiType].format || 'PROPERTIES';
         const Viewer = Viewers[type] || Viewers.PROPERTIES;
         return <Viewer {...props}/>;
     }
 );
+

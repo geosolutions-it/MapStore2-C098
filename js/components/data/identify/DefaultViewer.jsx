@@ -6,15 +6,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
-const PropTypes = require('prop-types');
-const MapInfoUtils = require('../../../utils/MapInfoUtils');
-const HTML = require('../../../../MapStore2/web/client/components/I18N/HTML');
-const Message = require('../../../../MapStore2/web/client/components/I18N/Message');
-const {Alert, Panel, Accordion} = require('react-bootstrap');
-const ViewerPage = require('./viewers/ViewerPage');
-const {isNil, isEmpty} = require('lodash');
-const {getFormatForResponse} = require('../../../../MapStore2/web/client/utils/IdentifyUtils');
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Alert, Panel, Accordion } from 'react-bootstrap';
+import { isNil, isEmpty, reverse, startsWith } from 'lodash';
+
+import { getDefaultInfoFormatValue, getValidator, getViewers, getViewer } from '@mapstore/utils/MapInfoUtils';
+import HTML from '@mapstore/components/I18N/HTML';
+import Message from '@mapstore/components/I18N/Message';
+import { getFormatForResponse } from '@mapstore/utils/IdentifyUtils';
+
+import ViewerPage from '@js/components/data/identify/viewers/ViewerPage';
 
 class DefaultViewer extends React.Component {
     static propTypes = {
@@ -37,32 +39,36 @@ class DefaultViewer extends React.Component {
         onUpdateIndex: PropTypes.func,
         setIndex: PropTypes.func,
         showEmptyMessageGFI: PropTypes.bool,
-        renderEmpty: PropTypes.bool,
+        renderValidOnly: PropTypes.bool,
         loaded: PropTypes.bool,
+        isMobile: PropTypes.bool,
+        disableInfoAlert: PropTypes.bool,
         noQueryableLayers: PropTypes.bool
     };
 
     static defaultProps = {
-        format: MapInfoUtils.getDefaultInfoFormatValue(),
+        format: getDefaultInfoFormatValue(),
+        gfiType: 'featureInfo',
         responses: [],
         requests: [],
         missingResponses: 0,
         collapsible: false,
         headerOptions: {},
         container: Accordion,
-        validator: MapInfoUtils.getValidator,
-        viewers: MapInfoUtils.getViewers(),
+        validator: getValidator,
+        viewers: getViewers(),
         style: {
             position: "relative",
             marginBottom: 0
         },
-        gfiType: 'featureInfo',
         containerProps: {},
         showEmptyMessageGFI: true,
-        renderEmpty: false,
+        renderValidOnly: false,
         onNext: () => {},
         onPrevious: () => {},
         setIndex: () => {},
+        isMobile: false,
+        disableInfoAlert: false,
         noQueryableLayers: false
     };
 
@@ -76,7 +82,8 @@ class DefaultViewer extends React.Component {
     getResponseProperties = () => {
         const validator = this.props.validator(this.props.format);
         const responses = this.props.responses.map(res => res === undefined ? {} : res); // Replace any undefined responses
-        const validResponses = (this.props.renderEmpty ? validator.getValidResponses(responses, this.props.renderEmpty) : responses).filter(res => !isNil(res.response)); // empty response is invalid
+        const validResponses = responses.filter(res => !isNil(res.response)); // empty response is invalid
+
         const invalidResponses = validator.getNoValidResponses(this.props.responses);
         const emptyResponses = this.props.requests.length === invalidResponses.length;
         const currResponse = this.getCurrentResponse(validResponses[this.props.index]);
@@ -93,16 +100,16 @@ class DefaultViewer extends React.Component {
      */
     getCurrentResponse = (response) => {
         const validator = this.props.validator(this.props.format);
-        return validator.getValidResponses([response], true);
+        return validator.getValidResponses([response]);
     }
 
     renderEmptyLayers = () => {
         const {invalidResponses, emptyResponses} = this.getResponseProperties();
-        if (this.props.missingResponses === 0 && emptyResponses) {
+        if (this.props.noQueryableLayers || this.props.missingResponses === 0 && emptyResponses) {
             return null;
         }
         let allowRender = invalidResponses.length !== 0;
-        if (!this.props.renderEmpty) {
+        if (!this.props.renderValidOnly) {
             allowRender =  allowRender && this.props.missingResponses === 0;
         }
         if (allowRender) {
@@ -110,7 +117,7 @@ class DefaultViewer extends React.Component {
                 const {layerMetadata} = res;
                 return layerMetadata.title;
             });
-            return this.props.showEmptyMessageGFI ? (
+            return this.props.showEmptyMessageGFI && !this.props.disableInfoAlert ? (
                 <Alert bsStyle={"info"}>
                     <Message msgId={"noInfoForLayers"} />
                     <b>{titles.join(', ')}</b>
@@ -130,7 +137,7 @@ class DefaultViewer extends React.Component {
 
     renderEmptyPages = () => {
         const {emptyResponses} = this.getResponseProperties();
-        if (this.props.noQueryableLayers || this.props.missingResponses === 0 && emptyResponses) {
+        if (this.props.missingResponses === 0 && emptyResponses) {
             return (
                 <Alert bsStyle={"danger"}>
                     <h4><HTML msgId="noFeatureInfo"/></h4>
@@ -148,14 +155,15 @@ class DefaultViewer extends React.Component {
             const PageHeader = this.props.header;
             let customViewer;
             if (layerMetadata?.viewer?.type) {
-                customViewer = MapInfoUtils.getViewer(layerMetadata.viewer.type);
+                customViewer = getViewer(layerMetadata.viewer.type);
             }
+            const size = responses.filter(resp => !startsWith(resp.response, "no features were found")).length;
             return (<Panel
                 eventKey={i}
                 key={i}
                 collapsible={this.props.collapsible}
                 header={PageHeader ? <span><PageHeader
-                    size={responses.length}
+                    size={size}
                     {...this.props.headerOptions}
                     {...layerMetadata}
                     index={this.props.index}
@@ -176,28 +184,34 @@ class DefaultViewer extends React.Component {
     render() {
         const Container = this.props.container;
         const {currResponse, emptyResponses} = this.getResponseProperties();
+        let componentOrder = [this.renderEmptyLayers(),
+            <Container {...this.props.containerProps}
+                onChangeIndex={(index) => {
+                    this.props.setIndex(index);
+                }}
+                ref="container"
+                index={this.props.index || 0}
+                key={"swiper"}
+                style={this.containerStyle(currResponse)}
+                className="swipeable-view">
+                {this.renderPages()}
+            </Container>
+        ];
+        // Display renderEmptyPages at top in mobile for seamless swipeable view
+        componentOrder = this.props.isMobile ? componentOrder : reverse(componentOrder);
         return (
             <div className="mapstore-identify-viewer">
-                {!this.props.noQueryableLayers && !emptyResponses ?
-                    <>
-                        <Container {...this.props.containerProps}
-                            onChangeIndex={(index) => {
-                                this.props.setIndex(index);
-                            }}
-                            ref="container"
-                            index={this.props.index || 0}
-                            key={"swiper"}
-                            style={{display: isEmpty(currResponse) ? "none" : "block"}}
-                            className="swipeable-view">
-                            {this.renderPages()}
-                        </Container>
-                        {this.renderEmptyLayers()}
-                    </>
-                    : this.renderEmptyPages()
-                }
+                {!this.props.noQueryableLayers && !emptyResponses ? componentOrder.map((c) => c) : this.renderEmptyPages()}
             </div>
         );
     }
+
+    containerStyle = (currResponse) => {
+        if (isEmpty(currResponse) && this.props.isMobile) {
+            return {height: "100%"};
+        }
+        return {display: isEmpty(currResponse) ? 'none' : 'block'};
+    }
 }
 
-module.exports = DefaultViewer;
+export default DefaultViewer;

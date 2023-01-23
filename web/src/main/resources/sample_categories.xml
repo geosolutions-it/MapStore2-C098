@@ -12,4 +12,16 @@
     <Category>
         <name>DASHBOARD</name>
     </Category>
+    <Category>
+        <name>GEOSTORY</name>
+    </Category>
+    <Category>
+        <name>CONTEXT</name>
+    </Category>
+    <Category>
+        <name>TEMPLATE</name>
+    </Category>
+    <Category>
+        <name>USERSESSION</name>
+    </Category>
 </CategoryList>

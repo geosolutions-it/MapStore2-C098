@@ -5,17 +5,27 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
 */
-const Rx = require('rxjs');
-const {updateMapLayout} = require('../../MapStore2/web/client/actions/maplayout');
-const {TOGGLE_CONTROL, SET_CONTROL_PROPERTY, SET_CONTROL_PROPERTIES} = require('../../MapStore2/web/client/actions/controls');
-const {MAP_CONFIG_LOADED} = require('../../MapStore2/web/client/actions/config');
-const {SIZE_CHANGE, CLOSE_FEATURE_GRID, OPEN_FEATURE_GRID} = require('../../MapStore2/web/client/actions/featuregrid');
-const {CLOSE_IDENTIFY, ERROR_FEATURE_INFO, TOGGLE_MAPINFO_STATE, LOAD_FEATURE_INFO, EXCEPTIONS_FEATURE_INFO, NO_QUERYABLE_LAYERS} = require('../actions/mapInfo');
-const {SHOW_SETTINGS, HIDE_SETTINGS} = require('../../MapStore2/web/client/actions/layers');
-const {mapTipActiveLayerIdSelector, isMapInfoOpen} = require('../selectors/mapInfo');
-const {showCoordinateEditorSelector} = require('../../MapStore2/web/client/selectors/controls');
-const ConfigUtils = require('../../MapStore2/web/client/utils/ConfigUtils');
-const {isMouseMoveIdentifyActiveSelector} = require('../../MapStore2/web/client/selectors/map');
+import Rx from 'rxjs';
+import {head, get, findIndex, keys} from 'lodash';
+
+import {UPDATE_DOCK_PANELS, updateMapLayout, FORCE_UPDATE_MAP_LAYOUT} from '@mapstore/actions/maplayout';
+import {TOGGLE_CONTROL, SET_CONTROL_PROPERTY, SET_CONTROL_PROPERTIES, setControlProperty} from '@mapstore/actions/controls';
+import { MAP_CONFIG_LOADED } from '@mapstore/actions/config';
+import {SIZE_CHANGE, CLOSE_FEATURE_GRID, OPEN_FEATURE_GRID, closeFeatureGrid} from '@mapstore/actions/featuregrid';
+import { SHOW_SETTINGS, HIDE_SETTINGS } from '@mapstore/actions/layers';
+import { showCoordinateEditorSelector } from '@mapstore/selectors/controls';
+import ConfigUtils from '@mapstore/utils/ConfigUtils';
+import { mapInfoDetailsSettingsFromIdSelector, isMouseMoveIdentifyActiveSelector } from '@mapstore/selectors/map';
+import { isFeatureGridOpen, getDockSize } from '@mapstore/selectors/featuregrid';
+import {DEFAULT_MAP_LAYOUT} from "@mapstore/utils/MapUtils";
+import {dockPanelsSelector} from "@mapstore/selectors/maplayout";
+
+import {
+    CLOSE_IDENTIFY,
+    TOGGLE_MAPINFO_STATE,
+    NO_QUERYABLE_LAYERS
+} from '@js/actions/mapInfo';
+import {isMapInfoOpen, mapInfoEnabledSelector, mapTipActiveLayerIdSelector} from '@js/selectors/mapInfo';
 
 /**
  * Epìcs for feature grid
@@ -23,18 +33,17 @@ const {isMouseMoveIdentifyActiveSelector} = require('../../MapStore2/web/client/
  * @name mapLayout
  */
 
-const {head, get} = require('lodash');
-const {isFeatureGridOpen, getDockSize} = require('../../MapStore2/web/client/selectors/featuregrid');
 
 /**
  * Capture that cause layout change to update the proper object.
  * Configures a map layout based on state of panels.
  * @param {external:Observable} action$ manages `MAP_CONFIG_LOADED`, `SIZE_CHANGE`, `CLOSE_FEATURE_GRID`, `OPEN_FEATURE_GRID`, `CLOSE_IDENTIFY`, `NO_QUERYABLE_LAYERS`, `LOAD_FEATURE_INFO`, `TOGGLE_MAPINFO_STATE`, `TOGGLE_CONTROL`, `SET_CONTROL_PROPERTY`.
+ * @param store
  * @memberof epics.mapLayout
  * @return {external:Observable} emitting {@link #actions.map.updateMapLayout} action
  */
 
-const updateMapLayoutEpic = (action$, store) =>
+export const updateMapLayoutEpic = (action$, store) =>
 
     action$.ofType(
         MAP_CONFIG_LOADED,
@@ -44,14 +53,13 @@ const updateMapLayoutEpic = (action$, store) =>
         CLOSE_IDENTIFY,
         NO_QUERYABLE_LAYERS,
         TOGGLE_MAPINFO_STATE,
-        LOAD_FEATURE_INFO,
-        EXCEPTIONS_FEATURE_INFO,
         TOGGLE_CONTROL,
         SET_CONTROL_PROPERTY,
         SET_CONTROL_PROPERTIES,
         SHOW_SETTINGS,
         HIDE_SETTINGS,
-        ERROR_FEATURE_INFO)
+        FORCE_UPDATE_MAP_LAYOUT
+    )
         .switchMap(() => {
             const state = store.getState();
 
@@ -66,7 +74,22 @@ const updateMapLayoutEpic = (action$, store) =>
                 }));
             }
 
-            const mapLayout = ConfigUtils.getConfigProp("mapLayout") || {left: {sm: 300, md: 500, lg: 600}, right: {md: 330}, bottom: {sm: 30}};
+            // Calculating sidebar's rectangle to be used by dock panels
+            const rightSidebars = head([
+                get(state, "controls.sidebarMenu.enabled") && {right: 40} || null
+            ]) || {right: 0};
+            const leftSidebars = head([
+                null
+            ]) || {left: 0};
+
+            const boundingSidebarRect = {
+                ...rightSidebars,
+                ...leftSidebars,
+                bottom: 0
+            };
+            /* ---------------------- */
+
+            const mapLayout = ConfigUtils.getConfigProp("mapLayout") || DEFAULT_MAP_LAYOUT;
 
             if (get(state, "mode") === 'embedded') {
                 const height = {height: 'calc(100% - ' + mapLayout.bottom.sm + 'px)'};
@@ -84,24 +107,25 @@ const updateMapLayoutEpic = (action$, store) =>
 
             const leftPanels = head([
                 get(state, "controls.queryPanel.enabled") && {left: mapLayout.left.lg} || null,
+                get(state, "controls.annotations.enabled") && {left: mapLayout.left.sm} || null,
                 get(state, "controls.widgetBuilder.enabled") && {left: mapLayout.left.md} || null,
                 get(state, "layers.settings.expanded") && {left: mapLayout.left.md} || null,
                 get(state, "controls.drawer.enabled") && { left: resizedDrawer || mapLayout.left.sm} || null
             ].filter(panel => panel)) || {left: 0};
 
             const rightPanels = head([
-                get(state, "controls.details.enabled") && {right: mapLayout.right.md} || null,
-                get(state, "controls.annotations.enabled") && {right: mapLayout.right.md} || null,
+                get(state, "controls.details.enabled") && !mapInfoDetailsSettingsFromIdSelector(state)?.showAsModal && {right: mapLayout.right.md} || null,
                 get(state, "controls.metadataexplorer.enabled") && {right: mapLayout.right.md} || null,
                 get(state, "controls.measure.enabled") && showCoordinateEditorSelector(state) && {right: mapLayout.right.md} || null,
                 get(state, "controls.userExtensions.enabled") && { right: mapLayout.right.md } || null,
                 get(state, "controls.mapTemplates.enabled") && { right: mapLayout.right.md } || null,
                 get(state, "controls.mapCatalog.enabled") && { right: mapLayout.right.md } || null,
-                get(state, "mapInfo.enabled") && isMapInfoOpen(state) && !isMouseMoveIdentifyActiveSelector(state) && !mapTipActiveLayerIdSelector(state) && {right: mapLayout.right.md} || null
+                mapInfoEnabledSelector(state) && isMapInfoOpen(state) && !isMouseMoveIdentifyActiveSelector(state) && !mapTipActiveLayerIdSelector(state) && {right: mapLayout.right.md} || null
             ].filter(panel => panel)) || {right: 0};
 
             const dockSize = getDockSize(state) * 100;
-            const bottom = isFeatureGridOpen(state) && {bottom: dockSize + '%', dockSize} || {bottom: mapLayout.bottom.sm};
+            const bottom = isFeatureGridOpen(state) && {bottom: dockSize + '%', dockSize}
+                || {bottom: 0}; // To avoid map from de-centering when performing scale zoom
 
             const transform = isFeatureGridOpen(state) && {transform: 'translate(0, -' + mapLayout.bottom.sm + 'px)'} || {transform: 'none'};
             const height = {height: 'calc(100% - ' + mapLayout.bottom.sm + 'px)'};
@@ -112,16 +136,76 @@ const updateMapLayoutEpic = (action$, store) =>
                 ...rightPanels
             };
 
+            Object.keys(boundingMapRect).forEach(key => {
+                if (['left', 'right', 'dockSize'].includes(key)) {
+                    boundingMapRect[key] = boundingMapRect[key] + (boundingSidebarRect[key] ?? 0);
+                } else {
+                    const totalOffset = (parseFloat(boundingMapRect[key]) + parseFloat(boundingSidebarRect[key] ?? 0));
+                    boundingMapRect[key] = totalOffset ? totalOffset + '%' : 0;
+                }
+            });
+
             return Rx.Observable.of(updateMapLayout({
-                ...leftPanels,
-                ...rightPanels,
-                ...bottom,
+                ...boundingMapRect,
                 ...transform,
                 ...height,
-                boundingMapRect
+                boundingMapRect,
+                boundingSidebarRect,
+                rightPanel: rightPanels.right > 0,
+                leftPanel: leftPanels.left > 0
             }));
         });
 
-module.exports = {
-    updateMapLayoutEpic
+/**
+ * Deactivates every other dock panel at specific location except the one that was open
+ * @param action$
+ * @param store
+ * @returns {Observable<unknown>}
+ */
+export const updateActiveDockEpic = (action$, store) =>
+    action$.ofType(SET_CONTROL_PROPERTIES, SET_CONTROL_PROPERTY, TOGGLE_CONTROL, UPDATE_DOCK_PANELS)
+        .filter(({
+            control, property, properties = [],
+            type, action}) => {
+            let assertion = false;
+            const state = store.getState();
+            const controlState = state?.controls[control]?.enabled;
+            switch (type) {
+            case UPDATE_DOCK_PANELS:
+                return action === 'add';
+            case SET_CONTROL_PROPERTY:
+            case TOGGLE_CONTROL:
+                assertion = (property === 'enabled' || !property) && controlState;
+                break;
+            default:
+                assertion = findIndex(keys(properties), prop => prop === 'enabled') > -1 && controlState;
+                break;
+            }
+            return assertion;
+        })
+        .switchMap(({
+            control,
+            name, action, location
+        }) => {
+            const actions = [];
+            const state = store.getState();
+            const panelName = name ?? control;
+            const dockList = dockPanelsSelector(state);
+            const isLeft = location === 'left' || dockList.left.includes(panelName);
+            const isRight = location === 'right' || dockList.right.includes(panelName);
+            (isLeft || isRight) && actions.push(closeFeatureGrid());
+            if (action !== 'remove') {
+                isLeft && dockList.left.forEach(i => {
+                    if (i !== panelName && state?.controls[i]?.enabled) actions.push(setControlProperty(i, 'enabled', null));
+                });
+                isRight && dockList.right.forEach(i => {
+                    if (i !== panelName && state?.controls[i]?.enabled) actions.push(setControlProperty(i, 'enabled', null));
+                });
+            }
+            return Rx.Observable.from(actions);
+        });
+
+export default {
+    updateMapLayoutEpic,
+    updateActiveDockEpic
 };

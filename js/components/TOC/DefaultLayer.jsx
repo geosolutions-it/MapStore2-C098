@@ -6,23 +6,25 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
-const PropTypes = require('prop-types');
-const Node = require('../../../MapStore2/web/client/components/TOC/Node');
+import React from 'react';
+import PropTypes from 'prop-types';
+import { isObject, castArray, find } from 'lodash';
+import { Grid, Row, Col, Glyphicon } from 'react-bootstrap';
 
-const { isObject, castArray, find} = require('lodash');
-const { Grid, Row, Col, Glyphicon} = require('react-bootstrap');
-const draggableComponent = require('../../../MapStore2/web/client/components/TOC/enhancers/draggableComponent');
-const VisibilityCheck = require('../../../MapStore2/web/client/components/TOC/fragments/VisibilityCheck');
-const Title = require('../../../MapStore2/web/client/components/TOC/fragments/Title');
-const WMSLegend = require('../../../MapStore2/web/client/components/TOC/fragments/WMSLegend');
-const LayersTool = require('../../../MapStore2/web/client/components/TOC/fragments/LayersTool');
-const OpacitySlider = require('../../../MapStore2/web/client/components/TOC/fragments/OpacitySlider');
-const ToggleFilter = require('../../../MapStore2/web/client/components/TOC/fragments/ToggleFilter');
-const withTooltip = require('../../../MapStore2/web/client/components/data/featuregrid/enhancers/withTooltip');
-const localizedProps = require('../../../MapStore2/web/client/components/misc/enhancers/localizedProps');
+import Node from '@mapstore/components/TOC/Node';
+import VisibilityCheck from '@mapstore/components/TOC/fragments/VisibilityCheck';
+import Title from '@mapstore/components/TOC/fragments/Title';
+import WMSLegend from '@mapstore/components/TOC/fragments/WMSLegend';
+import LayersTool from '@mapstore/components/TOC/fragments/LayersTool';
+import OpacitySlider from '@mapstore/components/TOC/fragments/OpacitySlider';
+import ToggleFilter from '@mapstore/components/TOC/fragments/ToggleFilter';
+import draggableComponent from '@mapstore/components/TOC/enhancers/draggableComponent';
+import tooltip from '@mapstore/components/misc/enhancers/tooltip';
+import localizedProps from '@mapstore/components/misc/enhancers/localizedProps';
 
-const GlyphIndicator = localizedProps('tooltip')(withTooltip(Glyphicon));
+import { isInsideResolutionsLimits } from '@js/utils/LayersUtils';
+
+const GlyphIndicator = localizedProps('tooltip')(tooltip(Glyphicon));
 
 /**
  * Default layer node for TOC
@@ -60,6 +62,8 @@ class DefaultLayer extends React.Component {
         isDragging: PropTypes.bool,
         isOver: PropTypes.bool,
         language: PropTypes.string,
+        resolution: PropTypes.number,
+        // custom
         showMapTipActiveButton: PropTypes.bool,
         mapTipActiveLayerId: PropTypes.string,
         changeMapTipActiveLayer: PropTypes.func
@@ -98,8 +102,27 @@ class DefaultLayer extends React.Component {
         return translation || layer.name;
     };
 
+    getVisibilityMessage = () => {
+        if (this.props.node.exclusiveMapType) return this.props.node?.type === '3dtiles' && 'toc.notVisibleSwitchTo3D';
+        const maxResolution = this.props.node.maxResolution || Infinity;
+        return this.props.resolution >=  maxResolution
+            ? 'toc.notVisibleZoomIn'
+            : 'toc.notVisibleZoomOut';
+    };
+
+    renderMapTipActive = () => {
+        const active = this.props.node.id === this.props.mapTipActiveLayerId;
+
+        return this.props.showMapTipActiveButton && this.props.node.loadingError !== 'Error' ?
+            (<LayersTool key="maptipactivecheck"
+                tooltip={active ? "toc.mapTipDeactivate" : "toc.mapTipActivate"}
+                node={this.props.node}
+                glyph={active ? '1-map' : 'tag'}
+                onClick={node => this.props.changeMapTipActiveLayer(active ? undefined : node.id)}/>) : null;
+    }
+
     renderOpacitySlider = (hideOpacityTooltip) => {
-        return this.props.activateOpacityTool ? (
+        return (this.props.activateOpacityTool && this.props.node?.type !== '3dtiles') ? (
             <OpacitySlider
                 opacity={this.props.node.opacity}
                 disabled={!this.props.node.visibility}
@@ -136,17 +159,6 @@ class DefaultLayer extends React.Component {
                 node={this.props.node}
                 checkType={this.props.visibilityCheckType}
                 propertiesChangeHandler={this.props.propertiesChangeHandler} />);
-    }
-
-    renderMapTipActive = () => {
-        const active = this.props.node.id === this.props.mapTipActiveLayerId;
-
-        return this.props.showMapTipActiveButton && this.props.node.loadingError !== 'Error' ?
-            (<LayersTool key="maptipactivecheck"
-                tooltip={active ? "toc.mapTipDeactivate" : "toc.mapTipActivate"}
-                node={this.props.node}
-                glyph={active ? '1-map' : 'tag'}
-                onClick={node => this.props.changeMapTipActiveLayer(active ? undefined : node.id)}/>) : null;
     }
 
     renderToolsLegend = (isEmpty) => {
@@ -188,8 +200,8 @@ class DefaultLayer extends React.Component {
                     onClick={this.props.onSelect}
                     onContextMenu={this.props.onContextMenu}
                 />
-
                 {this.props.node.loading ? <div className="toc-inline-loader"></div> : this.renderToolsLegend(isEmpty)}
+                {!isInsideResolutionsLimits(this.props.node, this.props.resolution) || this.props.node.exclusiveMapType ? <GlyphIndicator glyph="info-sign" tooltipId={this.getVisibilityMessage()} style={{ 'float': 'right' }}/> : null}
                 {this.props.indicators ? this.renderIndicators() : null}
             </div>
         );
@@ -204,8 +216,7 @@ class DefaultLayer extends React.Component {
 
     render() {
         let {children, propertiesChangeHandler, onToggle, connectDragSource, connectDropTarget, ...other } = this.props;
-
-        const hide = !this.props.node.visibility || this.props.node.invalid ? ' visibility' : '';
+        const hide = !this.props.node.visibility || this.props.node.invalid || this.props.node.exclusiveMapType || !isInsideResolutionsLimits(this.props.node, this.props.resolution) ? ' visibility' : '';
         const selected = this.props.selectedNodes.filter((s) => s === this.props.node.id).length > 0 ? ' selected' : '';
         const error = this.props.node.loadingError === 'Error' ? ' layer-error' : '';
         const warning = this.props.node.loadingError === 'Warning' ? ' layer-warning' : '';
@@ -228,6 +239,7 @@ class DefaultLayer extends React.Component {
         const title = translation || layer.name;
         return title.toLowerCase().indexOf(this.props.filterText.toLowerCase()) !== -1;
     };
+
 }
 
-module.exports = draggableComponent('LayerOrGroup', DefaultLayer);
+export default draggableComponent('LayerOrGroup', DefaultLayer);

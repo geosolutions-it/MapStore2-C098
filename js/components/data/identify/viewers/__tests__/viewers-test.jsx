@@ -6,18 +6,20 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var expect = require('expect');
-var React = require('react');
-var ReactDOM = require('react-dom');
-var HTMLViewer = require('../../../../../../MapStore2/web/client/components/data/identify/viewers/HTMLViewer');
-var JSONViewer = require('../JSONViewer');
-var TextViewer = require('../../../../../../MapStore2/web/client/components/data/identify/viewers/TextViewer');
+import expect from 'expect';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import HTMLViewer from '@mapstore/components/data/identify/viewers/HTMLViewer';
+import TextViewer from '@mapstore/components/data/identify/viewers/TextViewer';
+
+import JSONViewer from '@js/components/data/identify/viewers/JSONViewer';
 
 const SimpleRowViewer = (props) => {
     return <div>{['name', 'description'].map((key) => <span key={key}>{key}:{props[key]}</span>)}</div>;
 };
 
-describe('Identify viewers', () => {
+describe('Identity viewers', () => {
     beforeEach((done) => {
         document.body.innerHTML = '<div id="container"></div>';
         setTimeout(done);
@@ -116,7 +118,6 @@ describe('Identify viewers', () => {
         expect(templateDOM.innerHTML).toBe('the property name is myname');
 
     });
-
     it('test JSONViewer with TEMPLATE and gfiType=mapTip', () => {
         const cmp = ReactDOM.render(
             <JSONViewer

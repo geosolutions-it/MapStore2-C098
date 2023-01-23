@@ -6,18 +6,20 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
-const {Row} = require('react-bootstrap');
-const {get} = require('lodash');
-const Toolbar = require('../../../../MapStore2/web/client/components/misc/toolbar/Toolbar');
-const Message = require('../../../../MapStore2/web/client/components/I18N/Message');
-const DockablePanel = require('../../../../MapStore2/web/client/components/misc/panels/DockablePanel');
-const GeocodeViewer = require('../../../../MapStore2/web/client/components/data/identify/GeocodeViewer');
-const ResizableModal = require('../../../../MapStore2/web/client/components/misc/ResizableModal');
-const Portal = require('../../../../MapStore2/web/client/components/misc/Portal');
-const Coordinate = require('../../../../MapStore2/web/client/components/data/identify/coordinates/Coordinate');
-const {responseValidForEdit} = require('../../../../MapStore2/web/client/utils/IdentifyUtils');
-const LayerSelector = require('../../../../MapStore2/web/client/components/data/identify/LayerSelector').default;
+import React from 'react';
+import {Row} from 'react-bootstrap';
+import { get } from 'lodash';
+
+import Toolbar from '@mapstore/components/misc/toolbar/Toolbar';
+import Message from '@mapstore/components/I18N/Message';
+import GeocodeViewer from '@mapstore/components/data/identify/GeocodeViewer';
+import ResizableModal from '@mapstore/components/misc/ResizableModal';
+import Portal from '@mapstore/components/misc/Portal';
+import Coordinate from '@mapstore/components/data/identify/coordinates/Coordinate';
+import { responseValidForEdit } from '@mapstore//utils/IdentifyUtils';
+import LayerSelector from '@mapstore/components/data/identify/LayerSelector';
+import ResponsivePanel from "@mapstore/components/misc/panels/ResponsivePanel";
+
 /**
  * Component for rendering Identify Container inside a Dockable container
  * @memberof components.data.identify
@@ -29,11 +31,11 @@ const LayerSelector = require('../../../../MapStore2/web/client/components/data/
  * @prop {function} getToolButtons must return an array of object representing the toolbar buttons, eg (props) => [{ glyph: 'info-sign', tooltip: 'hello!'}]
  * @prop {function} getFeatureButtons must return an array of buttons relating to feature interaction, eg (props) => [{ glyph: 'zoom-to', tooltip: 'Zoom to Extent'}]
  */
-module.exports = props => {
+export default props => {
     const {
         enabled,
         requests = [],
-        onClose,
+        onClose = () => {},
         responses = [],
         index,
         viewerOptions = {},
@@ -67,10 +69,15 @@ module.exports = props => {
         onChangeFormat,
         formatCoord,
         loaded,
-        validator = () => null
+        validator = () => null,
+        toggleHighlightFeature = () => {},
+        disableCoordinatesRow,
+        disableInfoAlert
     } = props;
     const latlng = point && point.latlng || null;
-    const targetResponse = validResponses[index];
+
+    // Layer selector allows only selection of valid response's index, so target response will always be valid.
+    const targetResponse = responses[index];
     const {layer} = targetResponse || {};
 
     let lngCorrected = null;
@@ -102,95 +109,107 @@ module.exports = props => {
     const missingResponses = requests.length - responses.length;
     const revGeocodeDisplayName = reverseGeocodeData.error ? <Message msgId="identifyRevGeocodeError"/> : reverseGeocodeData.display_name;
     return (
-        <div id="identify-container" className={enabled && requests.length !== 0 ? "identify-active" : ""}>
-            <DockablePanel
-                bsStyle="primary"
-                glyph="map-marker"
-                open={enabled && requests.length !== 0}
-                size={size}
-                fluid={fluid}
-                position={position}
-                draggable={draggable}
-                onClose={onClose}
-                dock={dock}
-                style={dockStyle}
-                showFullscreen={showFullscreen}
-                zIndex={zIndex}
-                header={[
-                    <Row className="layer-select-row">
-                        <div className="layer-col">
-                            <span className="identify-icon glyphicon glyphicon-1-layer"/>
-                            <LayerSelector
-                                responses={responses}
-                                index={index}
-                                loaded={loaded}
-                                setIndex={setIndex}
-                                missingResponses={missingResponses}
-                                emptyResponses={emptyResponses}/>
-                            <Toolbar
-                                btnDefaultProps={{ bsStyle: 'primary', className: 'square-button-md' }}
-                                buttons={getFeatureButtons(props)}
-                                transitionProps={null}
-                            />
-                        </div>
-                    </Row>,
-                    <Row className="coordinates-edit-row">
-                        <span className="identify-icon glyphicon glyphicon-point"/>
-                        <div className={"coordinate-editor"}>
-                            <Coordinate
-                                key="coordinate-editor"
-                                formatCoord={formatCoord}
-                                enabledCoordEditorButton={enabledCoordEditorButton}
-                                onSubmit={onSubmitClickPoint}
-                                onChangeFormat={onChangeFormat}
-                                edit={showCoordinateEditor}
-                                coordinate={{
-                                    lat: latlng && latlng.lat,
-                                    lon: lngCorrected
-                                }}
-                            />
-                        </div>
-                        <GeocodeViewer latlng={latlng} revGeocodeDisplayName={revGeocodeDisplayName} {...props}/>
+        <ResponsivePanel
+            containerStyle={dockStyle}
+            containerId="identify-container"
+            containerClassName={enabled && requests.length !== 0 ? "identify-active" : ""}
+            bsStyle="primary"
+            glyph="map-marker"
+            open={enabled && requests.length !== 0}
+            size={size}
+            fluid={fluid}
+            position={position}
+            draggable={draggable}
+            onClose={() => {
+                onClose();
+                toggleHighlightFeature(false);
+            }}
+            dock={dock}
+            style={dockStyle}
+            showFullscreen={showFullscreen}
+            zIndex={zIndex}
+            header={[
+                <Row className="layer-select-row">
+                    <div className="layer-col">
+                        <span className="identify-icon glyphicon glyphicon-1-layer"/>
+                        <LayerSelector
+                            responses={responses}
+                            index={index}
+                            loaded={loaded}
+                            setIndex={setIndex}
+                            missingResponses={missingResponses}
+                            emptyResponses={emptyResponses}
+                            validator={validator}
+                            format={format}
+                        />
                         <Toolbar
                             btnDefaultProps={{ bsStyle: 'primary', className: 'square-button-md' }}
-                            buttons={toolButtons}
-                            transitionProps={null
+                            buttons={getFeatureButtons(props)}
+                            transitionProps={null}
+                        />
+                    </div>
+                </Row>,
+                !disableCoordinatesRow &&
+                (<Row className="coordinates-edit-row">
+                    <span className="identify-icon glyphicon glyphicon-point"/>
+                    <div style={showCoordinateEditor ? {zIndex: 1} : {}} className={"coordinate-editor"}>
+                        <Coordinate
+                            key="coordinate-editor"
+                            formatCoord={formatCoord}
+                            enabledCoordEditorButton={enabledCoordEditorButton}
+                            onSubmit={onSubmitClickPoint}
+                            onChangeFormat={onChangeFormat}
+                            edit={showCoordinateEditor}
+                            coordinate={{
+                                lat: latlng && latlng.lat,
+                                lon: lngCorrected
+                            }}
+                        />
+                    </div>
+                    <GeocodeViewer latlng={latlng} revGeocodeDisplayName={revGeocodeDisplayName} {...props}/>
+                    <Toolbar
+                        btnDefaultProps={{ bsStyle: 'primary', className: 'square-button-md' }}
+                        buttons={toolButtons}
+                        transitionProps={null
                             /* transitions was causing a bad rendering of toolbar present in the identify panel
                                  * for this reason they ahve been disabled
                                 */
-                            }/>
-                    </Row>
-                ].filter(headRow => headRow)}>
-                <Viewer
-                    index={index}
-                    setIndex={setIndex}
-                    gfiType={gfiType}
-                    format={format}
-                    missingResponses={missingResponses}
-                    responses={responses}
-                    requests={requests}
-                    showEmptyMessageGFI={showEmptyMessageGFI}
-                    {...viewerOptions}/>
-            </DockablePanel>
-            <Portal>
-                <ResizableModal
-                    fade
-                    title={<Message msgId="warning"/>}
-                    size="xs"
-                    show={warning}
-                    onClose={clearWarning}
-                    buttons={[{
-                        text: <Message msgId="close"/>,
-                        onClick: clearWarning,
-                        bsStyle: 'primary'
-                    }]}>
-                    <div className="ms-alert" style={{padding: 15}}>
-                        <div className="ms-alert-center text-center">
-                            <Message msgId="identifyNoQueryableLayers"/>
+                        }/>
+                </Row>)
+            ].filter(headRow => headRow)}
+            siblings={
+                <Portal>
+                    <ResizableModal
+                        fade
+                        title={<Message msgId="warning"/>}
+                        size="xs"
+                        show={warning}
+                        onClose={clearWarning}
+                        buttons={[{
+                            text: <Message msgId="close"/>,
+                            onClick: clearWarning,
+                            bsStyle: 'primary'
+                        }]}>
+                        <div className="ms-alert" style={{padding: 15}}>
+                            <div className="ms-alert-center text-center">
+                                <Message msgId="identifyNoQueryableLayers"/>
+                            </div>
                         </div>
-                    </div>
-                </ResizableModal>
-            </Portal>
-        </div>
+                    </ResizableModal>
+                </Portal>
+            }
+        >
+            <Viewer
+                index={index}
+                setIndex={setIndex}
+                format={format}
+                gfiType={gfiType}
+                missingResponses={missingResponses}
+                responses={responses}
+                requests={requests}
+                showEmptyMessageGFI={showEmptyMessageGFI}
+                disableInfoAlert={disableInfoAlert}
+                {...viewerOptions}/>
+        </ResponsivePanel>
     );
 };

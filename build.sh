@@ -7,11 +7,13 @@ export VERSION="SNAPSHOT-$GITREV"
 npm install
 npm run compile
 npm run lint
-#npm test
 
 if [ $# -eq 0 ]
   then
-    mvn clean install -Dmapstore2.version=$VERSION
-  else
-    mvn clean install -Dmapstore2.version=$1
+    mvn clean install -Dmapstore2.version=$VERSION -Pprinting
+  elif [ $# -eq 1 ]
+    then
+        mvn clean install -Dmapstore2.version=$1 -Pprinting
+    else
+        mvn clean install -Dmapstore2.version=$1 -P$2 -Pprinting
 fi

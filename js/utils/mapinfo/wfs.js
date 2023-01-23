@@ -6,18 +6,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const {Observable} = require('rxjs');
+import {Observable} from 'rxjs';
+import { isObject } from 'lodash';
+import assign from 'object-assign';
 
-const CoordinatesUtils = require('../../../MapStore2/web/client/utils/CoordinatesUtils');
-const { getLayerUrl } = require('../LayersUtils');
-const { isObject } = require('lodash');
-const { optionsToVendorParams } = require('../../../MapStore2/web/client/utils/VendorParamsUtils');
-const { describeFeatureType, getFeature } = require('../../../MapStore2/web/client/api/WFS');
-const { extractGeometryAttributeName } = require('../../../MapStore2/web/client/utils/WFSLayerUtils');
+import {normalizeSRS} from '@mapstore/utils/CoordinatesUtils';
+import { optionsToVendorParams } from '@mapstore/utils/VendorParamsUtils';
+import { describeFeatureType, getFeature } from '@mapstore/api/WFS';
+import { extractGeometryAttributeName } from '@mapstore/utils/WFSLayerUtils';
+import {addAuthenticationToSLD} from '@mapstore/utils/SecurityUtils';
 
-const SecurityUtils = require('../../../MapStore2/web/client/utils/SecurityUtils');
-const assign = require('object-assign');
-
+import { getLayerUrl } from '@js/utils/LayersUtils';
 /**
  * Creates the request object and it's metadata for WFS GetFeature to simulate GetFeatureInfo.
  * @param {object} layer
@@ -27,12 +26,31 @@ const assign = require('object-assign');
  * @return {object} an object with `request`, containing request params, `metadata` with some info about the layer and the request, and `url` to send the request to.
  */
 const buildRequest = (layer, { map = {}, point, currentLocale, params, maxItems = 10 } = {}, infoFormat, viewer, gfiOptions = {}) => {
+    if (point?.intersectedFeatures) {
+        const { features = [] } = point?.intersectedFeatures?.find(({ id }) => id === layer.id) || {};
+        return {
+            request: {
+                features: [...features],
+                outputFormat: 'application/json'
+            },
+            metadata: {
+                title: isObject(layer.title)
+                    ? layer.title[currentLocale] || layer.title.default
+                    : layer.title,
+                regex: layer.featureInfoRegex,
+                viewer,
+                featureInfo: gfiOptions.featureInfo,
+                mapTip: gfiOptions.mapTip
+            },
+            url: 'client'
+        };
+    }
     /* In order to create a valid feature info request
      * we create a bbox of 101x101 pixel that wrap the point.
      * center point is re-projected then is built a box of 101x101pixel around it
      */
     return {
-        request: SecurityUtils.addAuthenticationToSLD({
+        request: addAuthenticationToSLD({
             point, // THIS WILL NOT BE PASSED TO FINAL REQUEST, BUT USED IN getRetrieveFlow
             service: 'WFS',
             version: '1.1.1',
@@ -41,7 +59,7 @@ const buildRequest = (layer, { map = {}, point, currentLocale, params, maxItems 
             exceptions: 'application/json',
             id: layer.id,
             typeName: layer.name,
-            srs: CoordinatesUtils.normalizeSRS(map.projection) || 'EPSG:4326',
+            srs: normalizeSRS(map.projection) || 'EPSG:4326',
             feature_count: maxItems,
             ...assign({ params })
         }, layer),
@@ -73,10 +91,17 @@ const getIdentifyGeometry = point => {
     };
 };
 
-module.exports = {
+export default {
     buildRequest,
     getIdentifyFlow: (layer, baseURL, defaultParams) => {
-        const { point, ...baseParams} = defaultParams;
+        const { point, features, ...baseParams} = defaultParams;
+        if (features) {
+            return Observable.of({
+                data: {
+                    features
+                }
+            });
+        }
         const geometry = getIdentifyGeometry(point);
         return Observable.defer( () => describeFeatureType(layer.url, layer.name) // TODO: cache this
             .then(describe => {

@@ -1,1 +1,1 @@
-MapStore2-C098-1.0.0
+MapStore2-C098-1.1.0

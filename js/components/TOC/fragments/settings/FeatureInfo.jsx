@@ -6,11 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
-const PropTypes = require('prop-types');
-const Accordion = require('../../../../../MapStore2/web/client/components/misc/panels/Accordion');
-const {Glyphicon} = require('react-bootstrap');
-const Message = require('../../../../../MapStore2/web/client/components/I18N/Message');
+import React from 'react';
+
+import PropTypes from 'prop-types';
+import { Glyphicon } from 'react-bootstrap';
+import includes from 'lodash/includes';
+import isEmpty from 'lodash/isEmpty';
+
+import Accordion from '@mapstore/components/misc/panels/Accordion';
+import Message from '@mapstore/components/I18N/Message';
+
 
 /**
  * Component for rendering FeatureInfo an Accordion with current available format for get feature info
@@ -23,7 +28,7 @@ const Message = require('../../../../../MapStore2/web/client/components/I18N/Mes
  * @prop {function} onChange called when a format has been selected
  */
 
-module.exports = class extends React.Component {
+export default class extends React.Component {
     static propTypes = {
         element: PropTypes.object,
         defaultInfoFormat: PropTypes.object,
@@ -58,7 +63,7 @@ module.exports = class extends React.Component {
 
     render() {
         // the selected value if missing on that layer should be set to the general info format value and not the first one.
-        const data = this.getInfoFormat(this.props.defaultInfoFormat);
+        const data = this.getInfoFormat(this.supportedInfoFormats());
         return (
             <span>
                 <Accordion
@@ -76,4 +81,22 @@ module.exports = class extends React.Component {
             </span>
         );
     }
-};
+
+    /**
+     * Fetch the supported formats from the layer props if present
+     * else use the default info format
+     * @return {object} info formats
+     */
+    supportedInfoFormats = () => {
+        const excludedFormatsWfs = ['TEXT', 'HTML'];
+        const availableInfoFormats =  this.props.element?.infoFormats || [];
+        const supportedWfsFormats = Object.fromEntries(Object.entries(this.props.defaultInfoFormat).filter(([key]) => !excludedFormatsWfs.includes(key)));
+        const formats = this.props.element.type === 'wfs' ? supportedWfsFormats : this.props.defaultInfoFormat;
+        const infoFormats = Object.assign({},
+            ...Object.entries(formats)
+                .filter(([, value])=> includes(availableInfoFormats, value))
+                .map(([key, value])=> ({[key]: value}))
+        );
+        return isEmpty(infoFormats) ? formats : infoFormats;
+    }
+}

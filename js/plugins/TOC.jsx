@@ -5,49 +5,76 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
-const PropTypes = require('prop-types');
-const React = require('react');
-const {connect} = require('react-redux');
-const {createSelector} = require('reselect');
-const { compose, branch, withPropsOnChange} = require('recompose');
+import PropTypes from 'prop-types';
+import React from 'react';
+import { connect } from 'react-redux';
+import { compose, branch, withPropsOnChange } from 'recompose';
+import { Glyphicon } from 'react-bootstrap';
+import { isEqual, isObject, head, find, round } from 'lodash';
+import assign from 'object-assign';
 
-const {Glyphicon} = require('react-bootstrap');
+import {
+    changeLayerProperties,
+    changeGroupProperties,
+    toggleNode,
+    contextNode,
+    moveNode,
+    showSettings,
+    hideSettings,
+    updateSettings,
+    updateNode,
+    removeNode,
+    browseData,
+    selectNode,
+    filterLayers,
+    refreshLayerVersion,
+    hideLayerMetadata,
+    download
+} from '@mapstore/actions/layers';
+import { openQueryBuilder } from '@mapstore/actions/layerFilter';
+import { getLayerCapabilities } from '@mapstore/actions/layerCapabilities';
+import { zoomToExtent } from '@mapstore/actions/map';
+import { error } from '@mapstore/actions/notifications';
+import {
+    groupsSelector,
+    layersSelector,
+    selectedNodesSelector,
+    layerFilterSelector,
+    layerSettingSelector,
+    layerMetadataSelector,
+    wfsDownloadSelector
+} from '@mapstore/selectors/layers';
+import { layerSwipeSettingsSelector } from '@mapstore/selectors/swipe';
+import { mapSelector, mapNameSelector } from '@mapstore/selectors/map';
+import { currentLocaleSelector, currentLocaleLanguageSelector } from '@mapstore/selectors/locale';
+import { widgetBuilderAvailable } from '@mapstore/selectors/controls';
+import { userSelector } from '@mapstore/selectors/security';
+import { isActiveSelector } from '@mapstore/selectors/catalog';
+import { isCesium } from '@mapstore/selectors/maptype';
+import { isLocalizedLayerStylesEnabledSelector } from '@mapstore/selectors/localizedLayerStyles';
+import { getNode, toggleByType } from '@mapstore/utils/LayersUtils';
+import { getScales, getResolutions } from '@mapstore/utils/MapUtils';
+import { getMessageById } from '@mapstore/utils/LocaleUtils';
+import Message from '@mapstore/components/I18N/Message';
+import layersIcon from '@mapstore/plugins/toolbar/assets/img/layers.png';
+import { setControlProperties, setControlProperty } from '@mapstore/actions/controls';
+import { createWidget } from '@mapstore/actions/widgets';
+import { getMetadataRecordById } from '@mapstore/actions/catalog';
+import { createShallowSelectorCreator } from '@mapstore/utils/ReselectUtils';
+import TOC from '@mapstore/components/TOC/TOC';
+import Header from '@mapstore/components/TOC/Header';
+import Toolbar from '@mapstore/components/TOC/Toolbar';
+import DefaultGroup from '@mapstore/components/TOC/DefaultGroup';
+import DefaultLayerOrGroup from '@mapstore/components/TOC/DefaultLayerOrGroup';
+import API from '@mapstore/api/catalog';
+import queryform from '@mapstore/reducers/queryform';
+import query from '@mapstore/reducers/query';
+import catalogEpics from "@mapstore/epics/catalog";
 
-const {changeLayerProperties, changeGroupProperties, toggleNode, contextNode,
-    moveNode, showSettings, hideSettings, updateSettings, updateNode, removeNode,
-    browseData, selectNode, filterLayers, refreshLayerVersion, hideLayerMetadata,
-    download} = require('../../MapStore2/web/client/actions/layers');
-const {openQueryBuilder} = require("../../MapStore2/web/client/actions/layerFilter");
-const {getLayerCapabilities} = require('../../MapStore2/web/client/actions/layerCapabilities');
-const {zoomToExtent} = require('../../MapStore2/web/client/actions/map');
-const {setMapTipActiveLayerId} = require('../actions/mapInfo');
-const {error} = require('../../MapStore2/web/client/actions/notifications');
-const {groupsSelector, layersSelector, selectedNodesSelector, layerFilterSelector, layerSettingSelector, layerMetadataSelector, wfsDownloadSelector} = require('../../MapStore2/web/client/selectors/layers');
-const {mapSelector, mapNameSelector} = require('../../MapStore2/web/client/selectors/map');
-const {currentLocaleSelector, currentLocaleLanguageSelector} = require("../../MapStore2/web/client/selectors/locale");
-const {widgetBuilderAvailable} = require('../../MapStore2/web/client/selectors/controls');
-const {generalInfoFormatSelector, mapTipActiveLayerIdSelector, mapTipFormatEnabledSelector} = require("../selectors/mapInfo");
-const {userSelector} = require('../../MapStore2/web/client/selectors/security');
-const {isLocalizedLayerStylesEnabledSelector} = require('../../MapStore2/web/client/selectors/localizedLayerStyles');
 
-const LayersUtils = require('../utils/LayersUtils');
-const mapUtils = require('../../MapStore2/web/client/utils/MapUtils');
-const LocaleUtils = require('../../MapStore2/web/client/utils/LocaleUtils');
-
-const Message = require('../../MapStore2/web/client/components/I18N/Message');
-const assign = require('object-assign');
-
-const layersIcon = require('../../MapStore2/web/client/plugins/toolbar/assets/img/layers.png');
-
-const {isObject, head, find} = require('lodash');
-
-const {setControlProperties, setControlProperty} = require('../../MapStore2/web/client/actions/controls');
-const {createWidget} = require('../../MapStore2/web/client/actions/widgets');
-
-const {getMetadataRecordById} = require("../../MapStore2/web/client/actions/catalog");
-
-const {activeSelector} = require("../../MapStore2/web/client/selectors/catalog");
-const {isCesium} = require('../../MapStore2/web/client/selectors/maptype');
+import DefaultLayer from '@js/components/TOC/DefaultLayer';
+import { generalInfoFormatSelector, mapTipFormatEnabledSelector, mapTipActiveLayerIdSelector } from '@js/selectors/mapInfo';
+import { setMapTipActiveLayerId } from '@js/actions/mapInfo';
 
 const addFilteredAttributesGroups = (nodes, filters) => {
     return nodes.reduce((newNodes, currentNode) => {
@@ -73,36 +100,38 @@ const filterLayersByTitle = (layer, filterText, currentLocale) => {
     return title.toLowerCase().indexOf(filterText.toLowerCase()) !== -1;
 };
 
-const tocSelector = createSelector(
-    [
-        (state) => state.controls && state.controls.toolbar && state.controls.toolbar.active === 'toc',
-        groupsSelector,
-        layerSettingSelector,
-        layerMetadataSelector,
-        wfsDownloadSelector,
-        mapSelector,
-        currentLocaleSelector,
-        currentLocaleLanguageSelector,
-        selectedNodesSelector,
-        layerFilterSelector,
-        layersSelector,
-        mapNameSelector,
-        activeSelector,
-        widgetBuilderAvailable,
-        generalInfoFormatSelector,
-        isCesium,
-        userSelector,
-        isLocalizedLayerStylesEnabledSelector,
-        mapTipFormatEnabledSelector,
-        mapTipActiveLayerIdSelector
-    ], (enabled, groups, settings, layerMetadata, wfsdownload, map, currentLocale, currentLocaleLanguage, selectedNodes, filterText, layers, mapName, catalogActive, activateWidgetTool, generalInfoFormat, isCesiumActive, user, isLocalizedLayerStylesEnabled, mapTipFormatEnabled, mapTipActiveLayerId) => ({
+const tocSelector = createShallowSelectorCreator(isEqual)(
+    (state) => state.controls && state.controls.toolbar && state.controls.toolbar.active === 'toc',
+    groupsSelector,
+    layerSettingSelector,
+    layerSwipeSettingsSelector,
+    layerMetadataSelector,
+    wfsDownloadSelector,
+    mapSelector,
+    currentLocaleSelector,
+    currentLocaleLanguageSelector,
+    selectedNodesSelector,
+    layerFilterSelector,
+    layersSelector,
+    mapNameSelector,
+    isActiveSelector,
+    widgetBuilderAvailable,
+    generalInfoFormatSelector,
+    isCesium,
+    userSelector,
+    isLocalizedLayerStylesEnabledSelector,
+    mapTipFormatEnabledSelector,
+    mapTipActiveLayerIdSelector,
+    (enabled, groups, settings, swipeSettings, layerMetadata, layerdownload, map, currentLocale, currentLocaleLanguage, selectedNodes, filterText, layers, mapName, catalogActive, activateWidgetTool, generalInfoFormat, isCesiumActive, user, isLocalizedLayerStylesEnabled, mapTipFormatEnabled, mapTipActiveLayerId
+    ) => ({
         enabled,
         groups,
         settings,
+        swipeSettings,
         layerMetadata,
-        wfsdownload,
+        layerdownload,
         currentZoomLvl: map && map.zoom,
-        scales: mapUtils.getScales(
+        scales: getScales(
             map && map.projection || 'EPSG:3857',
             map && map.mapOptions && map.mapOptions.view && map.mapOptions.view.DPI || null
         ),
@@ -111,9 +140,11 @@ const tocSelector = createSelector(
         selectedNodes,
         filterText,
         generalInfoFormat,
+        layers,
         selectedLayers: layers.filter((l) => head(selectedNodes.filter(s => s === l.id))),
         noFilterResults: layers.filter((l) => filterLayersByTitle(l, filterText, currentLocale)).length === 0,
-        selectedGroups: selectedNodes.map(n => LayersUtils.getNode(groups, n)).filter(n => n && n.nodes),
+        updatableLayersCount: layers.filter(l => l.group !== 'background' && (l.type === 'wms' || l.type === 'wmts')).length,
+        selectedGroups: selectedNodes.map(n => getNode(groups, n)).filter(n => n && n.nodes),
         mapName,
         filteredGroups: addFilteredAttributesGroups(groups, [
             {
@@ -130,11 +161,11 @@ const tocSelector = createSelector(
             },
             {
                 options: { showComponent: false },
-                func: (node) => head((node.nodes || []).filter(l => l.hidden || l.id === "annotations" && isCesiumActive)) && node.nodes.length === 1
+                func: (node) => head((node.nodes || []).filter(l => l.hidden)) && node.nodes.length === 1
             },
             {
-                options: { showComponent: false },
-                func: (node) => node.id === "annotations" && isCesiumActive
+                options: { exclusiveMapType: true },
+                func: (node) => node.type === "3dtiles" && !isCesiumActive
             }
         ]),
         catalogActive,
@@ -146,22 +177,17 @@ const tocSelector = createSelector(
     })
 );
 
-const TOC = require('../../MapStore2/web/client/components/TOC/TOC');
-const Header = require('../../MapStore2/web/client/components/TOC/Header');
-const Toolbar = require('../../MapStore2/web/client/components/TOC/Toolbar');
-const DefaultGroup = require('../../MapStore2/web/client/components/TOC/DefaultGroup');
-const DefaultLayer = require('../components/TOC/DefaultLayer');
-const DefaultLayerOrGroup = require('../../MapStore2/web/client/components/TOC/DefaultLayerOrGroup');
-
 class LayerTree extends React.Component {
     static propTypes = {
         id: PropTypes.number,
         items: PropTypes.array,
+        layers: PropTypes.array,
         buttonContent: PropTypes.node,
         groups: PropTypes.array,
         settings: PropTypes.object,
+        swipeSettings: PropTypes.object,
         layerMetadata: PropTypes.object,
-        wfsdownload: PropTypes.object,
+        layerdownload: PropTypes.object,
         metadataTemplate: PropTypes.oneOfType([PropTypes.string, PropTypes.array, PropTypes.object, PropTypes.func]),
         refreshMapEnabled: PropTypes.bool,
         groupStyle: PropTypes.object,
@@ -238,6 +264,10 @@ class LayerTree extends React.Component {
         groupNodeComponent: PropTypes.func,
         isLocalizedLayerStylesEnabled: PropTypes.bool,
         onLayerInfo: PropTypes.func,
+        onSetSwipeActive: PropTypes.func,
+        updatableLayersCount: PropTypes.number,
+        onSetSwipeMode: PropTypes.func,
+        resolutions: PropTypes.func,
         mapTipActiveLayerId: PropTypes.string,
         changeMapTipActiveLayer: PropTypes.func
     };
@@ -248,6 +278,7 @@ class LayerTree extends React.Component {
 
     static defaultProps = {
         items: [],
+        layers: [],
         groupPropertiesChangeHandler: () => {},
         layerPropertiesChangeHandler: () => {},
         retrieveLayerData: () => {},
@@ -277,7 +308,7 @@ class LayerTree extends React.Component {
         activateRemoveLayer: true,
         activateRemoveGroup: true,
         activateQueryTool: true,
-        activateDownloadTool: false,
+        activateDownloadTool: true,
         activateWidgetTool: false,
         activateLayerFilterTool: false,
         activateLayerInfoTool: true,
@@ -321,7 +352,8 @@ class LayerTree extends React.Component {
         catalogActive: false,
         refreshLayerVersion: () => {},
         metadataTemplate: null,
-        onLayerInfo: () => {}
+        onLayerInfo: () => {},
+        onSetSwipeMode: () => {}
     };
 
     getNoBackgroundLayers = (group) => {
@@ -344,9 +376,10 @@ class LayerTree extends React.Component {
                 selectedNodes={this.props.selectedNodes}
                 onSelect={this.props.activateToolsContainer ? this.props.onSelectNode : null}/>);
     }
-
     getDefaultLayer = () => {
         const LayerNode = this.props.layerNodeComponent || DefaultLayer;
+        const resolutions = this.props.resolutions || getResolutions();
+        const resolution = resolutions[round(this.props.currentZoomLvl)];
         return (
             <LayerNode
                 {...this.props.layerOptions}
@@ -369,6 +402,7 @@ class LayerTree extends React.Component {
                 onUpdateNode={this.props.updateNode}
                 hideOpacityTooltip={this.props.hideOpacityTooltip}
                 language={this.props.isLocalizedLayerStylesEnabled ? this.props.currentLocaleLanguage : null}
+                resolution={resolution}
             />
         );
     }
@@ -388,17 +422,20 @@ class LayerTree extends React.Component {
                     onClear={() => { this.props.onSelectNode(); }}
                     onFilter={this.props.onFilter}
                     filterTooltipClear={<Message msgId="toc.clearFilter" />}
-                    filterPlaceholder={LocaleUtils.getMessageById(this.context.messages, "toc.filterPlaceholder")}
+                    filterPlaceholder={getMessageById(this.context.messages, "toc.filterPlaceholder")}
                     filterText={this.props.filterText}
                     toolbar={
                         <Toolbar
+                            items={this.props.items.filter(({ target }) => target === "toolbar")}
                             groups={this.props.groups}
+                            layers={this.props.layers}
                             selectedLayers={this.props.selectedLayers}
                             selectedGroups={this.props.selectedGroups}
                             generalInfoFormat={this.props.generalInfoFormat}
                             settings={this.props.settings}
+                            swipeSettings={this.props.swipeSettings}
                             layerMetadata={this.props.layerMetadata}
-                            wfsdownload={this.props.wfsdownload}
+                            layerdownload={this.props.layerdownload}
                             metadataTemplate={this.props.metadataTemplate}
                             maxDepth={this.props.maxDepth}
                             activateTool={{
@@ -415,7 +452,7 @@ class LayerTree extends React.Component {
                                 activateMetedataTool: this.props.activateMetedataTool,
                                 activateWidgetTool: this.props.activateWidgetTool,
                                 activateLayerFilterTool: this.props.activateLayerFilterTool,
-                                activateLayerInfoTool: this.props.activateLayerInfoTool
+                                activateLayerInfoTool: this.props.updatableLayersCount > 0 && this.props.activateLayerInfoTool
                             }}
                             options={{
                                 modalOptions: {},
@@ -515,7 +552,7 @@ class LayerTree extends React.Component {
 /**
  * enhances the TOC to check `Permissions` properties and enable/disable
  * the proper tools.
- * @memberof plugins.TOC
+ * @ignore
  */
 const securityEnhancer = withPropsOnChange(
     [
@@ -564,12 +601,20 @@ const securityEnhancer = withPropsOnChange(
  * enhances the TOC to check the presence of TOC plugins to display/add buttons to the toolbar.
  * NOTE: the flags are required because of old configurations about permissions.
  * TODO: delegate button rendering and actions to the plugins (now this is only a check and some plugins are dummy, only to allow plug/unplug). Also permissions should be delegated to the related plugins
- * @memberof plugins.TOC
+ * @ignore
  */
 const checkPluginsEnhancer = branch(
     ({ checkPlugins = true }) => checkPlugins,
     withPropsOnChange(
-        ["items", "activateAddLayerButton", "activateAddGroupButton", "activateLayerFilterTool", "activateSettingsTool", "FeatureEditor", "activateLayerInfoTool"],
+        [
+            "items",
+            "activateAddLayerButton",
+            "activateAddGroupButton",
+            "activateLayerFilterTool",
+            "activateSettingsTool",
+            "FeatureEditor",
+            "activateLayerInfoTool"
+        ],
         ({
             items = [],
             activateAddLayerButton = true,
@@ -578,7 +623,8 @@ const checkPluginsEnhancer = branch(
             activateSettingsTool = true,
             activateLayerFilterTool = true,
             activateWidgetTool = true,
-            activateLayerInfoTool = true
+            activateLayerInfoTool = true,
+            activateDownloadTool = true
         }) => ({
             activateAddLayerButton: activateAddLayerButton && !!find(items, { name: "MetadataExplorer" }) || false, // requires MetadataExplorer (Catalog)
             activateAddGroupButton: activateAddGroupButton && !!find(items, { name: "AddGroup" }) || false,
@@ -588,14 +634,51 @@ const checkPluginsEnhancer = branch(
             // NOTE: activateWidgetTool is already controlled by a selector. TODO: Simplify investigating on the best approach
             // the button should hide if also widgets plugins is not available. Maybe is a good idea to merge the two plugins
             activateWidgetTool: activateWidgetTool && !!find(items, { name: "WidgetBuilder" }) && !!find(items, { name: "Widgets" }),
-            activateLayerInfoTool: activateLayerInfoTool && !!find(items, { name: "LayerInfo" }) || false
+            activateLayerInfoTool: activateLayerInfoTool && !!find(items, { name: "LayerInfo" }) || false,
+            activateDownloadTool: activateDownloadTool && !!find(items, { name: "LayerDownload" }) || false
         })
     )
 );
 
 
 /**
- * Provides Table Of Content visualization.
+ * Provides Table Of Content visualization. Lists the layers on the map, organized in groups and provides the possibility to select them.
+ * Based on current layer(s)/group(s) selection, shows a set of tools for the current selection.
+ * This is also a plugin container. Tools injected providing only the name to the container need an internal support (deprecated). Here an example:
+ * ```javascript
+ * export default createPlugin('AddGroup', {
+ *     component: AddGroupPlugin,
+ *     containers: {
+ *         TOC: {
+ *             doNotHide: true,
+ *             name: "AddGroup" // this works only if AddGroup is one of the plugins internally supported by TOC.
+ *         }
+ *     }
+ * });
+ * ```
+ * The new **(recommended)** mode to inject tools in the TOC is by using `target`.
+ * This method allows to insert a component in the defined target. Actually `toolbar` is the only target supported for the `target`, and allows to add a button on the toolbar.
+ * ```javascript
+ * createPlugin(
+ *  'MyPlugin',
+ *  {
+ *      containers: {
+ *         TOC: {
+ *             name: "TOOLNAME", // a name for the current tool.
+ *             target: "toolbar", // the target where to insert the component
+ *             //In case of `target: toolbar`, `selector` determine to show or not show the tool (returning `true` or `false`).
+ *             // As argument of this function you have several information, that will be passed also to the component.
+ *             // - `status`: that can be `LAYER`, `LAYERS`, `GROUP` or `GROUPS`, depending if only one or more than one layer is selected.
+ *             // - `selectedGroups`: current list of selected groups
+ *             // - `selectedLayers`: current list of selected layers
+ *             selector: ({ status }) => status === 'LAYER',
+ *             // The component to render. It receives as props the same object passed to the `selector` function.
+ *             Component: connect(...)(MyButton)
+ *                 createSelector(layerSwipeSettingsSelector, (swipeSettings) => ({swipeSettings})),
+ *             // ...
+ *         },
+ * // ...
+ * ```
  * @memberof plugins
  * @name TOC
  * @class
@@ -611,11 +694,19 @@ const checkPluginsEnhancer = branch(
  * @prop {boolean} cfg.activateQueryTool: activate query tool options, default `false`
  * @prop {boolean} cfg.activateDownloadTool: activate a button to download layer data through wfs, default `false`
  * @prop {boolean} cfg.activateSortLayer: activate drag and drop to sort layers, default `true`
+ * @prop {boolean} cfg.activateMetedataTool activate metadata tool in the toolbar, to retrieve metadata from original catalog (WMS and/or CSW), default `false`
  * @prop {boolean} cfg.checkPlugins if true, check if AddLayer, AddGroup ... plugins are present to auto-configure the toolbar
  * @prop {boolean} cfg.activateAddLayerButton: activate a button to open the catalog, default `true`
  * @prop {boolean} cfg.activateAddGroupButton: activate a button to add a new group, default `true`
  * @prop {boolean} cfg.showFullTitleOnExpand shows full length title in the legend. default `false`.
  * @prop {boolean} cfg.hideOpacityTooltip hide toolip on opacity sliders
+ * @prop {boolean} cfg.activateRemoveGroup if set to false, do not show the remove button for layer groups. default `true`
+  * @prop {boolean} [addLayersPermissions=true] if false, only users of role ADMIN can see the "add layers" button. Default true.
+   @prop {boolean} [removeLayersPermissions=true] if false, only users of role ADMIN have the permission to remove layers. Default true.
+   @prop {boolean} [sortingPermissions=true] if false, only users of role ADMIN have the permission to move layers in the TOC. Default true.
+   @prop {boolean} [addGroupsPermissions=true] if false, only users of role ADMIN have the permission to add groups to the TOC. Default true.
+   @prop {boolean} [removeGroupsPermissions=true] if false, only users of role ADMIN can remove groups from the TOC. Default true.
+   @prop {boolean} [layerInfoToolPermissions=false] if false, only users of role ADMIN can see the layer info tool. Default false.
  * @prop {string[]|string|object|function} cfg.metadataTemplate custom template for displaying metadata
  * example :
  * ```
@@ -658,8 +749,8 @@ const checkPluginsEnhancer = branch(
  * @prop {element} cfg.groupNodeComponent render a custom component for group node
  * @prop {element} cfg.layerNodeComponent render a custom component for layer node
  * @prop {object} cfg.layerOptions: options to pass to the layer.
- * Some of the layerOptions are: `legendContainerStyle`, `legendStyle`. These 2 allow to customize the legend:
- * For instance you can pass some styling props to the legend.
+ * @prop {object} cfg.layerOptions.legendOptions default options for legend
+ * Some of the `layerOptions` are: `legendContainerStyle`, `legendStyle`. These 2 allow to customize the legend CSS.
  * this example is to make the legend scrollable horizontally
  * ```
  * "layerOptions": {
@@ -673,25 +764,23 @@ const checkPluginsEnhancer = branch(
  *   }
  *  }
  * ```
- * Another legendOptions entry can be `WMSLegendOptions` it is styling prop for the wms legend.
+ * Other `legendOptions` entries can be:
+ * - `WMSLegendOptions` it is styling prop for the wms legend.
+ * - `legendWidth`: default `width` in pixel to send to the WMS `GetLegendGraphic`. (Can be customized from `LayerSettings`)
+ * - `legendHeight`: default `height` in pixel to send to the WMS `GetLegendGraphic`. (Can be customized from `LayerSettings`)
+ * - `scaleDependent`, this option activates / deactivates scale dependency.
  * example:
  * ```
  * "layerOptions": {
  *  "legendOptions": {
- *   "WMSLegendOptions": "forceLabels:on"
+ *   "scaleDependent": true,
+ *   "WMSLegendOptions": "forceLabels:on",
+ *   "legendWidth": 12,
+ *   "legendHeight": 12
  *  }
  * }
  * ```
- * Another one legendOptions entry is `scaleDependent`, this option activates / deactivates scale dependency.
- * example:
- * ```
- * "layerOptions": {
- *  "legendOptions": {
- *   "scaleDependent": true
- *  }
- * }
- * ```
- * Another layerOptions entry can be `indicators`. `indicators` is an array of icons to add to the TOC. They must satisfy a condition to be shown in the TOC.
+ * @prop {object} cfg.layerOptions.indicators Another `layerOptions` entry can be `indicators`. `indicators` is an array of icons to add to the TOC. They must satisfy a condition to be shown in the TOC.
  * For the moment only indicators of type `dimension` are supported.
  * example :
  * ```
@@ -714,10 +803,9 @@ const checkPluginsEnhancer = branch(
  *   }]
  * }
  * ```
- *
- * Another layerOptions entry is `tooltipOptions` which contains options for customizing the tooltip
+ * @prop {object} cfg.layerOptions.tooltipOptions Another `layerOptions` entry is `tooltipOptions` which contains options for customizing the tooltip
  * You can customize the max length for the tooltip with `maxLength` (Default is 807)
- * You can change the conjuction string in the "both" case with `separator` (Default is " - ")
+ * You can change the conjunction string in the "both" case with `separator` (Default is " - ")
  * for example
  * ```
  * "layerOptions" : {
@@ -805,8 +893,8 @@ const TOCPlugin = connect(tocSelector, {
     groupPropertiesChangeHandler: changeGroupProperties,
     layerPropertiesChangeHandler: changeLayerProperties,
     retrieveLayerData: getLayerCapabilities,
-    onToggleGroup: LayersUtils.toggleByType('groups', toggleNode),
-    onToggleLayer: LayersUtils.toggleByType('layers', toggleNode),
+    onToggleGroup: toggleByType('groups', toggleNode),
+    onToggleLayer: toggleByType('layers', toggleNode),
     onContextMenu: contextNode,
     onBrowseData: browseData,
     onQueryBuilder: openQueryBuilder,
@@ -829,7 +917,8 @@ const TOCPlugin = connect(tocSelector, {
     refreshLayerVersion,
     onLayerInfo: setControlProperty.bind(null, 'layerinfo', 'enabled', true, false),
     changeMapTipActiveLayer: setMapTipActiveLayerId
-}, (stateProps, dispatchProps, ownProps) => ({
+},
+(stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
     ...stateProps,
     ...dispatchProps,
@@ -844,9 +933,8 @@ const TOCPlugin = connect(tocSelector, {
     checkPluginsEnhancer
 )(LayerTree));
 
-const API = require('../../MapStore2/web/client/api/catalog').default;
 
-module.exports = {
+export default {
     TOCPlugin: assign(TOCPlugin, {
         Toolbar: {
             name: 'toc',
@@ -873,9 +961,9 @@ module.exports = {
         }
     }),
     reducers: {
-        queryform: require('../../MapStore2/web/client/reducers/queryform'),
-        query: require('../../MapStore2/web/client/reducers/query')
+        queryform,
+        query
     },
     // TODO: remove this dependency, it is needed only to use getMetadataRecordById and related actions that can be moved in the TOC
-    epics: require("../../MapStore2/web/client/epics/catalog").default(API)
+    epics: catalogEpics(API)
 };

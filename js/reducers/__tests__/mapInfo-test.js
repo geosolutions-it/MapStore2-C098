@@ -6,16 +6,34 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const expect = require('expect');
-const mapInfo = require('../mapInfo');
-const { featureInfoClick, toggleEmptyMessageGFI, toggleShowCoordinateEditor, changeFormat, changePage, toggleHighlightFeature, setMapTrigger} = require('../../actions/mapInfo');
-const { MAP_CONFIG_LOADED } = require('../../../MapStore2/web/client/actions/config');
-const assign = require('object-assign');
+import expect from 'expect';
+import assign from 'object-assign';
+import 'babel-polyfill';
 
-require('babel-polyfill');
+
+import {changeMapType} from '@mapstore/actions/maptype';
+import { MAP_CONFIG_LOADED } from '@mapstore/actions/config';
+
+import mapInfo from '@js/reducers/mapInfo';
+import {
+    featureInfoClick,
+    toggleEmptyMessageGFI,
+    toggleShowCoordinateEditor,
+    changeFormat,
+    changePage,
+    toggleHighlightFeature,
+    setMapTrigger,
+    setShowInMapPopup,
+    onInitPlugin
+} from '@js/actions/mapInfo';
 
 describe('Test the mapInfo reducer', () => {
-    let appState = {configuration: {infoFormat: 'text/plain'}, responses: [], requests: [{reqId: 10, request: "test"}, {reqId: 11, request: "test1"}]};
+    const appState = {
+        configuration: {
+            infoFormat: 'text/plain'
+        },
+        responses: [],
+        requests: [{reqId: 10, request: "test"}, {reqId: 11, request: "test1"}]};
 
     it('returns original state on unrecognized action', () => {
         let state = mapInfo(1, {type: 'UNKNOWN'});
@@ -104,7 +122,62 @@ describe('Test the mapInfo reducer', () => {
         expect(state.responses[1].layerMetadata).toBe("meta");
         expect(state.index).toBe(1);
     });
+    it('creates a feature info data from successful request on showInMapPopup', () => {
+        let testAction = {
+            type: 'LOAD_FEATURE_INFO',
+            data: "data",
+            requestParams: "params",
+            layerMetadata: "meta",
+            reqId: 10
+        };
 
+        let state = mapInfo({...appState, showInMapPopup: true}, testAction);
+        expect(state.responses).toExist();
+        expect(state.responses.length).toBe(2);
+        expect(state.responses[0].response).toBe("data");
+        expect(state.responses[0].queryParams).toBe("params");
+        expect(state.responses[0].layerMetadata).toBe("meta");
+        expect(state.index).toBe(0);
+
+        state = mapInfo(assign({}, appState, {responses: [], showInMapPopup: true}), testAction);
+        expect(state.responses).toExist();
+        expect(state.responses.length).toBe(1);
+        expect(state.index).toBe(0);
+
+        state = mapInfo(assign({}, appState, {responses: ["test"], showInMapPopup: true}), {...testAction, reqId: 11});
+        expect(state.responses).toExist();
+        expect(state.responses.length).toBe(2);
+        expect(state.responses[0]).toBeTruthy();
+        expect(state.index).toBe(0);
+    });
+    it('creates a feature info with empty data from successful request', () => {
+        let testAction = {
+            type: 'LOAD_FEATURE_INFO',
+            data: "",
+            requestParams: "params",
+            layerMetadata: "meta",
+            reqId: 10
+        };
+
+        let state = mapInfo(appState, testAction);
+        expect(state.responses).toExist();
+        expect(state.responses.length).toBe(1);
+        expect(state.responses[0].response).toBe("");
+        expect(state.responses[0].queryParams).toBe("params");
+        expect(state.responses[0].layerMetadata).toBe("meta");
+        expect(state.index).toBe(undefined);
+        expect(state.loaded).toBe(undefined);
+
+        state = mapInfo(assign({}, appState, {responses: ["test"]}), {...testAction, reqId: 11});
+        expect(state.responses).toExist();
+        expect(state.responses.length).toBe(2);
+        expect(state.responses[0]).toBeTruthy();
+        expect(state.responses[1].response).toBe("");
+        expect(state.responses[1].queryParams).toBe("params");
+        expect(state.responses[1].layerMetadata).toBe("meta");
+        expect(state.index).toBe(undefined);
+        expect(state.loaded).toBe(true);
+    });
     it('creates a feature info data from vector info request', () => {
         let testAction = {
             type: 'GET_VECTOR_INFO',
@@ -133,6 +206,8 @@ describe('Test the mapInfo reducer', () => {
 
         let state = mapInfo({requests: [{}], configuration: {}}, testAction);
         expect(state.responses).toExist();
+        expect(state.loaded).toBe(true);
+        expect(state.index).toBe(1);
         expect(state.responses.length).toBe(2);
         expect(state.responses[1].response).toExist();
         expect(state.responses[1].response.features.length).toBe(1);
@@ -143,6 +218,8 @@ describe('Test the mapInfo reducer', () => {
         state = mapInfo({requests: [{}], configuration: {trigger: "hover"}}, testAction);
         expect(state.responses).toExist();
         expect(state.responses.length).toBe(1);
+        expect(state.loaded).toBe(true);
+        expect(state.index).toBe(0);
         expect(state.responses[0].response).toExist();
         expect(state.responses[0].response.features.length).toBe(1);
         expect(state.responses[0].format).toBe('JSON');
@@ -234,20 +311,6 @@ describe('Test the mapInfo reducer', () => {
         expect(state.configuration.infoFormat).toEqual({featureInfo: 'newFormat'});
     });
 
-    it('change mapinfo format with mapTip', () => {
-        let state = mapInfo({}, {type: 'CHANGE_MAPINFO_FORMAT', gfiType: 'mapTip', infoFormat: "testFormat"});
-        expect(state).toExist();
-        expect(state.configuration.infoFormat).toEqual({mapTip: 'testFormat'});
-
-        state = mapInfo({configuration: {infoFormat: {mapTip: 'oldFormat'}}}, {type: 'CHANGE_MAPINFO_FORMAT', gfiType: 'mapTip', infoFormat: "newFormat"});
-        expect(state).toExist();
-        expect(state.configuration.infoFormat).toEqual({mapTip: 'newFormat'});
-
-        state = mapInfo({configuration: {infoFormat: 'oldFormat'}}, {type: 'CHANGE_MAPINFO_FORMAT', gfiType: 'mapTip', infoFormat: "newFormat"});
-        expect(state).toExist();
-        expect(state.configuration.infoFormat).toEqual({featureInfo: 'oldFormat', mapTip: 'newFormat'});
-    });
-
     it('show reverese geocode', () => {
         let state = mapInfo({}, {type: 'SHOW_REVERSE_GEOCODE'});
         expect(state).toExist();
@@ -267,8 +330,15 @@ describe('Test the mapInfo reducer', () => {
 
     it('should reset the state', () => {
         let state = mapInfo({showMarker: true}, {type: 'RESET_CONTROLS'});
-        expect(state).toExist();
-        expect(state.showMarker).toBe(false);
+        expect(state).toBeTruthy();
+        expect(state).toEqual({
+            showMarker: false,
+            responses: [],
+            requests: [],
+            configuration: {
+                trigger: "click"
+            }
+        });
     });
 
     it('should toggle mapinfo state', () => {
@@ -832,4 +902,41 @@ describe('Test the mapInfo reducer', () => {
         const state = mapInfo(undefined, action);
         expect(state.configuration.trigger).toBe('hover');
     });
+    it('test the result of changeMapType action - MAP_TYPE_CHANGED when passing to cesium', () => {
+        const action = changeMapType('cesium');
+        const initialState = {configuration: {}};
+        const state = mapInfo(initialState, action);
+        expect(state.configuration.trigger).toBe("click");
+    });
+    it('test the result of changeMapType action - MAP_TYPE_CHANGED when passing to 2d maptype', () => {
+        const action = changeMapType('openlayers');
+        const initialState = {configuration: {trigger: "click"}};
+        const state = mapInfo(initialState, action);
+        expect(state.configuration.trigger).toBe("click");
+    });
+    it('setShowInMapPopup', () => {
+        const initialState = { configuration: {} };
+        const state = mapInfo(initialState, setShowInMapPopup(true));
+        expect(state.showInMapPopup).toBeTruthy();
+    });
+    it('onInitPlugin', () => {
+        const initialState = { configuration: {} };
+        const state = mapInfo(initialState, onInitPlugin({cfg1: "test", configuration: {maxItems: 3}}));
+        expect(state.cfg1).toEqual("test");
+        expect(state.configuration).toEqual({maxItems: 3});
+    });
+    it('change mapinfo format with mapTip', () => {
+        let state = mapInfo({}, {type: 'CHANGE_MAPINFO_FORMAT', gfiType: 'mapTip', infoFormat: "testFormat"});
+        expect(state).toExist();
+        expect(state.configuration.infoFormat).toEqual({mapTip: 'testFormat'});
+
+        state = mapInfo({configuration: {infoFormat: {mapTip: 'oldFormat'}}}, {type: 'CHANGE_MAPINFO_FORMAT', gfiType: 'mapTip', infoFormat: "newFormat"});
+        expect(state).toExist();
+        expect(state.configuration.infoFormat).toEqual({mapTip: 'newFormat'});
+
+        state = mapInfo({configuration: {infoFormat: 'oldFormat'}}, {type: 'CHANGE_MAPINFO_FORMAT', gfiType: 'mapTip', infoFormat: "newFormat"});
+        expect(state).toExist();
+        expect(state.configuration.infoFormat).toEqual({featureInfo: 'oldFormat', mapTip: 'newFormat'});
+    });
+
 });

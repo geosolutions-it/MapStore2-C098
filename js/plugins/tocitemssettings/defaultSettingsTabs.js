@@ -7,31 +7,34 @@
  */
 
 import React from 'react';
-import Message from '../../../MapStore2/web/client/components/I18N/Message';
 import { filter, head, sortBy } from 'lodash';
-
+import { createSelector } from 'reselect';
+import { connect } from 'react-redux';
 import { defaultProps } from 'recompose';
 import { Glyphicon } from 'react-bootstrap';
 
-import HTMLViewer from '../../../MapStore2/web/client/components/data/identify/viewers/HTMLViewer';
-import TextViewer from '../../../MapStore2/web/client/components/data/identify/viewers/TextViewer';
-import JSONViewer from '../../components/data/identify/viewers/JSONViewer';
-import HtmlRenderer from '../../../MapStore2/web/client/components/misc/HtmlRenderer';
+import Message from '@mapstore/components/I18N/Message';
+import HTML from '@mapstore/components/I18N/HTML';
+import HTMLViewer from '@mapstore/components/data/identify/viewers/HTMLViewer';
+import TextViewer from '@mapstore/components/data/identify/viewers/TextViewer';
+import HtmlRenderer from '@mapstore/components/misc/HtmlRenderer';
+import { isCesium } from '@mapstore/selectors/maptype';
+import {getConfiguredPlugin as getConfiguredPluginUtil } from '@mapstore/utils/PluginsUtils';
+import General from '@mapstore/components/TOC/fragments/settings/General';
+import Display from '@mapstore/components/TOC/fragments/settings/Display';
+import Elevation from '@mapstore/components/TOC/fragments/settings/Elevation';
+import LoadingView from '@mapstore/components/misc/LoadingView';
+import html from 'raw-loader!@mapstore/plugins/tocitemssettings/featureInfoPreviews/responseHTML.txt';
+import json from 'raw-loader!@mapstore/plugins/tocitemssettings/featureInfoPreviews/responseJSON.txt';
+import text from 'raw-loader!@mapstore/plugins/tocitemssettings/featureInfoPreviews/responseText.txt';
+import VectorStyleEditor from '@mapstore/plugins/styleeditor/VectorStyleEditor';
+import { StyleSelector } from '@mapstore/plugins/styleeditor/index';
+import { mapSelector } from '@mapstore/selectors/map';
 
-import MapInfoUtils from '../../utils/MapInfoUtils';
-import PluginsUtils from '../../../MapStore2/web/client/utils/PluginsUtils';
-
-import General from '../../../MapStore2/web/client/components/TOC/fragments/settings/General';
-import Display from '../../../MapStore2/web/client/components/TOC/fragments/settings/Display';
-
-import Elevation from '../../../MapStore2/web/client/components/TOC/fragments/settings/Elevation';
-import FeatureInfoEditor from '../../components/TOC/fragments/settings/FeatureInfoEditor';
-import LoadingView from '../../../MapStore2/web/client/components/misc/LoadingView';
-import html from 'raw-loader!../../../MapStore2/web/client/plugins/tocitemssettings/featureInfoPreviews/responseHTML.txt';
-import json from 'raw-loader!../../../MapStore2/web/client/plugins/tocitemssettings/featureInfoPreviews/responseJSON.txt';
-import text from 'raw-loader!../../../MapStore2/web/client/plugins/tocitemssettings/featureInfoPreviews/responseText.txt';
-import SimpleVectorStyleEditor from '../../../MapStore2/web/client/plugins/tocitemssettings/SimpleVectorStyleEditor';
-
+import JSONViewer from '@js/components/data/identify/viewers/JSONViewer';
+import {getAvailableInfoFormat} from '@js/utils/MapInfoUtils';
+import FeatureInfoEditor from '@js/components/TOC/fragments/settings/FeatureInfoEditor';
+import FeatureInfoCmp from '@js/components/TOC/fragments/settings/FeatureInfo';
 
 const responses = {
     html,
@@ -39,19 +42,33 @@ const responses = {
     text
 };
 
-import { StyleSelector } from '../../../MapStore2/web/client/plugins/styleeditor/index';
 
 const StyleList = defaultProps({ readOnly: true })(StyleSelector);
 
+const ConnectedDisplay = connect(
+    createSelector([mapSelector], ({ zoom, projection }) => ({ zoom, projection }))
+)(Display);
+
+const ConnectedVectorStyleEditor = connect(
+    createSelector([isCesium], (enable3dStyleOptions) => ({ enable3dStyleOptions }))
+)(VectorStyleEditor);
+
 const isLayerNode = ({settings = {}} = {}) => settings.nodeType === 'layers';
-const isVectorStylableLayer = ({element = {}} = {}) => element.type === "wfs" || element.type === "vector" && element.id !== "annotations";
+const isVectorStylableLayer = ({element = {}} = {}) => element.type === "wfs" || element.type === "3dtiles" || element.type === "vector" && element.id !== "annotations";
 const isWMS = ({element = {}} = {}) => element.type === "wms";
+const isWFS = ({element = {}} = {}) => element.type === "wfs";
+
 const isStylableLayer = (props) =>
     isLayerNode(props)
     && (isWMS(props) || isVectorStylableLayer(props));
 
 
 const formatCards = {
+    HIDDEN: {
+        titleId: 'layerProperties.hideFormatTitle',
+        descId: 'layerProperties.hideFormatDescription',
+        glyph: 'hide-marker'
+    },
     TEXT: {
         titleId: 'layerProperties.textFormatTitle',
         descId: 'layerProperties.textFormatDescription',
@@ -103,7 +120,7 @@ const formatCards = {
                         <span>
                             <p><Message msgId="layerProperties.templateFormatInfoAlert2" msgParams={{ attribute: '{ }' }} /></p>
                             <pre>
-                                <Message msgId="layerProperties.templateFormatInfoAlertExample" msgParams={{ properties: '{ properties.id }' }} />
+                                <HTML msgId="layerProperties.templateFormatInfoAlertExample"/>
                             </pre>
                             <p><small><Message msgId="layerProperties.templateFormatInfoAlert1" /></small>&nbsp;(&nbsp;<Glyphicon glyph="pencil" />&nbsp;)</p>
                         </span>}
@@ -113,11 +130,12 @@ const formatCards = {
         )
     }
 };
-import GFICmp from '../../components/TOC/fragments/settings/GFI';
+
 const FeatureInfo = defaultProps({
     formatCards,
-    defaultInfoFormat: MapInfoUtils.getAvailableInfoFormat()
-})(GFICmp);
+    defaultInfoFormat: Object.assign({ "HIDDEN": "text/html"}, getAvailableInfoFormat())
+})(FeatureInfoCmp);
+
 const MapTip = defaultProps({
     settingName: 'mapTip'
 })(FeatureInfo);
@@ -128,7 +146,7 @@ const getConfiguredPlugin = (plugin, loaded, loadingComp) => {
     if (plugin) {
         let configured = configuredPlugins[plugin.name];
         if (!configured) {
-            configured = PluginsUtils.getConfiguredPlugin(plugin, loaded, loadingComp);
+            configured = getConfiguredPluginUtil(plugin, loaded, loadingComp);
             if (configured && configured.loaded) {
                 configuredPlugins[plugin.name] = configured;
             }
@@ -139,10 +157,9 @@ const getConfiguredPlugin = (plugin, loaded, loadingComp) => {
 };
 
 export const getStyleTabPlugin = ({ settings, items = [], loadedPlugins, onToggleStyleEditor = () => { }, onUpdateParams = () => { }, element, ...props }) => {
+
     if (isVectorStylableLayer({element})) {
-        return {
-            Component: SimpleVectorStyleEditor
-        };
+        return { Component: ConnectedVectorStyleEditor };
     }
     // get Higher priority plugin that satisfies requirements.
     const candidatePluginItems =
@@ -187,14 +204,15 @@ export const getStyleTabPlugin = ({ settings, items = [], loadedPlugins, onToggl
     const item = head(candidatePluginItems);
     // StyleEditor case TODO: externalize `onClose` trigger (delegating action dispatch) and components creation to make the two plugins independent
     if (item && item.plugin) {
+        const cfg = item.cfg || item.plugin.cfg;
         return {
             // This is connected on TOCItemsSettings close, not on StyleEditor unmount
             // to prevent re-initialization on each tab switch.
             onClose: () => onToggleStyleEditor(null, false),
-            Component: getConfiguredPlugin({ ...item, cfg: { ...(item.cfg || item.plugin.cfg || {}), active: true } }, loadedPlugins, <LoadingView width={100} height={100} />),
+            Component: getConfiguredPlugin({ ...item, cfg: { ...(cfg || {}), active: true } }, loadedPlugins, <LoadingView width={100} height={100} />),
             toolbarComponent: item.ToolbarComponent
                 && (
-                    item.plugin.cfg && defaultProps(item.plugin.cfg)(item.ToolbarComponent) || item.ToolbarComponent
+                    cfg && defaultProps(cfg)(item.ToolbarComponent) || item.ToolbarComponent
                 )
         };
     }
@@ -219,7 +237,7 @@ export default ({ showFeatureInfoTab = true, showMapTipTab = false, loadedPlugin
             tooltipId: 'layerProperties.display',
             glyph: 'eye-open',
             visible: isLayerNode(props),
-            Component: Display
+            Component: ConnectedDisplay
         },
         {
             id: 'style',
@@ -235,7 +253,7 @@ export default ({ showFeatureInfoTab = true, showMapTipTab = false, loadedPlugin
             titleId: 'layerProperties.featureInfo',
             tooltipId: 'layerProperties.featureInfo',
             glyph: 'map-marker',
-            visible: showFeatureInfoTab && isLayerNode(props) && isWMS(props) && !(props.element.featureInfo && props.element.featureInfo.viewer),
+            visible: showFeatureInfoTab && isLayerNode(props) && (isWMS(props) || isWFS(props)) && !(props.element.featureInfo && props.element.featureInfo.viewer),
             Component: FeatureInfo,
             toolbar: [
                 {

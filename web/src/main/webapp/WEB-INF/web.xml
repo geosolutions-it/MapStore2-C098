@@ -8,6 +8,7 @@
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
             classpath*:applicationContext.xml
+            classpath*:applicationContext-print.xml
         </param-value>
 	</context-param>
     <display-name>Servizio Idrogeologico di Regione Toscana - Web App</display-name>
@@ -18,13 +19,12 @@
 
     <context-param>
       <param-name>proxyPropPath</param-name>
-      <param-value>/proxy.properties</param-value>
+      <param-value>/proxy.properties,${datadir.location}/proxy.properties</param-value>
     </context-param>
 
-    <!-- spring context loader -->
-    <listener>
+    <!-- spring context loader --><!--listener>
 		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
-    </listener>
+    </listener-->
 
 	<!--
       - Loads the root application context of this web app at startup.
@@ -35,6 +35,16 @@
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
+    <!-- Allow to use RequestContextHolder -->
+    <filter>
+            <filter-name>springRequestContextFilter</filter-name>
+            <filter-class>org.springframework.web.filter.RequestContextFilter</filter-class>
+        </filter>
+        <filter-mapping>
+            <filter-name>springRequestContextFilter</filter-name>
+            <url-pattern>/*</url-pattern>
+        </filter-mapping>
+
 	<!-- Spring Security Servlet -->
 	<filter>
 		<filter-name>springSecurityFilterChain</filter-name>
@@ -44,6 +54,56 @@
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/rest/*</url-pattern>
 	</filter-mapping>
+
+	<!-- GZip compression -->
+	<filter>
+		<filter-name>CompressionFilter</filter-name>
+		<filter-class>net.sf.ehcache.constructs.web.filter.GzipFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>CompressionFilter</filter-name>
+		<url-pattern>*.css</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>CompressionFilter</filter-name>
+		<url-pattern>*.html</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>CompressionFilter</filter-name>
+		<url-pattern>*.js</url-pattern>
+	</filter-mapping>
+
+    <!--  Backend Spring MVC controllers -->
+    <!--  Backward compatibility -->
+    <servlet>
+        <servlet-name>loadAssets</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>loadAssets</servlet-name>
+        <url-pattern>/rest/config/*</url-pattern>
+    </servlet-mapping>
+    <!--  Configs -->
+    <servlet>
+        <servlet-name>configs</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>configs</servlet-name>
+        <url-pattern>/configs/*</url-pattern>
+    </servlet-mapping>
+    <!-- Extensions -->
+    <servlet>
+        <servlet-name>extensions</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>extensions</servlet-name>
+        <url-pattern>/extensions/*</url-pattern>
+    </servlet-mapping>
 
     <!-- CXF Servlet -->
 	<servlet>
@@ -80,7 +140,7 @@
       <servlet-name>mapfish.print</servlet-name>
       <url-pattern>/pdf/*</url-pattern>
     </servlet-mapping>
-	
+
 	<!-- Default page to serve -->
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>

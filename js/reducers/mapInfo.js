@@ -6,7 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const {
+import assign from 'object-assign';
+import { findIndex, isUndefined, isEmpty, isString } from 'lodash';
+import buffer from 'turf-buffer';
+import intersect from 'turf-intersect';
+
+import { MAP_CONFIG_LOADED } from '@mapstore/actions/config';
+import { RESET_CONTROLS } from '@mapstore/actions/controls';
+import { MAP_TYPE_CHANGED } from '@mapstore/actions/maptype';
+
+import {
     ERROR_FEATURE_INFO,
     EXCEPTIONS_FEATURE_INFO,
     LOAD_FEATURE_INFO,
@@ -31,18 +40,14 @@ const {
     TOGGLE_SHOW_COORD_EDITOR,
     SET_CURRENT_EDIT_FEATURE_QUERY,
     SET_MAP_TRIGGER,
+    SET_SHOW_IN_MAP_POPUP,
+    INIT_PLUGIN,
     SET_ENABLE_MAP_TIP_FORMAT,
     SET_MAP_TIP_ACTIVE_LAYER_ID,
     SET_GFI_TYPE
-} = require('../actions/mapInfo');
-const {
-    MAP_CONFIG_LOADED
-} = require('../../MapStore2/web/client/actions/config');
-const {RESET_CONTROLS} = require('../../MapStore2/web/client/actions/controls');
+} from '@js/actions/mapInfo';
 
-const assign = require('object-assign');
-const {findIndex, isUndefined, isString} = require('lodash');
-const {getValidator} = require('../utils/MapInfoUtils');
+import { getValidator } from '@js/utils/MapInfoUtils';
 
 /**
  * Identifies when to update a index when the display information trigger is click (GFI panel)
@@ -52,27 +57,29 @@ const {getValidator} = require('../utils/MapInfoUtils');
  * @param {boolean} isVector type of the response received is vector or not
  */
 const isIndexValid = (state, responses, requestIndex, isVector) => {
-    const {configuration, requests, queryableLayers, index} = state;
+    const {configuration, requests, queryableLayers = [], index} = state;
     const {infoFormat} = configuration || {};
-
+    const { layer = {} } = responses[requestIndex] || {};
+    // these layers do not perform requests to a backend
+    const isVectorLayer = !!(isVector || layer.type === '3dtiles');
     // Index when first response received is valid
-    const validResponse = getValidator(infoFormat)?.getValidResponses([responses[requestIndex]], true);
-    const inValidResponse = getValidator(infoFormat)?.getNoValidResponses(responses, true);
-    return ((isUndefined(index) && !!validResponse.length)
-        || (!isVector && requests.length === inValidResponse.filter(res=>res).length)
-        || (isVector && requests.length === 1 && queryableLayers.length === 1)
-    );
+    const validResponse = getValidator(infoFormat)?.getValidResponses([responses[requestIndex]]);
+    const inValidResponse = getValidator(infoFormat)?.getNoValidResponses(responses);
+    const cond1 = isUndefined(index) && !!validResponse.length;
+    const cond2 = !isVectorLayer && requests.length === inValidResponse.filter(res => res).length;
+    const cond3 = isUndefined(index) && isVector && requests.filter(r => isEmpty(r)).length === queryableLayers.length;
+    return (cond1 || cond2 || cond3);
+    // Check if all requested layers are vector
 };
-
 /**
  * Handles responses based on the type ["data"|"exceptions","error","vector"] of the responses received
  * @param {object} state current state of the reducer
  * @param {object} action object of the current response
- * @param {boolean} type type of the response received
+ * @param {string} type type of the response received
  */
 function receiveResponse(state, action, type) {
     const isVector = type === "vector";
-    const requestIndex = !isVector ? findIndex((state.requests || []), (req) => req.reqId === action.reqId) : findIndex((state.requests || []), (req) => !req.reqId);
+    const requestIndex = !isVector ? findIndex((state.requests || []), (req) => req.reqId === action.reqId) : action.reqId;
 
     if (requestIndex !== -1) {
         // Filter un-queryable layer
@@ -87,7 +94,8 @@ function receiveResponse(state, action, type) {
         // Handle data and vector responses
         const {configuration: config, requests} = state;
         let responses = state.responses || [];
-        const isHover = config?.trigger === "hover" || !!config?.mapTipActiveLayerId; // Display info trigger
+        // TODO check this, if state?.showInMapPopup is needed
+        const isHover = config?.trigger === "hover" || state?.showInMapPopup || !!config?.mapTipActiveLayerId; // Display info trigger
 
         if (!isVector) {
             const updateResponse = {
@@ -105,14 +113,16 @@ function receiveResponse(state, action, type) {
             }
         }
 
-        console.log('isHover', isHover);
         let indexObj;
         if (isHover) {
             indexObj = {loaded: true, index: 0};
         } else if (!isHover && isIndexValid(state, responses, requestIndex, isVector)) {
             indexObj = {loaded: true, index: requestIndex};
+        } else if (responses.length === requests.length && !indexObj?.loaded) {
+            // if all responses are empty hence valid but with no valid index
+            // then set loaded to true
+            indexObj = {loaded: true};
         }
-
         // Set responses and index as first response is received
         return assign({}, state, {
             ...(isVector && {requests}),
@@ -142,6 +152,7 @@ const initState = {
  * }
  * ```
  * @prop {object} configuration contains the configuration for getFeatureInfo tool.
+ * @prop {boolean} showInMapPopup if true, the results are always shown in a popup (if configuration.hover = true, they are by default)
  * @prop {array} requests the requests performed. Here a sample:
  * ```javascript
  * {
@@ -297,7 +308,6 @@ function mapInfo(state = initState, action) {
     case CHANGE_MAPINFO_FORMAT: {
         const stateInfoFormat = state.configuration?.infoFormat;
         const infoFormat = isString(stateInfoFormat) ? {featureInfo: stateInfoFormat} : stateInfoFormat;
-
         return {...state,
             configuration: {
                 ...state.configuration,
@@ -334,12 +344,14 @@ function mapInfo(state = initState, action) {
         return assign({}, state, {
             showMarker: false,
             responses: [],
-            requests: []
+            requests: [],
+            configuration: {
+                ...state.configuration,
+                trigger: "click"
+            }
         });
     }
     case GET_VECTOR_INFO: {
-        const buffer = require('turf-buffer');
-        const intersect = require('turf-intersect');
         const point = {
             "type": "Feature",
             "properties": {},
@@ -387,7 +399,8 @@ function mapInfo(state = initState, action) {
 
         );
         let responses = state.responses || [];
-        const isHover = state?.configuration?.trigger === 'hover' || false;
+        // Display feature info in popup
+        const isHover = state?.configuration?.trigger === 'hover' || state?.showInMapPopup;
         const vectorResponse = {
             response: {
                 crs: null,
@@ -399,19 +412,22 @@ function mapInfo(state = initState, action) {
             layerMetadata: action.metadata,
             format: 'JSON'
         };
-
+        let vectorAction;
         // Add response such that it doesn't replace other layer response's index
         if (!isHover) {
             responses[state.requests.length] = vectorResponse;
+            // To identify vector request index
+            vectorAction = {reqId: state.requests.length};
         } else {
             responses = [...responses, vectorResponse];
+            vectorAction = {reqId: 0};
         }
         const requests = [...state.requests, {}];
         return receiveResponse(assign({}, state, {
             requests,
             queryableLayers: action.queryableLayers,
             responses: [...responses]
-        }), null, "vector");
+        }), vectorAction, "vector");
     }
     case UPDATE_CENTER_TO_MARKER: {
         return assign({}, state, {
@@ -457,6 +473,34 @@ function mapInfo(state = initState, action) {
             }
         };
     }
+    case SET_SHOW_IN_MAP_POPUP: {
+        return {
+            ...state,
+            showInMapPopup: action.value // this is global, actually not saved in map configuration (configuration part)
+        };
+    }
+    case MAP_TYPE_CHANGED: {
+        if (action.mapType === "cesium") {
+            return {
+                ...state,
+                configuration: {
+                    ...state.configuration,
+                    trigger: "click"
+                }
+            };
+        }
+        return state;
+    }
+    case INIT_PLUGIN: {
+        return {
+            ...state,
+            ...action.cfg,
+            configuration: {
+                ...state.configuration,
+                ...(action.cfg?.configuration)
+            }
+        };
+    }
     case SET_ENABLE_MAP_TIP_FORMAT: {
         return {
             ...state,
@@ -483,4 +527,4 @@ function mapInfo(state = initState, action) {
     }
 }
 
-module.exports = mapInfo;
+export default mapInfo;

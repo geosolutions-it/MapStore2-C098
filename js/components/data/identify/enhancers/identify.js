@@ -6,9 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const {lifecycle, withHandlers, mapProps, compose} = require('recompose');
-const {set} = require('../../../../../MapStore2/web/client/utils/ImmutableUtils');
-const {isNil, isNaN} = require('lodash');
+import { isNaN, isNil } from 'lodash';
+import { compose, lifecycle, mapProps, withHandlers } from 'recompose';
+
+import { set } from '@mapstore/utils/ImmutableUtils';
 
 /**
  * Enhancer to enable set index only if Component has header
@@ -18,7 +19,7 @@ const {isNil, isNaN} = require('lodash');
  * @memberof enhancers.identifyHandlers
  * @class
  */
-const identifyHandlers = withHandlers({
+export const identifyHandlers = withHandlers({
     needsRefresh: () => (props, newProps) => {
         if (newProps.enabled && newProps.point && newProps.point.pixel) {
             if (!props.point || !props.point.pixel ||
@@ -62,7 +63,7 @@ const identifyHandlers = withHandlers({
  * @memberof components.data.identify.enhancers.identify
  * @name identifyLifecycle
  */
-const identifyLifecycle = compose(
+export const identifyLifecycle = compose(
     identifyHandlers,
     mapProps(({enableMapTipFormat, enableMapTipFormatState, mouseMoveIdentifyActive, ...props}) => ({
         ...props,
@@ -72,21 +73,38 @@ const identifyLifecycle = compose(
         componentDidMount(prevProps) {
             const {
                 enabled,
+                showInMapPopup,
+                maxItems,
                 changeMousePointer = () => {},
                 disableCenterToMarker,
+                enableInfoForSelectedLayers = true,
                 onEnableCenterToMarker = () => {},
+                setShowInMapPopup = () => {},
+                checkIdentifyIsMounted = () => {},
+                onInitPlugin = () => {},
                 enableMapTipFormat = false,
                 setEnableMapTipFormat = () => {}
             } = this.props;
 
-            if (enabled) {
+            // Initialize plugin configuration
+            onInitPlugin({
+                enableInfoForSelectedLayers,
+                configuration: {
+                    maxItems
+                }
+            });
+
+            if (enabled || showInMapPopup) {
                 changeMousePointer('pointer');
+                checkIdentifyIsMounted(true);
+            } else {
+                checkIdentifyIsMounted(false);
             }
 
             if (!disableCenterToMarker) {
                 onEnableCenterToMarker();
             }
-
+            setShowInMapPopup(showInMapPopup);
             if (prevProps?.enableMapTipFormat !== enableMapTipFormat) {
                 setEnableMapTipFormat(enableMapTipFormat);
             }
@@ -95,9 +113,11 @@ const identifyLifecycle = compose(
             const {
                 hideMarker = () => { },
                 purgeResults = () => { },
-                changeMousePointer = () => { }
+                changeMousePointer = () => { },
+                checkIdentifyIsMounted = () => {}
             } = this.props;
             changeMousePointer('auto');
+            checkIdentifyIsMounted(false);
             hideMarker();
             purgeResults();
         },
@@ -115,10 +135,13 @@ const identifyLifecycle = compose(
                 hideMarker();
                 purgeResults();
             }
+            if (this.props.showInMapPopup !== newProps.showInMapPopup) {
+                newProps.setShowInMapPopup?.(newProps.showInMapPopup);
+            }
         }
     })
 );
 
-module.exports = {
+export default {
     identifyLifecycle
 };
